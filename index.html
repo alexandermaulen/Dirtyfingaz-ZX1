@@ -373,7 +373,7 @@ body{background:#041a06;touch-action:none}html,body{overscroll-behavior:none;ove
     <div class="l2"><span>ENC:ZOOM:1X1</span><span>A-3</span><span>M:ISO</span><span class="lcd-action" id="browse">BROWSE</span><span class="lcd-action" id="transientChop">TRNS</span></div><i class="mk l trim-marker" data-trim-target="start" role="button" tabindex="0" aria-label="Seleccionar IN">IN</i><i class="mk r trim-marker" data-trim-target="end" role="button" tabindex="0" aria-label="Seleccionar OUT">OUT</i>
    </div>
    <div class="v2">
-    <div class="ph"><button type="button" id="play" class="transport-control">&#9654; PLAY</button><button type="button" id="stop" class="transport-control">■ STOP</button><span id="bpmWheel" class="bpm-wheel">BPM:120</span></div>
+    <div class="ph"><button type="button" id="play" class="transport-control">&#9654; PLAY</button><button type="button" id="stop" class="transport-control">■ STOP</button><span id="bpmWheel" class="bpm-wheel" role="slider" tabindex="0" aria-label="Tempo, beats per minute" aria-valuemin="40" aria-valuemax="240" aria-valuenow="96">BPM:96</span></div>
     <div class="gr" id="gr"></div>
     <div class="pf">PATTERN EDIT</div>
    </div>
@@ -1101,8 +1101,13 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
   patternButton?.addEventListener('click',()=>setPatternEditOpen(!scr.classList.contains('pr')));
   window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false));
 
- let bpmValue=120,lastY=null,remainder=0;
- const adjustTempo=delta=>{bpmValue=Math.max(40,Math.min(240,bpmValue+delta));bpm.textContent='BPM:'+bpmValue;window.zpBridgeSend?.('creator.bpm.adjust',{delta})};
+ let bpmValue=96,lastY=null,remainder=0;
+ const syncBpmDisplay=value=>{const next=Number(value);if(!Number.isFinite(next))return false;bpmValue=Math.max(40,Math.min(240,Math.round(next)));bpm.textContent='BPM:'+bpmValue;bpm.setAttribute('aria-valuenow',String(bpmValue));return true};
+ const adjustTempo=delta=>{syncBpmDisplay(bpmValue+delta);window.zpBridgeSend?.('creator.bpm.adjust',{delta})};
+ // El estado publicado por el motor prevalece sobre la previsualización optimista de la rueda.
+ window.addEventListener('zp-agent-runtime-context',event=>{const state=event.detail||{};if(Number.isFinite(Number(state.bpm)))syncBpmDisplay(state.bpm)});
+ window.addEventListener('zp-engine-result',event=>{const packet=event.detail||{};if(!['creator.bpm.state','creator.bpm.adjust','creator.bpm.set','creator.bpm.tap','creator.bpm.preset.set'].includes(packet.command))return;const data=packet.result?.data||packet.result;if(Number.isFinite(Number(data?.bpm)))syncBpmDisplay(data.bpm)});
+
  bpm.addEventListener('pointerdown',e=>{lastY=e.clientY;remainder=0;bpm.setPointerCapture(e.pointerId)});
  bpm.addEventListener('pointermove',e=>{if(lastY===null)return;remainder+=lastY-e.clientY;lastY=e.clientY;const delta=Math.trunc(remainder/5);if(delta){remainder-=delta*5;adjustTempo(delta)}});
  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>bpm.addEventListener(t,()=>lastY=null));
@@ -1113,7 +1118,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  window.addEventListener('message',e=>{
   if(e.source!==document.getElementById('zp-engine')?.contentWindow||e.origin!==location.origin||!e.data)return;const d=e.data;if(d.source!=='creator.engine')return;
   if(d.type==='zp-engine-playhead'&&d.protocolVersion===1&&d.source==='creator.engine'){fill.style.width=((d.step+1)/16*100)+'%';window.__zpPlayheadState={step:d.step,at:performance.now(),bpm:bpmValue||120}}if(d.type==='zp-engine-piano-state'&&d.protocolVersion===1&&d.source==='creator.engine'){activeNotes=Array.isArray(d.notes)?d.notes.map(n=>({...n})):[];selectedNoteId=activeNotes.some(n=>n.id===selectedNoteId)?selectedNoteId:null;renderNotes();paintPadMidi()}if(d.type==='zp-engine-playhead'&&d.protocolVersion===1&&d.source==='creator.engine'){const play=$('#zpPianoPlayhead');if(play)play.style.gridColumn=String(d.step+2)}
-  if(d.type==='zp-engine-bpm-state'&&d.protocolVersion===1&&d.source==='creator.engine'){bpmValue=d.bpm;bpm.textContent='BPM:'+bpmValue}
+  if(d.type==='zp-engine-bpm-state'&&d.protocolVersion===1&&d.source==='creator.engine'){syncBpmDisplay(d.bpm)}
   if(d.type==='zp-engine-meter'&&d.protocolVersion===1&&d.source==='creator.engine'){line.classList.toggle('peak',d.peak>.82)}
   if(d.type==='zp-engine-trim-state'&&d.protocolVersion===1&&d.source==='creator.engine'){const c=$('#wv');if(c&&d.transients){const x=c.getContext('2d'),w=c.width,h=c.height;x.save();x.strokeStyle='#ffb34b';x.lineWidth=1.5;d.transients.forEach(p=>{const px=p*w;x.beginPath();x.moveTo(px,2);x.lineTo(px,h-2);x.stroke()});x.restore()}}
  });
