@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#10140e">
+  <meta name="description" content="Dirtyfingaz ZX1 2.0 · Mobile sampler workstation">
+  <title>Dirtyfingaz ZX1 2.0</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="workstation" id="app">
+    <header class="topbar">
+      <div class="brand-lockup">
+        <span class="brand-mark">ZX1</span>
+        <div><strong>DIRTYFINGAZ</strong><small>CREATOR · 2.0</small></div>
+      </div>
+      <div class="project-readout"><span class="led"></span><span>NEW PROJECT</span><small>EMPTY</small></div>
+      <button class="utility-trigger" id="BTN_UTILITY" type="button" aria-expanded="false" aria-controls="UTILITY_MENU">
+        <span class="utility-glyph">▤</span><span>UTILITY</span><span class="chevron">⌃</span>
+      </button>
+    </header>
+
+    <section class="utility-menu" id="UTILITY_MENU" aria-hidden="true">
+      <div class="menu-heading"><span>UTILITY MENU</span><small>ZX1 / SYSTEM</small></div>
+      <button class="menu-item" id="BTN_UTILITY_PROJECT" type="button"><span>01</span> NEW PROJECT <small>EMPTY SESSION</small></button>
+      <button class="menu-item" id="BTN_UTILITY_LAYOUT" type="button"><span>02</span> EDIT LAYOUT <small>CONTROL IDS</small></button>
+      <button class="menu-item" id="BTN_UTILITY_ABOUT" type="button"><span>03</span> SYSTEM INFO <small>ZX1 2.0</small></button>
+    </section>
+
+    <section class="creator-head">
+      <div class="section-kicker"><span>01 / CREATOR</span><span class="line"></span><span class="status">READY</span></div>
+      <div class="creator-title-row">
+        <div><h1>PAD MATRIX</h1><p>16 tactile slots <span>·</span> BANK A</p></div>
+        <div class="bank-switch" aria-label="Pad bank">
+          <button class="bank-button active" id="BTN_BANK_A" type="button">A</button>
+          <button class="bank-button" id="BTN_BANK_B" type="button">B</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="pad-matrix" id="PAD_MATRIX" aria-label="Matriz de 16 pads">
+      <button class="pad" id="PAD_01" data-pad="1" type="button"><span class="pad-number">01</span><span class="pad-name">PAD 01</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_02" data-pad="2" type="button"><span class="pad-number">02</span><span class="pad-name">PAD 02</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_03" data-pad="3" type="button"><span class="pad-number">03</span><span class="pad-name">PAD 03</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_04" data-pad="4" type="button"><span class="pad-number">04</span><span class="pad-name">PAD 04</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_05" data-pad="5" type="button"><span class="pad-number">05</span><span class="pad-name">PAD 05</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_06" data-pad="6" type="button"><span class="pad-number">06</span><span class="pad-name">PAD 06</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_07" data-pad="7" type="button"><span class="pad-number">07</span><span class="pad-name">PAD 07</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_08" data-pad="8" type="button"><span class="pad-number">08</span><span class="pad-name">PAD 08</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_09" data-pad="9" type="button"><span class="pad-number">09</span><span class="pad-name">PAD 09</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_10" data-pad="10" type="button"><span class="pad-number">10</span><span class="pad-name">PAD 10</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_11" data-pad="11" type="button"><span class="pad-number">11</span><span class="pad-name">PAD 11</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_12" data-pad="12" type="button"><span class="pad-number">12</span><span class="pad-name">PAD 12</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_13" data-pad="13" type="button"><span class="pad-number">13</span><span class="pad-name">PAD 13</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_14" data-pad="14" type="button"><span class="pad-number">14</span><span class="pad-name">PAD 14</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_15" data-pad="15" type="button"><span class="pad-number">15</span><span class="pad-name">PAD 15</span><span class="pad-state">EMPTY</span></button>
+      <button class="pad" id="PAD_16" data-pad="16" type="button"><span class="pad-number">16</span><span class="pad-name">PAD 16</span><span class="pad-state">EMPTY</span></button>
+    </section>
+
+    <section class="control-strip">
+      <div class="encoder-block">
+        <span class="micro-label">VALUE</span>
+        <button class="encoder" id="BTN_VALUE" type="button" aria-label="Value encoder"><span></span></button>
+        <strong id="VALUE_READOUT">000</strong>
+      </div>
+      <div class="quick-controls">
+        <button class="quick-button" id="BTN_MIXER" type="button"><span>▥</span>MIXER</button>
+        <button class="quick-button" id="BTN_SEQUENCER" type="button"><span>▦</span>SEQUENCER</button>
+        <button class="quick-button" id="BTN_SAMPLES" type="button"><span>◫</span>SAMPLES</button>
+      </div>
+    </section>
+
+    <nav class="module-tabs" aria-label="Creator modules">
+      <button class="module-tab active" id="TAB_CREATOR" type="button">CREATOR</button>
+      <button class="module-tab" id="TAB_SEQUENCER" type="button">SEQUENCER</button>
+      <button class="module-tab" id="TAB_MIXER" type="button">MIXER</button>
+    </nav>
+
+    <footer class="transport">
+      <div class="transport-label"><span class="transport-led"></span><span>TRANSPORT</span></div>
+      <div class="transport-buttons">
+        <button class="transport-button stop" id="BTN_STOP" type="button">■ <span>STOP</span></button>
+        <button class="transport-button play" id="BTN_PLAY" type="button">▶ <span>PLAY</span></button>
+        <button class="transport-button rec" id="BTN_REC" type="button">● <span>REC</span></button>
+      </div>
+      <div class="bpm-control"><button id="BTN_BPM_DOWN" type="button" aria-label="Decrease BPM">−</button><div><small>BPM</small><strong id="BPM_VALUE">120</strong></div><button id="BTN_BPM_UP" type="button" aria-label="Increase BPM">+</button></div>
+    </footer>
+    <div class="bottom-edge"><span>DFX / ZX1.2</span><span id="SYSTEM_MESSAGE">SYSTEM READY · NO AUDIO ENGINE</span><span>48K / --</span></div>
+  </main>
+  <script src="app.js"></script>
+</body>
+</html>
