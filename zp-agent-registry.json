@@ -832,7 +832,8 @@
       "creator.bpm.detect",
       "creator.panic",
       "creator.metronome.accent.set",
-      "creator.metronome.signature.set"
+      "creator.metronome.signature.set",
+      "creator.record.countin.toggle"
     ],
     "audioPolicy": "No AudioContext or microphone stream is created at startup. Metronome, tuner and audio playback activate only after explicit interaction.",
     "groupLayout": {
@@ -857,10 +858,10 @@
     ],
     "pendingRequirements": [
       "Explicit audio input/output device selection and routing",
-      "CPU load and memory usage metrics where browser APIs expose them",
+      "CPU load and memory usage metrics where browser APIs expose them; Safari does not expose general CPU load/memory metrics",
       "True LUFS metering; current master meter is peak-only",
       "Copy PAD, copy value and paste into last-selected control",
-      "Metronome accent/count-in behavior validation in Safari/iPhone"
+      "Safari/iPhone functional validation of Utility and audio capture"
     ]
   },
   "projectMenu": {
