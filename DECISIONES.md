@@ -86,6 +86,14 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 - Alternativas descartadas: disparar el workflow de Pages desde la rama de auditoría o permitir que la rama publique el sitio.
 - Impacto: los commits en la rama de auditoría ejecutan el validador y no modifican el sitio publicado.
 
+### AUD-DEC-004 · Integridad de recursos y comandos GUI/motor
+
+- Fecha: 2026-11-10
+- Decisión: ampliar el validador Node para comprobar que los recursos locales referenciados por los HTML existen y que los comandos estáticos enviados por el agente contextual están registrados por el motor.
+- Motivo: la sintaxis por sí sola no detecta rutas rotas ni divergencias entre las acciones del agente y el contrato del motor.
+- Alternativas descartadas: incorporar un bundler o dependencias de terceros solo para estas comprobaciones.
+- Impacto: las comprobaciones se ejecutan en CI con módulos nativos de Node y no modifican la arquitectura runtime.
+
 ## Registro de cambios
 
 | Fecha | Cambio | Evidencia / verificación |
@@ -93,3 +101,4 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 | 2026-11-10 | Inicio de auditoría y creación de esta bitácora | Repositorio, árbol recursivo, SHA de main y workflow inspeccionados |
 | 2026-11-10 | Corrección de aserción PATTERN EDIT | Se alinea el validador con el listener real que recibe el evento y ejecuta preventDefault; el comportamiento de la GUI no se modifica |
 | 2026-11-10 | CI aislado y documentación del flujo | Workflow de auditoría solo ejecuta validación en `mejoras/auditoria`; README deja de prescribir trabajo directo en main |
+| 2026-11-10 | Pruebas de integridad ampliadas | Se añaden verificaciones de existencia de recursos locales y correspondencia de los 13 comandos estáticos del agente con el motor |

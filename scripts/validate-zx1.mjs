@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import vm from "node:vm";
+import path from "node:path";
 
 const read = (path) => fs.readFileSync(path, "utf8");
 const errors = [];
@@ -223,6 +224,23 @@ check(engine.includes('runtime.register("creator.bank.select"') &&
   "Engine must accept bank selection and publish the authoritative active bank");
 check(gui.includes('document.querySelectorAll("#rows .b[data-bank]").forEach(b=>b.classList.toggle("lit",b.dataset.bank===state.activeBank))'),
   "GUI bank highlight must reconcile from authoritative engine radio state");
+
+
+/* Repository integrity · local assets and GUI-to-engine command parity */
+for (const file of ["index.html", "creator-engine.html"]) {
+  const html = read(file);
+  for (const [, reference] of html.matchAll(/<(?:script|link)\\b[^>]*?\\b(?:src|href)=["']([^"']+)["'][^>]*>/gi)) {
+    if (/^(?:https?:|data:|#|\\/\\/)/i.test(reference)) continue;
+    const localPath = reference.split(/[?#]/)[0].replace(/^\\.\\//, "");
+    check(fs.existsSync(path.resolve(localPath)), file + " local asset missing: " + reference);
+  }
+}
+const agentSource = read("zp-agent.js");
+const agentCommands = [...new Set([...agentSource.matchAll(/send\\("(creator\\.[^"]+)"/g)].map(match => match[1]))];
+for (const command of agentCommands) {
+  check(engine.includes('runtime.register("' + command + '"'), "Agent command is not registered by engine: " + command);
+}
+console.log("Repository integrity checks:", "local assets and", agentCommands.length, "agent commands");
 
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
