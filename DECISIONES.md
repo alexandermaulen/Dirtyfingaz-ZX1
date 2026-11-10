@@ -78,9 +78,18 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 - INC-003 · El workflow actual escucha push solo en `main`; por tanto, los commits de `mejoras/auditoria` no activan automáticamente la validación existente. Se necesita una ruta de test no desplegable para obtener evidencia CI en esta rama.
 - INC-004 · El validador esperaba un listener click sin parámetro, pero el código real usa `event=>{event.preventDefault();...}` para evitar la acción predeterminada del botón. El contrato funcional está presente; la aserción literal estaba obsoleta.
 
+### AUD-DEC-003 · CI de auditoría separado del despliegue
+
+- Fecha: 2026-11-10
+- Decisión: agregar un workflow limitado a pushes de `mejoras/auditoria` que ejecute validación Node, sin permisos de Pages ni pasos de publicación.
+- Motivo: el workflow de Pages escucha únicamente `main`, por lo que no entrega evidencia de pruebas en la rama aislada. Se requiere CI verificable sin desplegar.
+- Alternativas descartadas: disparar el workflow de Pages desde la rama de auditoría o permitir que la rama publique el sitio.
+- Impacto: los commits en la rama de auditoría ejecutan el validador y no modifican el sitio publicado.
+
 ## Registro de cambios
 
 | Fecha | Cambio | Evidencia / verificación |
 |---|---|---|
 | 2026-11-10 | Inicio de auditoría y creación de esta bitácora | Repositorio, árbol recursivo, SHA de main y workflow inspeccionados |
 | 2026-11-10 | Corrección de aserción PATTERN EDIT | Se alinea el validador con el listener real que recibe el evento y ejecuta preventDefault; el comportamiento de la GUI no se modifica |
+| 2026-11-10 | CI aislado y documentación del flujo | Workflow de auditoría solo ejecuta validación en `mejoras/auditoria`; README deja de prescribir trabajo directo en main |
