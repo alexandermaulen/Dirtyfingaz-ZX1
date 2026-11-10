@@ -216,6 +216,39 @@ canvas{width:168px;height:46px}
 .pattern-transport-line{will-change:transform;transform-origin:left center}
 @media(max-width:430px){.piano-tools{gap:3px}.piano-tools button{min-width:28px;padding:0 5px}.piano-tools .piano-zoom button{min-width:35px}}
 
+
+/* DIRTYFINGAZ ZX1 · FULLSCREEN MOBILE */
+@media (max-width: 500px) {
+  html, body {
+    width: 100%;
+    min-height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+  }
+  body {
+    display: flex;
+    justify-content: flex-start;
+    align-items: stretch;
+    min-height: 100dvh;
+  }
+  .unit {
+    width: 100%;
+    max-width: none;
+    min-height: 100dvh;
+    margin: 0;
+    padding:
+      calc(10px + env(safe-area-inset-top, 0px))
+      12px
+      calc(8px + env(safe-area-inset-bottom, 0px));
+    border: 0;
+    border-radius: 0;
+    box-shadow: none;
+  }
+  .unit::before, .fx {
+    border-radius: 0;
+  }
+}
 </style>
 <style id="zp-engine-frame">#zp-engine{position:fixed!important;left:-10000px!important;top:0!important;width:1px!important;height:1px!important;border:0!important;opacity:0!important;pointer-events:none!important}</style>
 <style id="zp-iphone11-fullscreen">
@@ -1209,8 +1242,8 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
    const width=vv?vv.width:document.documentElement.clientWidth;
    const height=vv?vv.height:window.innerHeight;
    const inset=safe();
-   const availableWidth=Math.max(1,width-inset.left-inset.right-16);
-   const availableHeight=Math.max(1,height-inset.top-inset.bottom-16);
+   const availableWidth=Math.max(1,width-inset.left-inset.right);
+   const availableHeight=Math.max(1,height-inset.top-inset.bottom);
    const naturalWidth=unit.offsetWidth||430;
    const naturalHeight=unit.offsetHeight||1;
    const scale=Math.max(.2,Math.min(1,availableWidth/naturalWidth,availableHeight/naturalHeight));
