@@ -1,5 +1,6 @@
 import fs from "node:fs";
 import vm from "node:vm";
+import path from "node:path";
 
 const read = (path) => fs.readFileSync(path, "utf8");
 const errors = [];
@@ -29,8 +30,11 @@ const engine = read("creator-engine.html");
 const gui = read("index.html");
 const survey = read("CM-ZX1-SURVEY.md");
 const storage = read("zp-storage.js");
-try { new vm.Script(storage, { filename: "zp-storage.js" }); console.log("JS syntax OK: zp-storage.js"); }
-catch (error) { errors.push("zp-storage.js: " + error.message); }
+for (const file of ["zp-storage.js", "zp-core.js", "zp-layout.js", "zp-agent.js", "vendor/lame.min.js"]) {
+  const source = file === "zp-storage.js" ? storage : read(file);
+  try { new vm.Script(source, { filename: file }); console.log("JS syntax OK:", file); }
+  catch (error) { errors.push(file + ": " + error.message); }
+}
 check(storage.includes("const DB_VERSION = 4;") && storage.includes("const HISTORY_STORE = \"projectHistory\";"),
   "History IndexedDB v4 store missing");
 for (const method of ["listHistory", "saveHistorySnapshot", "getHistorySnapshot", "replaceProjectSamples"]) {
@@ -89,7 +93,7 @@ check(gui.includes("FAVORITES ONLY"), "UTILITY favorites filter missing");
 check(gui.includes("pianoMode=false") && gui.includes("buildPiano();setPianoMode(false);"),
   "PATTERN EDIT must start closed with the step sequencer visible");
 check(gui.includes("const setPatternEditOpen=open=>") &&
-  gui.includes("patternButton?.addEventListener('click',()=>setPatternEditOpen(!scr.classList.contains('pr')))") &&
+  gui.includes("patternButton?.addEventListener('click',event=>{event.preventDefault();setPatternEditOpen(!scr.classList.contains('pr'))})") &&
   gui.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false))"),
   "PATTERN EDIT open/close toggle contract missing");
 check(!gui.includes("setTimeout(()=>setPianoMode(scr.classList.contains('pr')),0)"),
@@ -223,6 +227,23 @@ check(engine.includes('runtime.register("creator.bank.select"') &&
   "Engine must accept bank selection and publish the authoritative active bank");
 check(gui.includes('document.querySelectorAll("#rows .b[data-bank]").forEach(b=>b.classList.toggle("lit",b.dataset.bank===state.activeBank))'),
   "GUI bank highlight must reconcile from authoritative engine radio state");
+
+
+/* Repository integrity · local assets and GUI-to-engine command parity */
+for (const file of ["index.html", "creator-engine.html"]) {
+  const html = read(file);
+  for (const [, reference] of html.matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)=["']([^"']+)["'][^>]*>/gi)) {
+    if (/^(?:https?:|data:|#|\/\/)/i.test(reference)) continue;
+    const localPath = reference.split(/[?#]/)[0].replace(/^\.\//, "");
+    check(fs.existsSync(path.resolve(localPath)), file + " local asset missing: " + reference);
+  }
+}
+const agentSource = read("zp-agent.js");
+const agentCommands = [...new Set([...agentSource.matchAll(/send\("(creator\.[^"]+)"/g)].map(match => match[1]))];
+for (const command of agentCommands) {
+  check(engine.includes('runtime.register("' + command + '"'), "Agent command is not registered by engine: " + command);
+}
+console.log("Repository integrity checks:", "local assets and", agentCommands.length, "agent commands");
 
 if (errors.length) {
   console.error("\nVALIDATION FAILED");

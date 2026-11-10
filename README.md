@@ -40,7 +40,7 @@ The previous standalone sampler files `app.js` and `style.css` are removed becau
 - GitHub Pages deployment must be checked after the commit.
 
 ## Development flow
-Work directly on `main` as the single development line. Keep the repository references synchronized; do not create feature or test branches.
+Work on the explicitly selected working branch and keep `main` unchanged until review and approval. The current engineering audit is isolated in `mejoras/auditoria`. Validation on that branch is test-only and must never publish GitHub Pages. The Pages deployment remains restricted to `main`, including manual workflow dispatches.
 
 ## Master survey and implementation traceability
 - `CM-ZX1-SURVEY.md` is the versioned snapshot of the complete CM-ZX1 master survey, inventory, implementation checklist and feedback log.

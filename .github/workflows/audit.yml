@@ -1,0 +1,21 @@
+name: ZX1 audit validation
+
+on:
+  push:
+    branches:
+      - mejoras/auditoria
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout audit branch
+        uses: actions/checkout@v4
+      - name: Validate source and survey contracts
+        run: node scripts/validate-zx1.mjs
+      - name: Validate JSON registry
+        run: node -e "JSON.parse(require('node:fs').readFileSync('zp-agent-registry.json','utf8')); console.log('Registry JSON OK')"
