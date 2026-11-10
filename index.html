@@ -650,8 +650,8 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
   const d=event.detail||{};if(d.context!=="sample")return;
   const side=d.side==="L"?"lx":"rx",option=String(d.option||"").trim().toUpperCase();
   let mode=null;
-  if(side==="lx"&&["START","IN"].includes(option))mode="trim.start";
-  if(side==="rx"&&["END","OUT"].includes(option))mode="trim.end";
+  if(["START","IN"].includes(option))mode="trim.start";
+  if(["END","OUT"].includes(option))mode="trim.end";
   if(["PITCH","TRANSPOSE"].includes(option))mode="pad-pitch";
   const encoder=side==="lx"?lx:valueEncoder;
   if(!mode){encoder.dataset.panelOption=option;encoder.title=side.toUpperCase()+" · "+option+" · SIN ACCIÓN ASIGNADA";return;}
