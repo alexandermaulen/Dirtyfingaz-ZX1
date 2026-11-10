@@ -99,6 +99,7 @@ check(registry.controlIdentity?.internalIdAttribute === "data-control-id" &&
   registry.controlIdentity?.pads?.ids === "PAD_01 through PAD_09",
   "CM-ZX1-04 control identity contract missing");
 check(gui.includes('<script id="zx1-control-identity">') &&
+  gui.includes(".b,.knob,.p,.lcd-action,.bpm-wheel") &&
   gui.includes('dataset.controlModule=module'),
   "Dynamic control identity registration missing");
 check(gui.includes('pad.dataset.controlId=id') &&

@@ -1109,7 +1109,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
 </script>
 <script id="zx1-control-identity">
 (()=>{
- const selector='button,[role="button"],input,select,textarea,[tabindex]:not([tabindex="-1"]),.knob,.p';
+ const selector='button,[role="button"],input,select,textarea,[tabindex]:not([tabindex="-1"]),.b,.knob,.p,.lcd-action,.bpm-wheel';
  const owners=new Map(),elementIds=new WeakMap();
  const slug=value=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,28)||"CONTROL";
  const moduleOf=el=>{
@@ -1128,7 +1128,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
   if(!el.matches(selector))return;
   const module=moduleOf(el),label=el.getAttribute("aria-label")||el.getAttribute("title")||el.getAttribute("data-action")||el.textContent||el.id||el.tagName;
   const pad=el.classList.contains("p")&&/^PAD_\d{2}$/.test(el.id);
-  let base=pad?el.id:(semanticIds[el.id]||el.dataset.controlId||((el.tagName==="BUTTON"||el.getAttribute("role")==="button"||el.classList.contains("knob"))?((el.classList.contains("knob")?"KNOB":"BTN")+"_"):(el.tagName+"_"))+module+"_"+slug(el.id||label));
+  let base=pad?el.id:(semanticIds[el.id]||el.dataset.controlId||((el.tagName==="BUTTON"||el.getAttribute("role")==="button"||el.classList.contains("b")||el.classList.contains("lcd-action"))? "BTN_":(el.classList.contains("knob")?"KNOB_":(el.classList.contains("bpm-wheel")?"CONTROL_":el.tagName+"_")))+module+"_"+slug(el.id||label));
   if(elementIds.get(el)===base&&owners.get(base)===el)return;
   if(elementIds.get(el)){owners.delete(elementIds.get(el));elementIds.delete(el)}
   let candidate=base,n=2;
