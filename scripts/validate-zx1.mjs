@@ -29,6 +29,20 @@ const engine = read("creator-engine.html");
 const gui = read("index.html");
 const survey = read("CM-ZX1-SURVEY.md");
 
+const padBootstrap = gui.match(/<script id="zp-pad-bootstrap">([\\s\\S]*?)<\\/script>/)?.[1];
+check(!!padBootstrap, "PAD bootstrap script missing");
+if (padBootstrap) {
+  const host = { children: [], dataset: {}, append(node) { this.children.push(node); }, querySelectorAll(selector) { return selector === ".p" ? this.children.filter(node => node.className === "p") : []; } };
+  const documentMock = {
+    getElementById(id) { return host.children.find(node => node.id === id) || (id === "pads" ? host : null); },
+    createElement(tag) { return { tagName: tag.toUpperCase(), dataset: {}, attributes: {}, setAttribute(key, value) { this.attributes[key] = value; } }; }
+  };
+  vm.runInNewContext(padBootstrap, { document: documentMock, console });
+  check(host.children.length === 9, "PAD bootstrap must create exactly nine pads");
+  check(host.children.map(node => node.id).join(",") === Array.from({length:9}, (_,i) => "PAD_" + String(i+1).padStart(2,"0")).join(","), "PAD IDs must be PAD_01 through PAD_09");
+}
+
+
 check(Array.isArray(registry.utilitySystem?.groups) && registry.utilitySystem.groups.length === 8,
   "UTILITY must declare the eight survey-defined groups");
 check(gui.includes("utilityGroupDefinitions") && gui.includes("utility-search-hit"),
