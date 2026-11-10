@@ -46,7 +46,8 @@ Work directly on `main` as the single development line. Keep the repository refe
 - `CM-ZX1-SURVEY.md` is the versioned snapshot of the complete CM-ZX1 master survey, inventory, implementation checklist and feedback log.
 - The canonical editable decision record remains [Notion · CM-ZX1](https://app.notion.com/p/41348df94c488065b575ed6c0fafb024?pvs=204).
 - `zp-agent-registry.json` records the GUI/engine contract and the survey traceability policy. A checked survey item means the decision is approved, not that its code is complete.
-- Unresolved decisions must remain unresolved: CM-ZX1-04, the detailed RESONATOR function in CM-ZX1-45, and CM-ZX1-58 BTN_LIMITER.
+- CM-ZX1-04 identification convention is confirmed and implemented: short functional labels, unique internal IDs, PAD_01–PAD_09, and no persistent technical IDs rendered beneath controls.
+- Remaining unresolved decisions: detailed RESONATOR function in CM-ZX1-45 and CM-ZX1-58 BTN_LIMITER.
 
 ## Utility Center update
 - Eight survey-defined groups: Quick Edit, Metronome & Tempo, Quantization, Audio, Performance, Key & Tuning, Master & Safety, Analysis & Control.
@@ -57,3 +58,10 @@ Work directly on `main` as the single development line. Keep the repository refe
 ## Validation
 - `scripts/validate-zx1.mjs` parses inline JavaScript, validates the JSON registry, checks the complete survey snapshot and verifies registered Utility commands.
 - GitHub Pages workflow runs this validator before uploading the site artifact.
+
+
+## Control identity · CM-ZX1-04
+- Every interactive control receives a unique internal `data-control-id` and a `data-control-module` classification.
+- The nine pads are `PAD_01` through `PAD_09`, with concise accessible labels.
+- Internal identifiers are metadata only; they are not rendered permanently below controls.
+- Dynamically inserted controls are registered by the identity observer. The exhaustive human-reviewed control inventory remains an ongoing task.

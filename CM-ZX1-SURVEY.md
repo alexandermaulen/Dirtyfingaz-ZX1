@@ -15,7 +15,7 @@ Las casillas marcadas indican que la respuesta o decisión está confirmada y do
 - [x] CM-ZX1-01 · Superficie inicial lista según la decisión consolidada; las opciones literales originales no se recuperaron en la auditoría.
 - [x] CM-ZX1-02 · Organización de la interfaz lista según la decisión consolidada; las opciones literales originales no se recuperaron en la auditoría.
 - [x] CM-ZX1-03 · Proyecto vacío al iniciar, sin procesos ni paneles automáticos; UTILITY abre/cierra con toques sucesivos.
-- [ ] CM-ZX1-04 · Confirmar etiquetas cortas, IDs únicos y convención PAD\_01 en adelante; no asumir la propuesta como aprobada.
+- [x] CM-ZX1-04 · Identificación confirmada: etiquetas cortas y legibles; ID interno único por control; PAD\_01 a PAD\_09; IDs técnicos no visibles permanentemente; inventario control por control.
 - [x] CM-ZX1-05 · Usar ficha individual por control, separando identidad, presentación y función.
 - [x] CM-ZX1-06 · Cubrir los nueve módulos aprobados en el inventario.
 - [x] CM-ZX1-07 · Retirar la ventana antigua de configuración y sus controles tras revisar dependencias internas.
@@ -136,7 +136,16 @@ Estado: Confirmado.
 
 ### CM-ZX1-04 · Identificación
 
-Estado: Pendiente de confirmación del usuario. La propuesta de etiquetas cortas, IDs únicos y PAD\_01 en adelante no debe tratarse como aprobada hasta recibir confirmación.
+Estado: **Confirmado por el usuario · 2026-11-10.**
+
+La identidad técnica y la presentación visual se mantienen separadas:
+
+- Etiquetas cortas y legibles en los controles.
+- ID interno único por control.
+- PADs identificados internamente como PAD\_01 a PAD\_09.
+- No mostrar IDs técnicos permanentemente debajo de los controles.
+- Construir el inventario control por control.
+- Conservar los IDs en atributos internos y documentación; mostrar solo etiquetas funcionales en la interfaz.
 
 - Etiquetas cortas y legibles en los controles.
 - ID interno único por control.
@@ -726,7 +735,7 @@ Esta sección complementa las fichas funcionales. Distingue entre: (a) respuesta
 - **CM-ZX1-01:** consta como confirmada en el historial de trabajo y en el registro maestro. No se recuperó en esta búsqueda la respuesta literal ni la lista exacta de opciones seleccionadas. Mantener la especificación ya registrada como decisión consolidada, sin atribuirle opciones literales no recuperadas.
 - **CM-ZX1-02:** consta como confirmada en el historial de trabajo y en el registro maestro. No se recuperó en esta búsqueda la respuesta literal ni la lista exacta de opciones seleccionadas.
 - **CM-ZX1-03:** confirmación del usuario recuperada: proyecto nuevo/vacío; PADs vacíos; no abrir bibliotecas ni exploradores automáticamente; no reproducir audio ni iniciar procesos al entrar; UTILITY abre/cierra con toques sucesivos. Comentario recuperado: quiere nombrar cada botón visible para diseñar el layout y asignar funciones.
-- **CM-ZX1-04:** NO CONFIRMADA. Se presentó una propuesta de etiquetas cortas, IDs únicos, PAD\_01 en adelante, inventario y nombres técnicos en EDIT LAYOUT. El usuario debía confirmar o modificar la propuesta; no se recuperó aceptación. Mantener pendiente y no tratar como decisión aprobada.
+- **CM-ZX1-04:** el registro de auditoría histórico la dejó como no confirmada al momento de esa revisión. Esa observación quedó **superada el 2026-11-10** por confirmación explícita del usuario: etiquetas cortas y legibles, ID interno único por control, PAD\_01 a PAD\_09, IDs técnicos no visibles permanentemente e inventario control por control. No reintroducir nombres técnicos visibles en EDIT LAYOUT.
 - **CM-ZX1-05:** se aceptó el inventario individual y modular, con ficha por control. No se recuperó selección literal de opciones. La decisión consolidada de la ficha permanece en la sección 2.
 - **CM-ZX1-06:** selección confirmada de nueve módulos: PADs y matriz; Transporte; Encoders y controles físicos simulados; Editor de audio; Secuenciador y patrones; Mixer y efectos; Gestión de proyectos y archivos; Navegación y paneles; Sistema y configuración. Comentario/corrección: quitar Function Menu Sample y no desplegar al abrir la ventana con EDIT LAYOUT, DEFAULT/CUSTOM, AUTOSAVE, DUPLICATE/RENAME/DELETE, RESTORE DEFAULT y THEME/COLOR.
 - **CM-ZX1-07:** selección exacta recuperada: `remove_all`. El usuario pidió precisar qué significaba quitar Function Menu Sample. La decisión quedó aclarada como eliminación de la ventana antigua y sus controles asociados, no solo ocultarla al inicio.
@@ -809,7 +818,7 @@ Esta sección complementa las fichas funcionales. Distingue entre: (a) respuesta
 
 - Se recuperaron respuestas explícitas y comentarios para la mayoría de CM-ZX1-03 a CM-ZX1-57.
 - CM-ZX1-01 y CM-ZX1-02 constan como confirmadas en el historial de trabajo, pero esta búsqueda no recuperó sus respuestas literales/opciones.
-- CM-ZX1-04 permanece sin confirmar.
+- CM-ZX1-04 quedó confirmada el 2026-11-10; aplicar su convención al inventario y al código.
 - CM-ZX1-05 está consolidada como decisión, pero no se recuperó su selección literal.
 - CM-ZX1-13 y CM-ZX1-14 quedan anuladas por la decisión posterior de una sola línea de desarrollo.
 - CM-ZX1-45 tiene ubicación posterior confirmada, pero no selección original de parámetros recuperada.
@@ -843,7 +852,7 @@ Esta sección complementa las fichas funcionales. Distingue entre: (a) respuesta
 ### Estado de ejecución
 
 - Fase 1.1 completada por auditoría del árbol.
-- Fase 1.2 en curso; no asignar etiquetas/IDs definitivos hasta resolver CM-ZX1-04 y completar el inventario dinámico.
+- Fase 1.2 en curso; la convención CM-ZX1-04 ya está aprobada y se aplica al inventario dinámico control por control.
 - No se modificaron las fichas de decisiones aprobadas ni se marcaron implementaciones como terminadas sin pruebas.
 - Próximo orden: completar inventario y contratos; revisar la discrepancia de Pages; ejecutar fichas aprobadas por dependencias; solicitar la decisión faltante de CM-ZX1-58 antes de implementar BTN\_LIMITER.
 
@@ -1162,3 +1171,17 @@ Commits verificados:
 - Función real `saveHistorySnapshot` extraída de `zp-storage.js`, ejecutada con transacción simulada: produce V001 y V002 y mantiene el `projectId`.
 - Contrato de módulos extraído del motor: PROJECT, PADS, SEQUENCER, MIXER_FX, TRANSPORT, TONAL y SAMPLE_EDITOR.
 - Esto prueba sintaxis y lógica aislada. No prueba la implementación real de IndexedDB, la transacción/cursor del navegador, el audio, Safari ni el deploy.
+
+## Implementación CM-ZX1-04 · Identidad de controles · 2026-11-10
+
+**Decisión aplicada al código y documentación:**
+- Cada control interactivo recibe un atributo interno único `data-control-id`; también se registra su módulo en `data-control-module`.
+- Los nueve PADs usan IDs estables `PAD_01` a `PAD_09`, atributos de control y etiquetas accesibles breves `PAD 01` a `PAD 09`.
+- Los IDs técnicos permanecen en atributos internos, no se imprimen como texto debajo de los controles.
+- Los controles creados dinámicamente se registran mediante un observador del DOM; las colisiones reciben sufijos incrementales sin alterar el ID de los PADs.
+- La etiqueta funcional visible se mantiene separada del identificador interno.
+- El inventario exhaustivo sigue en curso; esta implementación establece la convención y el registro automático, no certifica que todas las fichas funcionales estén completas.
+
+**Archivos tocados:** `index.html`, `zp-agent-registry.json`, `scripts/validate-zx1.mjs`, `CM-ZX1-SURVEY.md`, `README.md`.
+
+**Validación esperada:** sintaxis de scripts inline, JSON del registro, PAD bootstrap idempotente y contratos CM-ZX1-04 en el validador de Pages. La validación de navegador Safari/iPhone permanece como prueba runtime independiente.

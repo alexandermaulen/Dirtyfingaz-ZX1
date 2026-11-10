@@ -607,7 +607,7 @@ bank.forEach((b,i)=>{b.dataset.bank=["A","B","C","D","E"][i];b.addEventListener(
 shiftControl?.addEventListener("pointerdown",event=>{event.preventDefault();shiftControl.classList.add("lit");window.__zpShiftHeld=true});["pointerup","pointercancel","pointerleave"].forEach(type=>shiftControl?.addEventListener(type,()=>{shiftControl.classList.remove("lit");window.__zpShiftHeld=false}));
 /* pads: multitouch real, luz al sonar */
 const held=new Map();
-for(let i=0;i<9;i++){const pad=mk('div','p');pad.id='PAD_'+String(i+1).padStart(2,'0');pad.dataset.pad=String(i+1);pad.setAttribute('data-pad-id',String(i+1));$('#pads').append(pad);}
+for(let i=0;i<9;i++){const pad=mk('div','p');pad.id='PAD_'+String(i+1).padStart(2,'0');pad.dataset.pad=String(i+1);pad.dataset.padId=String(i+1);pad.dataset.controlId=pad.id;pad.setAttribute('data-pad-id',String(i+1));pad.setAttribute('aria-label','PAD '+String(i+1).padStart(2,'0'));$('#pads').append(pad);}
 document.addEventListener('pointerdown',e=>{const t=e.target.closest('.p,.b');if(!t)return;t.classList.add('on');held.set(e.pointerId,t)});
 const rel=e=>{const t=held.get(e.pointerId);if(t){t.classList.remove('on');held.delete(e.pointerId)}};
 document.addEventListener('pointerup',rel);document.addEventListener('pointercancel',rel);
@@ -695,11 +695,10 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
  if(!host)return;
  for(let i=1;i<=9;i++){
   const id="PAD_"+String(i).padStart(2,"0");
-  if(document.getElementById(id))continue;
-  const pad=document.createElement("div");
-  pad.className="p";pad.id=id;pad.dataset.pad=String(i);pad.dataset.padId=String(i);
-  pad.setAttribute("data-pad-id",String(i));pad.setAttribute("aria-label","Pad "+i);
-  host.append(pad);
+  let pad=document.getElementById(id);
+  if(!pad){pad=document.createElement("div");pad.className="p";pad.id=id;host.append(pad)}
+  pad.dataset.pad=String(i);pad.dataset.padId=String(i);pad.dataset.controlId=id;
+  pad.setAttribute("data-pad-id",String(i));pad.setAttribute("aria-label",id.replace("_"," "));
  }
  host.dataset.padCount=String(host.querySelectorAll(".p").length);
  if(host.querySelectorAll(".p").length!==9)console.error("ZX1 PAD bootstrap: expected 9 pads");
@@ -1106,6 +1105,47 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
   if(d.type==='zp-engine-meter'&&d.protocolVersion===1&&d.source==='creator.engine'){line.classList.toggle('peak',d.peak>.82)}
   if(d.type==='zp-engine-trim-state'&&d.protocolVersion===1&&d.source==='creator.engine'){const c=$('#wv');if(c&&d.transients){const x=c.getContext('2d'),w=c.width,h=c.height;x.save();x.strokeStyle='#ffb34b';x.lineWidth=1.5;d.transients.forEach(p=>{const px=p*w;x.beginPath();x.moveTo(px,2);x.lineTo(px,h-2);x.stroke()});x.restore()}}
  });
+})();
+</script>
+<script id="zx1-control-identity">
+(()=>{
+ const selector='button,[role="button"],input,select,textarea,[tabindex]:not([tabindex="-1"]),.knob,.p';
+ const owners=new Map(),elementIds=new WeakMap();
+ const slug=value=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]+/g,"_").replace(/^_+|_+$/g,"").slice(0,28)||"CONTROL";
+ const moduleOf=el=>{
+  if(el.closest("#pads"))return "PADS";
+  if(el.closest(".zp-adsr-panel"))return "ADSR";
+  if(el.closest(".zp-pad-config"))return "PAD_SETTINGS";
+  if(el.closest(".utility-panel,.utility-center"))return "UTILITY";
+  if(el.closest("#kn,.kn"))return "ENCODERS";
+  if(el.closest("#rows"))return "HARDWARE";
+  if(el.closest("#bt"))return "NAVIGATION";
+  if(el.closest("#scr"))return "LCD";
+  return "SYSTEM";
+ };
+ const semanticIds={"creator-home":"BTN_HOME","play":"BTN_PLAY","stop":"BTN_STOP"};
+ const register=el=>{
+  if(!el.matches(selector))return;
+  const module=moduleOf(el),label=el.getAttribute("aria-label")||el.getAttribute("title")||el.getAttribute("data-action")||el.textContent||el.id||el.tagName;
+  const pad=el.classList.contains("p")&&/^PAD_\d{2}$/.test(el.id);
+  let base=pad?el.id:(semanticIds[el.id]||el.dataset.controlId||((el.tagName==="BUTTON"||el.getAttribute("role")==="button"||el.classList.contains("knob"))?((el.classList.contains("knob")?"KNOB":"BTN")+"_"):(el.tagName+"_"))+module+"_"+slug(el.id||label));
+  if(elementIds.get(el)===base&&owners.get(base)===el)return;
+  if(elementIds.get(el)){owners.delete(elementIds.get(el));elementIds.delete(el)}
+  let candidate=base,n=2;
+  while(owners.has(candidate)&&owners.get(candidate)!==el)candidate=base+"_"+String(n++).padStart(2,"0");
+  owners.set(candidate,el);elementIds.set(el,candidate);
+  if(el.dataset.controlId!==candidate)el.dataset.controlId=candidate;
+  el.dataset.controlModule=module;
+  if(!el.getAttribute("aria-label")&&label)el.setAttribute("aria-label",String(label).trim().replace(/\s+/g," ").slice(0,40));
+ };
+ const scan=root=>{
+  if(root.nodeType===1)register(root);
+  if(root.querySelectorAll)root.querySelectorAll(selector).forEach(register);
+ };
+ scan(document);
+ const observer=new MutationObserver(records=>records.forEach(record=>record.addedNodes.forEach(node=>scan(node))));
+ observer.observe(document.body,{childList:true,subtree:true});
+ document.documentElement.dataset.controlIdentity="v1";
 })();
 </script>
 <script src="./zp-agent.js" defer></script>

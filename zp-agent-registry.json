@@ -1142,5 +1142,23 @@
       "never deletes steps outside the selected step",
       "never affects other PADs or banks"
     ]
+  },
+  "controlIdentity": {
+    "version": 1,
+    "status": "confirmed-and-implemented",
+    "source": "CM-ZX1-04",
+    "internalIdAttribute": "data-control-id",
+    "moduleAttribute": "data-control-module",
+    "visibleLabels": "short-functional-labels",
+    "renderTechnicalIds": false,
+    "dynamicControls": "MutationObserver registration; collisions receive deterministic incremental suffixes",
+    "pads": {
+      "count": 9,
+      "ids": "PAD_01 through PAD_09",
+      "visibleLabelFormat": "PAD 01 through PAD 09",
+      "internalIdFormat": "PAD_01 through PAD_09"
+    },
+    "separation": "Control identity, visible presentation and programmatic behavior remain separate.",
+    "inventory": "Automatic identity registration is in place; exhaustive human-reviewed control fiches remain in progress."
   }
 }

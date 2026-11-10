@@ -92,6 +92,18 @@ check(engine.includes('runtime.register("creator.metronome.accent.set"'), "Metro
 check(engine.includes('runtime.register("creator.metronome.signature.set"'), "Time-signature command missing");
 check(survey.includes("CM-ZX1-01") && survey.includes("CM-ZX1-58"),
   "Versioned master survey is incomplete");
+check(survey.includes("- [x] CM-ZX1-04") && !survey.includes("- [ ] CM-ZX1-04"),
+  "CM-ZX1-04 must be confirmed in the active survey checklist");
+check(registry.controlIdentity?.internalIdAttribute === "data-control-id" &&
+  registry.controlIdentity?.renderTechnicalIds === false &&
+  registry.controlIdentity?.pads?.ids === "PAD_01 through PAD_09",
+  "CM-ZX1-04 control identity contract missing");
+check(gui.includes('<script id="zx1-control-identity">') &&
+  gui.includes('dataset.controlModule=module'),
+  "Dynamic control identity registration missing");
+check(gui.includes('pad.dataset.controlId=id') &&
+  gui.includes('aria-label', gui.indexOf('<script id="zp-pad-bootstrap">')),
+  "PAD identity/accessibility metadata missing");
 
 for (const command of registry.utilitySystem?.engineCommands || []) {
   check(engine.includes('runtime.register("' + command + '"'), "Registry command not registered in engine: " + command);
