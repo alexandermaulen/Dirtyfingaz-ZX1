@@ -213,6 +213,17 @@ check(gui.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatte
   gui.includes("pianoViewport.hidden=!on") && gui.includes("viewport.hidden=on"),
   "PATTERN EDIT close event and content visibility must be wired");
 
+
+/* AUD-005 · PAD bank selection contract */
+check(gui.includes('b.addEventListener(\'click\',()=>{window.zpBridgeSend?.("creator.bank.select",{bank:b.dataset.bank})})') &&
+  !gui.includes("bank.forEach(x=>x.classList.remove('lit'));b.classList.add('lit')"),
+  "A-E bank buttons must dispatch authoritative bank selection instead of changing only local styling");
+check(engine.includes('runtime.register("creator.bank.select"') &&
+  engine.includes('activeBank=p.bank;') && engine.includes('publishRadioState()'),
+  "Engine must accept bank selection and publish the authoritative active bank");
+check(gui.includes('document.querySelectorAll("#rows .b[data-bank]").forEach(b=>b.classList.toggle("lit",b.dataset.bank===state.activeBank))'),
+  "GUI bank highlight must reconcile from authoritative engine radio state");
+
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
