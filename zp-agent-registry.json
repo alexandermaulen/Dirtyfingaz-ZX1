@@ -769,7 +769,7 @@
     "separation": "BANK_ID and PATTERN_ID are independent. Selecting a bank never changes the active pattern. Selecting a pattern never changes the active bank.",
     "storage": {
       "engine": "creator-engine.html",
-      "projectSnapshotVersion": 10,
+      "projectSnapshotVersion": 11,
       "legacyMigration": "Legacy bank-keyed step/MIDI data A-E migrates to independent PATTERN_01-PATTERN_05 records."
     },
     "menu": [
@@ -856,7 +856,7 @@
     ]
   },
   "transportSystem": {
-    "snapshotVersion": 10,
+    "snapshotVersion": 11,
     "play": "BTN_PLAY toggles PLAY/PAUSE and resumes from the current step as CONTINUE.",
     "stop": "Dedicated BTN_STOP short press stops without resetting position; long press exposes RESET POSITION, STOP RECORDING and RELEASE NOTES.",
     "record": {
@@ -972,5 +972,84 @@
         "El registro técnico debe seguir creciendo con fichas por control; los 11 parámetros actuales no equivalen al inventario completo."
       ]
     }
+  },
+  "padSettingsSystem": {
+    "perPad": true,
+    "parameters": [
+      "sample",
+      "adsr",
+      "pitch",
+      "volume",
+      "pan",
+      "effects",
+      "choke",
+      "routing",
+      "reset",
+      "quick"
+    ],
+    "commands": [
+      "creator.pad.setting.get",
+      "creator.pad.setting.set",
+      "creator.pad.setting.reset"
+    ],
+    "defaults": {
+      "volume": 0.85,
+      "pitch": 0,
+      "pan": 0,
+      "choke": 0,
+      "routing": "MASTER",
+      "effects": {
+        "delay": false,
+        "reverb": false
+      }
+    },
+    "routing": [
+      "MASTER",
+      "GROUP_A",
+      "GROUP_B"
+    ],
+    "chokeGroups": "0 disables choke; 1-8 stop active voices assigned to the same group",
+    "effectSends": [
+      "delay",
+      "reverb"
+    ],
+    "audio": "Per-PAD stereo pan, group bus routing, choke groups, and delay/reverb sends are applied in the voice graph."
+  },
+  "envelopeSystem": {
+    "perPad": true,
+    "parameters": [
+      "attack",
+      "decay",
+      "sustain",
+      "release"
+    ],
+    "defaults": {
+      "attack": 0.01,
+      "decay": 0.18,
+      "sustain": 0.72,
+      "release": 0.2
+    },
+    "commands": [
+      "creator.envelope.get",
+      "creator.envelope.set",
+      "creator.envelope.reset",
+      "creator.envelope.preview"
+    ],
+    "interface": [
+      "compact knobs",
+      "direct touch curve",
+      "knob/curve synchronization",
+      "zoom",
+      "grid",
+      "SHIFT fine control",
+      "preview",
+      "restore defaults"
+    ],
+    "behavior": "ADSR panel remains open when selecting another PAD; curve subview closes and the new PAD envelope loads."
+  },
+  "homeExitSystem": {
+    "home": "BTN_HOME sends zp-host-home-request only when embedded in a host; it never navigates away from standalone Creator.",
+    "exit": "BTN_EXIT closes the active panel/menu/tool/mode and remains inside Creator.",
+    "pushEnter": "BTN_PUSHENTER confirms the focused contextual action; project menu uses the engine selection command."
   }
 }
