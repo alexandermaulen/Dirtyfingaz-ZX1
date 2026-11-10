@@ -1,6 +1,6 @@
 # DIRTYFINGAZ ZX1 · Especificación maestra sincronizada
 
-> Fuente canónica: Notion · CM-ZX1 · Encuesta maestra y plan de ejecución. Esta copia versionada en el repositorio conserva las decisiones, comentarios, inventario, checklist y bitácora disponibles al 10-11-2026. Notion continúa siendo la fuente editable de decisiones; este archivo es la referencia técnica versionada junto al código.
+> Fuente canónica: Notion · CM-ZX1 · Encuesta maestra y plan de ejecución. Snapshot actualizado al 10-11-2026 con decisiones, comentarios, inventario, checklist y feedback de ejecución. Notion continúa como fuente editable; este archivo versiona la especificación junto al código.
 
 # DIRTYFINGAZ ZX1 · Registro maestro vigente
 
@@ -1034,3 +1034,64 @@ HEAD técnico de esta tanda: `0ccb72520226b982ec8398c9c9488f73daaed2d6`.
 - Se descargó y examinó el artefacto: contiene `index.html`, `creator-engine.html`, `zp-layout.js`, `zp-storage.js` y `zp-agent-registry.json` actualizados. Verificado: Utility Center, Pattern Manager, STOP dedicado, modos REC y eliminación del auto-restore.
 - La vista web disponible de la URL pública sigue devolviendo el HTML antiguo de 16 PADs. La lectura con query-string de cache-busting no es accesible desde el verificador. Por tanto, el workflow y el artefacto están verificados, pero la respuesta HTTP real de Pages en un navegador no queda confirmada. No marcar DEPLOY PUBLICADO/VALIDADO hasta probarlo en Safari o resolver la discrepancia.
 - `main` y `auxiliary` están sincronizadas al SHA `0ccb72520226b982ec8398c9c9488f73daaed2d6`.
+
+### HOME / EXIT / PUSHENTER, ADSR y PAD SETTINGS · 2026-11-10
+
+Commits verificados:
+
+- `48c2839`: HOME solicita `zp-host-home-request` cuando Creator está integrado; standalone permanece abierto. EXIT deja de abrir Project y cierra contexto.
+- `ecd9b60` + `1006f5f`: EXIT también cierra el dock de encoders y corrige salida del modo Pattern Edit.
+- `212c769`: comandos de lectura, edición, reset y preview ADSR por PAD.
+- `0ed2d61` + `7ae59e1`: cuatro perillas compactas A/D/S/R, curva táctil, sincronización curva/perillas, zoom, grid, SHIFT fino, LISTEN, RESTORE; panel persistente al cambiar PAD y curva cerrada al cambiar.
+- `f309db0`: estado por PAD para pan, choke, routing y sends de delay/reverb; buses GROUP\_A/GROUP\_B y seguimiento de voces para choke.
+- `eecc57f`: comandos PAD setting get/set/reset.
+- `4446491`: panel PAD SETTING con QUICK, SAMPLE, ADSR, PITCH, VOLUME, PAN, EFFECTS, CHOKE, ROUTING y RESET.
+- `0d9fbe8`: control PAN incorporado también en UTILITY.
+- `849f1b8`: snapshot de proyecto actualizado a v11 y reset/restauración de los nuevos parámetros.
+- `236601d` + `8dba63c`: contrato y README actualizados.
+
+### Comportamiento PAD/ADSR
+
+- Cada PAD conserva su envolvente independiente. El preview usa el PAD seleccionado.
+- SHIFT funciona por presión mantenida y activa precisión; ya no abre PAD SETTINGS al tocar un PAD.
+- PAD SETTING permite ajustar volumen, pitch, pan, sends de delay/reverb, choke group y routing MASTER/GROUP\_A/GROUP\_B.
+- RESET restablece los parámetros de PAD y su ADSR, sin borrar el sample asignado.
+- El audio aplica pan estéreo, buses de salida, choke por grupo y sends de delay/reverb.
+- PUSHENTER ejecuta el elemento contextual enfocado; en el menú de sistema confirma la selección.
+
+### Validación actual
+
+- Sintaxis de scripts GUI/motor, layout, storage y JSON válida.
+- Se verificó que los comandos ADSR y PAD SETTING existen una sola vez, que los parámetros por PAD se incluyen en snapshot v11 y que el audio conecta pan/routing/choke.
+- Pruebas físicas de perillas táctiles, curve drag, pan estéreo, choke audible y routing de buses pendientes en Safari/iPhone.
+
+### Pendientes secuenciales inmediatos
+
+- Completar SAMPLE EDIT y CHOP manual, COPY/PASTE tipado y DEL contextual.
+- Implementar EFX SETTING como panel de módulos y sus contratos; continuar por RESONATOR, ISOLATOR y procesadores de la secuencia CM-ZX1.
+- CM-ZX1-58 BTN\_LIMITER continúa pendiente de respuesta del usuario.
+
+### Ejecución de respuestas ya entregadas · 2026-11-10 · feedback GitHub ↔ Notion
+
+**Prioridad del usuario:** ejecutar primero las decisiones ya respondidas y no continuar con nuevas preguntas de la encuesta maestra hasta implementar y verificar esa etapa. Las preguntas pendientes CM-ZX1-04, la ficha funcional de CM-ZX1-45 y CM-ZX1-58 no deben bloquear los requisitos independientes que ya están confirmados.
+
+**Recuperación de respuestas previas:**
+
+- CM-ZX1-02: selección múltiple confirmada: PADs al centro y controles principales alrededor; transporte fijo en la parte superior y también fijo en la parte inferior (ambas opciones fueron seleccionadas y se conservan como respuesta literal, sin resolver unilateralmente la coexistencia). Herramientas secundarias en paneles desplegables y navegación por pestañas. Comentario literal: «No quiero que se abra nada / Niun panel de inicio al abrir la seccion ‘creator’ de la pagina.»
+- CM-ZX1-03: PADs vacíos, proyecto nuevo y vacío, no abrir bibliotecas/exploradores ni activar audio/procesos al entrar. UTILITY abre con el primer toque y cierra con el segundo. Comentario literal: «Que el boton utility de abajo sea para abrir un menu si lo apreto se se despliega el menu y cuando lo vuelva a apretar se cierre / Tambien quiero ponerle nombre a cada boton que se ve para trabajar la interfaz layout e ir asignando funciones.»
+- Instrucción del usuario del 2026-11-09: ejecutar la lista y construir la app antes de continuar preguntando.
+
+**Cambios incorporados al repositorio ****`alexandermaulen/Dirtyfingaz-ZX1`****:**
+
+- `CM-ZX1-SURVEY.md`: snapshot versionado de la encuesta maestra completa, inventario, checklist y bitácora; Notion continúa como fuente canónica editable.
+- `README.md`: enlaza la especificación maestra y documenta alcance/validación.
+- `zp-agent-registry.json`: añade trazabilidad encuesta→código, reglas de ejecución y pendientes.
+- `index.html`: UTILITY reorganizado en los ocho grupos definidos por la encuesta; conserva apertura múltiple, orden persistente, añade favoritos por herramienta, filtro de favoritos, descripciones y resaltado de coincidencias en búsqueda. Incluye controles UI de acento, cuenta previa y compás; cuantización ofrece OFF, divisiones regulares y triplets.
+- `creator-engine.html`: añade acento en el primer pulso, compases 2/4, 3/4, 4/4, 5/4, 6/8 y 7/8, persistencia del compás/acento y cuantización triplet 1/4T, 1/8T y 1/16T; OFF desactiva cuantización.
+- `scripts/validate-zx1.mjs` y `.github/workflows/pages.yml`: se añadió validación automatizada de sintaxis JavaScript inline, JSON, cobertura del snapshot y contratos de comandos antes de publicar.
+
+**Pendientes reales identificados en UTILITY:** selección/ruteo explícito de dispositivos de entrada/salida; métricas de carga CPU y memoria cuando el navegador las exponga; medidor LUFS real (el medidor actual es peak); copiar PAD, copiar valor y pegar en último seleccionado. La API web de Safari no expone carga CPU ni memoria general, por lo que no se deben mostrar estimaciones inventadas. Falta validación física en Safari/iPhone.
+
+**Estado de CI:** el primer run con el validador falló por escape incorrecto de la expresión regular del script de validación. Se corrigió en `scripts/validate-zx1.mjs` (commit `6cc800e4befb0022006ab658c2150825424eb1c4`). El rerun posterior todavía debe verificarse. El fallo fue del validador recién añadido, no evidencia de un error funcional de la app.
+
+**Reglas de cierre:** no marcar CM-ZX1-17 ni los requisitos nuevos como implementados/verificados hasta que el run de validación termine en success y se ejecuten pruebas funcionales. No avanzar a CM-ZX1-58 ni abrir nuevas preguntas hasta agotar los requisitos ya contestados. Mantener CM-ZX1-04, CM-ZX1-45 detallado y CM-ZX1-58 como decisiones pendientes, no inventadas.
