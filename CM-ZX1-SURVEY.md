@@ -1139,3 +1139,20 @@ Commits verificados:
 3. Integración/publicación: verificadas las dos ramas operativas idénticas en el HEAD 052dd1e7b49ab43ec71a82a81c8760f3b8bc4fc3 y revisado el workflow. No se obtuvo un run/artefacto nuevo verificable para ese HEAD; la URL pública tampoco pudo leerse con el navegador de verificación. Por lo tanto, no declarar CI, PADs visibles en runtime ni despliegue final como verificados todavía.
 
 **Siguiente orden obligatorio:** (1) obtener resultado de CI/artefacto del HEAD actual y verificar que el artefacto contiene el bootstrap; (2) resolver la discrepancia Pages/CDN que anteriormente devolvía 16 slots; (3) probar los nueve PADs en navegador real; (4) implementar HISTORIAL CM-ZX1-10–14 con snapshots manuales de proyecto y módulo, IDs V001..., navegación y restauración; (5) continuar fichas confirmadas pendientes en secuencia, empezando por inventario control-por-control y contratos GUI↔motor. No marcar tareas como terminadas hasta superar sus pruebas.
+### HISTORIAL · implementación inicial conectada · 2026-11-10
+
+**Implementación en código (no solo especificación):**
+- `zp-storage.js`: IndexedDB pasa a versión 4 y crea `projectHistory`, con snapshots por `projectId + version`, listado secuencial y recuperación por versión.
+- Identificadores manuales V001, V002...; no se genera snapshot automático al guardar o editar el proyecto.
+- Snapshots completos contienen estado del motor, nombre del proyecto y muestras de todos los bancos.
+- Snapshots por módulo disponibles: PADS, SEQUENCER, MIXER_FX, TRANSPORT, TONAL y SAMPLE_EDITOR. Cada snapshot parcial conserva los campos del módulo y no reemplaza campos de otros módulos al restaurar.
+- Restauración de proyecto/módulo, recuperación de buffers de muestras cuando aplica, navegación anterior/siguiente y confirmación explícita antes de reemplazar el estado activo.
+- `creator-engine.html`: comandos `creator.history.create`, `creator.history.list`, `creator.history.restore` conectados al motor.
+- `index.html`: acceso HISTORY en PROJECT MANAGER, creación de snapshots de proyecto/módulo, lista secuencial, anterior/siguiente y restauración.
+- `scripts/validate-zx1.mjs`: comprobaciones de sintaxis de `zp-storage.js` y contratos de almacenamiento, motor y controles GUI para historial. Se corrigió la comprobación de IDs secuenciales para apuntar al módulo de almacenamiento correcto.
+
+**Revisión de código:** se inspeccionaron los cuatro archivos modificados y se corrigieron dos detalles encontrados: regex de validación V### y escritura duplicada de muestras durante restauración. Los snapshots completos también guardan/restauran el nombre del proyecto.
+
+**Estado de validación:** cambios confirmados en `main` y `auxiliary`, idénticas. La prueba automatizada de GitHub Actions para el HEAD actual aún no está confirmada; tampoco se ha probado IndexedDB real, restauración de buffers en Safari ni el despliegue público. Por tanto HISTORIAL queda **implementado en fuente, pendiente de validación runtime**. No marcar terminado todavía.
+
+**Siguiente paso técnico:** conseguir una ejecución nueva del workflow Pages sobre el HEAD actual; inspeccionar logs/artefacto; realizar prueba de navegador para crear V001, V002 de proyecto, snapshots de módulo, navegación, restauración completa/parcial y persistencia después de recargar. Después continuar con las fichas CM-ZX1 confirmadas en orden.
