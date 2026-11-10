@@ -73,10 +73,12 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 
 ## Hallazgos e incongruencias abiertas
 
-- INC-001 · `README.md` prescribe trabajar directamente en `main` y prohíbe ramas de trabajo. Esto contradice la estrategia de esta auditoría, autorizada explícitamente para `mejoras/auditoria`. Se actualizará el texto documental en esta rama para reflejar el flujo solicitado, sin alterar la historia funcional del proyecto.
+- INC-001 · RESUELTA EN ESTA RAMA. El README de `mejoras/auditoria` ahora exige trabajar en una rama seleccionada y mantener `main` sin cambios hasta revisión. El README de `main` permanece intacto.
 - INC-002 · El último workflow conocido de Pages, run `42771493943`, falló en la comprobación del toggle PATTERN EDIT. Evidencia: log del job `deploy`, que informa `PATTERN EDIT open/close toggle contract missing`. La sintaxis de los scripts inline y de `zp-storage.js` sí pasó. El despliegue fue omitido.
-- INC-003 · El workflow actual escucha push solo en `main`; por tanto, los commits de `mejoras/auditoria` no activan automáticamente la validación existente. Se necesita una ruta de test no desplegable para obtener evidencia CI en esta rama.
-- INC-004 · El validador esperaba un listener click sin parámetro, pero el código real usa `event=>{event.preventDefault();...}` para evitar la acción predeterminada del botón. El contrato funcional está presente; la aserción literal estaba obsoleta.
+- INC-003 · RESUELTA EN ESTA RAMA. Se agregó `.github/workflows/audit.yml`, limitado a `mejoras/auditoria`, con permisos `contents: read` y sin despliegue.
+- INC-004 · RESUELTA EN ESTA RAMA. El validador ahora reconoce el listener real de PATTERN EDIT y la ejecución `42775583089` pasó.
+
+- INC-005 · ABIERTA, REQUIERE QA MANUAL. La extracción web pública consultada el 2026-11-10 mostró una interfaz de 16 pads y controles antiguos. Sin embargo, el último despliegue Pages exitoso identificado es el run `42770853965` (SHA `46f17094`), cuyo `index.html` contiene el bootstrap de 9 pads y no contiene `EDIT LAYOUT` ni `PAD_16`. La discrepancia puede deberse a caché/indexación o a la configuración real de Pages; no se afirma todavía cuál es la causa. Confirmar en navegador real y revisar la fuente de Pages antes de publicar.
 
 ### AUD-DEC-003 · CI de auditoría separado del despliegue
 
@@ -119,4 +121,5 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 | 2026-11-10 | CI aislado y documentación del flujo | Workflow de auditoría solo ejecuta validación en `mejoras/auditoria`; README deja de prescribir trabajo directo en main |
 | 2026-11-10 | Pruebas de integridad ampliadas | Se añaden verificaciones de existencia de recursos locales y correspondencia de los 13 comandos estáticos del agente con el motor |
 | 2026-11-10 | Protección del job Pages | Se añade condición de rama main al job de despliegue para bloquear publicaciones manuales desde mejoras/auditoria |
-| 2026-11-10 | Corrección del test de integridad | Se corrige el escape de las expresiones regulares que causó SyntaxError en la primera ejecución ampliada |
+| 2026-11-10 | Corrección del test de integridad | Se corrige el escape de las expresiones regulares que causó SyntaxError en la primera ejecución ampliada; CI posterior PASS en run 42775826234 |
+| 2026-11-10 | Estado de incongruencias | INC-001, INC-003 e INC-004 resueltas en la rama; INC-005 queda abierta por discrepancia entre extracción web y fuente desplegada |
