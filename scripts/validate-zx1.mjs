@@ -197,22 +197,22 @@ check(!gui.includes("tm=setInterval(()=>{cells().forEach(c=>c.classList.toggle('
   "Detached local visual transport timer must not remain in the GUI source");
 
 
-/* AUD-004 · PATTERN EDIT open/close contract */
-check(gui.includes("row('repeat(5,1fr)'") && gui.includes("'PATTERN<br>EDIT'") &&
-  gui.includes("const all=[...document.querySelectorAll('#rows .b')]") &&
-  gui.includes("const by=t=>all.find(b=>b.textContent.replace(/\\s/g,'')===t.replace(/\\s/g,''))"),
-  "PATTERN EDIT control must be present in the hardware row and resolvable by normalized label");
-check(gui.includes("const patternButton=by('PATTERNEDIT')") &&
-  gui.includes("patternButton?.addEventListener('click',()=>setPatternEditOpen(!scr.classList.contains('pr')))"),
-  "PATTERN EDIT must toggle open and closed from the same control");
-check(gui.includes("scr.classList.toggle('pr',active)") &&
-  gui.includes("patternButton?.setAttribute('aria-expanded',String(active))") &&
-  gui.includes("setPianoMode(active)"),
-  "PATTERN EDIT toggle must synchronize LCD mode, expanded state and Piano Roll mode");
-check(gui.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false))") &&
-  gui.includes("pianoViewport.hidden=!on") && gui.includes("viewport.hidden=on"),
-  "PATTERN EDIT close event and content visibility must be wired");
-
+/* AUD-004 · native PATTERN EDIT mobile activation and open/close contract */
+check(gui.includes("const patternEditControl=[...document.querySelectorAll(\"#rows .b\")].find(el=>el.textContent.replace(/\\s/g,\"\")===\"PATTERNEDIT\");"), "AUD-004: PATTERN EDIT is located in the hardware row and upgraded to a native button");
+check(gui.includes("document.createElement(\"button\")"), "AUD-004: PATTERN EDIT native button creation exists");
+check(gui.includes("nativePatternEdit.type=\"button\""), "AUD-004: PATTERN EDIT uses type=button");
+check(gui.includes("nativePatternEdit.className=patternEditControl.className+\" pattern-edit-trigger\""), "AUD-004: PATTERN EDIT preserves original visual class");
+check(gui.includes("nativePatternEdit.style.touchAction=\"manipulation\""), "AUD-004: PATTERN EDIT uses touch-action manipulation");
+check(gui.includes("const patternButton=by('PATTERNEDIT')"), "AUD-004: PATTERN EDIT resolves through the shared control lookup");
+check(gui.includes("patternButton?.addEventListener('click',event=>{event.preventDefault();setPatternEditOpen(!scr.classList.contains('pr'))})"), "AUD-004: PATTERN EDIT native click toggles open/close");
+check(gui.includes("patternButton?.setAttribute('aria-controls','zpPianoViewport')"), "AUD-004: PATTERN EDIT explicitly controls Piano Roll viewport");
+check(gui.includes("pianoViewport.id='zpPianoViewport'"), "AUD-004: Piano Roll viewport has stable control ID");
+check(gui.includes("scr.classList.toggle('pr',active)"), "AUD-004: LCD pattern-edit state toggles");
+check(gui.includes("patternButton?.setAttribute('aria-expanded',String(active))"), "AUD-004: aria-expanded follows open/close state");
+check(gui.includes("setPianoMode(active)"), "AUD-004: Piano Roll mode follows open/close state");
+check(gui.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false))"), "AUD-004: external close event closes PATTERN EDIT");
+check(gui.includes("pianoViewport.hidden=!on"), "AUD-004: Piano Roll viewport visibility follows mode");
+check(gui.includes("viewport.hidden=on"), "AUD-004: pattern grid viewport visibility follows mode");
 
 /* AUD-005 · PAD bank selection contract */
 check(gui.includes('b.addEventListener(\'click\',()=>{window.zpBridgeSend?.("creator.bank.select",{bank:b.dataset.bank})})') &&
