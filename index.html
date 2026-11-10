@@ -433,7 +433,7 @@ if(trimPhaseButton){trimPhaseButton.classList.add("trim-phase-button");trimPhase
 /* Lx y Rx son controles maestros: Lx navega el contexto de edición; Rx controla OUT en Sample y parámetros contextuales en otros modos. */
 (()=>{let angle=null,remainder=0,index=-1,active=null;const selector='.b,.piano-tools button,.trim-marker,[data-midi-target],.lcd-action,#play,#bpmWheel';
  const targets=()=>[...document.querySelectorAll(selector)].filter(el=>!el.closest('#zp-agent-window')&&!el.disabled&&el.getAttribute('aria-hidden')!=='true'&&el.getClientRects().length);
- const choose=direction=>{if(window.__zpPianoEncoderMode||window.__zpTrimPhase===3)return;const list=targets();if(!list.length)return;index=(index+direction+list.length)%list.length;const el=list[index];if(active)active.classList.remove('lx-active');active=el;active.classList.add('lx-active');if(!el.hasAttribute('tabindex'))el.tabIndex=-1;el.focus({preventScroll:true});el.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});window.__zpLxTarget=el;window.dispatchEvent(new CustomEvent('zp-panel-context-change'));window.__zpLx={index,total:list.length,direction,target:el.dataset.agentContext||el.dataset.trimTarget||el.dataset.midiTarget||el.textContent.trim().replace(/\s+/g,' ').slice(0,48)};};
+ const choose=direction=>{const sampleContext=document.querySelector('.mid')?.classList.contains('sample-context')&&!document.querySelector('.mid')?.classList.contains('piano-open');if(sampleContext||window.__zpPianoEncoderMode||window.__zpTrimPhase===3)return;const list=targets();if(!list.length)return;index=(index+direction+list.length)%list.length;const el=list[index];if(active)active.classList.remove('lx-active');active=el;active.classList.add('lx-active');if(!el.hasAttribute('tabindex'))el.tabIndex=-1;el.focus({preventScroll:true});el.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});window.__zpLxTarget=el;window.dispatchEvent(new CustomEvent('zp-panel-context-change'));window.__zpLx={index,total:list.length,direction,target:el.dataset.agentContext||el.dataset.trimTarget||el.dataset.midiTarget||el.textContent.trim().replace(/\s+/g,' ').slice(0,48)};};
  lx.addEventListener('pointerdown',()=>{angle=parseFloat(getComputedStyle(lx).getPropertyValue('--r'))||0;remainder=0});
  lx.addEventListener('pointermove',()=>{const next=parseFloat(getComputedStyle(lx).getPropertyValue('--r'))||0;if(angle===null){angle=next;return}remainder+=next-angle;angle=next;let steps=Math.trunc(remainder/14);if(!steps)return;remainder-=steps*14;const direction=Math.sign(steps);for(let n=0;n<Math.min(Math.abs(steps),24);n++)choose(direction)});
  ['pointerup','pointercancel'].forEach(type=>lx.addEventListener(type,()=>{angle=null}));
@@ -658,7 +658,7 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
    const sampleContext=midContainer.classList.contains("sample-context")&&!midContainer.classList.contains("piano-open");
    if(!window.__zpPianoEncoderMode&&(phase===3||(phase===1&&sampleContext))){
     if(window.__zpMidiRotorActive)return;
-    const target=sampleContext?trimTarget:(phase===3?trimTarget:(state.target||activeTrimTarget)),range=state.range||{start:0,end:1},fineStep=.00005;
+    const target=sampleContext?trimTarget:(phase===3?trimTarget:(state.target||activeTrimTarget)),range=state.range||{start:0,end:1},fineStep=by('SHIFT')?.classList.contains('lit')?.00015:.0015;
     const next=target==="start"?Math.max(0,Math.min(range.end-.0001,range.start+delta*fineStep)):Math.max(range.start+.0001,Math.min(1,range.end+delta*fineStep));
     state.active=true;state.target=target;state.range=target==="start"?{...range,start:next}:{...range,end:next};
     zpBridgeSend("creator.sample.trim.set",{target,position:next,commit:false});return;
@@ -752,7 +752,7 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
  };
  const bindPianoEncoder=(encoder,side)=>{
   if(!encoder)return;
-  const state=encoderEdit[side],axis=side==='rx'?'x':'y',trimTarget=side==='lx'?'start':'end';
+  const state=encoderEdit[side],axis=side==='lx'?'x':'y',trimTarget=side==='lx'?'start':'end';
   encoder.addEventListener('pointerdown',()=>{state.angle=encoderAngle(encoder);state.remainder=0;state.dirty=false;state.midiDirty=false;state.midiId=null;});
   encoder.addEventListener('pointermove',e=>{
    if(!window.__zpPianoEncoderMode)return;
@@ -764,7 +764,15 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
    const fine=!!(e.shiftKey||shiftButton?.classList.contains('lit'));
    const note=selectedNote();
    let changed=false;
-   if(note&&axis==='x'&&!fine){state.remainder+=delta;const units=Math.trunc(state.remainder/12);if(units){state.remainder-=units*12;changed=moveSelectedMidi(axis,units*12,false,state)}}
+   if(note&&side==='rx'&&rotorTarget==='length'){
+    state.remainder+=delta;const quantum=fine?6:12,units=Math.trunc(state.remainder/quantum);
+    if(units){state.remainder-=units*quantum;const index=activeNotes.findIndex(item=>item.id===note.id);if(index>=0){activeNotes[index]={...note,length:clamp(note.length+units,1,16-note.step)};state.midiDirty=true;state.midiId=note.id;renderNotes();changed=true}}
+   }else if(note&&side==='rx'&&rotorTarget==='velocity'){
+    state.remainder+=delta;const quantum=fine?6:12,units=Math.trunc(state.remainder/quantum);
+    if(units){state.remainder-=units*quantum;const index=activeNotes.findIndex(item=>item.id===note.id);if(index>=0){activeNotes[index]={...note,velocity:clamp(note.velocity+units,1,127)};state.midiDirty=true;state.midiId=note.id;renderNotes();changed=true}}
+   }else if(note&&side==='rx'&&rotorTarget==='step'){
+    changed=moveSelectedMidi('x',delta,fine,state);if(fine)state.remainder=0;
+   }else if(note&&axis==='x'&&!fine){state.remainder+=delta;const units=Math.trunc(state.remainder/12);if(units){state.remainder-=units*12;changed=moveSelectedMidi(axis,units*12,false,state)}}
    else if(note&&axis==='y'&&!fine){state.remainder+=delta;const units=Math.trunc(state.remainder/18);if(units){state.remainder-=units*18;changed=moveSelectedMidi(axis,units*18,false,state)}}
    else if(note){changed=moveSelectedMidi(axis,delta,fine,state);if(fine)state.remainder=0}
    else changed=moveSelectedSample(trimTarget,delta,fine);
