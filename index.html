@@ -678,7 +678,7 @@ requestAnimationFrame(()=>requestAnimationFrame(fit));
 const gr=$('#gr');gr.append(mk('em',''));for(let s=1;s<=16;s++)gr.append(mk('em','',s));
 for(let l=1;l<=9;l++){gr.append(mk('em','',l));for(let s=0;s<16;s++){const c=mk('div','c');c.dataset.s=s;gr.append(c)}}
 
-const pb=by('PATTERNEDIT');pb.addEventListener('click',()=>{scr.classList.toggle('pr');pb.classList.toggle('lit',scr.classList.contains('pr'))});
+const pb=by('PATTERNEDIT');
 let tm=null,st=0;const cells=()=>[...gr.querySelectorAll('.c')];
 $('#play').addEventListener('click',()=>{const p=$('#play');
  if(tm){clearInterval(tm);tm=null;p.innerHTML='&#9654; PLAY';cells().forEach(c=>c.classList.remove('hd2'))}
@@ -902,7 +902,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  
  /* HOME solicita volver al host; EXIT solo cierra el contexto actual. */
  const homeToHost=()=>{if(window.parent!==window){parent.postMessage({type:"zp-host-home-request",protocolVersion:1,source:"dirtyfingaz.zx1"},location.origin);return true}window.__zpLastStatus="MAIN HOST NO DISPONIBLE";console.info("BTN_HOME: Creator permanece abierto porque no hay host integrado.");return false};
- const exitContext=()=>{if(!clipboardMenu.hidden){clipboardMenu.hidden=true;return}if(!transportMenu.hidden){transportMenu.hidden=true;return}if(!utilityPanel.hidden){utilityPanel.hidden=true;return}if(!patternMenu.hidden){patternMenu.hidden=true;return}if(!projectMenu.hidden){zpBridgeSend("creator.system.menu.close",{});return}if(!sampleEditPanel.hidden){closeSampleEditPanel(true);return}if(!adsrPanel.hidden){adsrPanel.hidden=true;return}if(!padConfig.hidden){padConfig.hidden=true;return}if(configurationDialog?.open){configurationDialog.close();return}if(projectDialog?.open){projectDialog.close();return}if(scr.classList.contains("pr")){scr.classList.remove("pr");by("PATTERNEDIT")?.classList.remove("lit");return}window.dispatchEvent(new CustomEvent("zp-context-exit"));zpBridgeSend("creator.system.menu.close",{})};
+ const exitContext=()=>{if(!clipboardMenu.hidden){clipboardMenu.hidden=true;return}if(!transportMenu.hidden){transportMenu.hidden=true;return}if(!utilityPanel.hidden){utilityPanel.hidden=true;return}if(!patternMenu.hidden){patternMenu.hidden=true;return}if(!projectMenu.hidden){zpBridgeSend("creator.system.menu.close",{});return}if(!sampleEditPanel.hidden){closeSampleEditPanel(true);return}if(!adsrPanel.hidden){adsrPanel.hidden=true;return}if(!padConfig.hidden){padConfig.hidden=true;return}if(configurationDialog?.open){configurationDialog.close();return}if(projectDialog?.open){projectDialog.close();return}if(scr.classList.contains("pr")){window.dispatchEvent(new CustomEvent("zp-pattern-edit-close"));return}window.dispatchEvent(new CustomEvent("zp-context-exit"));zpBridgeSend("creator.system.menu.close",{})};
  document.getElementById("creator-home")?.addEventListener("click",homeToHost);
  bind("EXIT",exitContext);
 })();
@@ -922,7 +922,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  let zoom=1;const applyZoom=()=>{grid.style.width=(zoom*100)+'%';grid.style.minWidth=(zoom*100)+'%';pianoGrid.style.minWidth=(360*zoom)+'px';$('#zpZoomOut').disabled=zoom<=1;$('#zpZoomIn').disabled=zoom>=2.5};
  $('#zpZoomOut').onclick=()=>{zoom=Math.max(1,+(zoom-.25).toFixed(2));applyZoom()};
  $('#zpZoomIn').onclick=()=>{zoom=Math.min(2.5,+(zoom+.25).toFixed(2));applyZoom()};applyZoom();
- let drawMode=true,snapSize=1,defaultLength=1,octaveShift=0,selectedNoteId=null,activeNotes=[],pianoMode=true,noteSequence=0,topMidi=71;
+ let drawMode=true,snapSize=1,defaultLength=1,octaveShift=0,selectedNoteId=null,activeNotes=[],pianoMode=false,noteSequence=0,topMidi=71;
  const drawButton=$('#zpDraw'),snapButton=$('#zpSnap'),lengthButton=$('#zpLen'),velocityInput=$('#zpVelocity'),stepModeButton=$('#zpStepMode');
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
  const noteName=m=>['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][((m%12)+12)%12]+(Math.floor(m/12)-1);
@@ -1048,7 +1048,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  window.__zpDeleteSelectedMidiNote=()=>{if(!selectedNoteId)return false;noteCommand('creator.piano.note.delete',{id:selectedNoteId});activeNotes=activeNotes.filter(n=>n.id!==selectedNoteId);selectedNoteId=null;window.__zpSelectedMidiNoteId=null;renderNotes();return true};$('#zpDelete').onclick=()=>window.__zpDeleteSelectedMidiNote();
  $('#zpClear').onclick=()=>{if(pianoMode){noteCommand('creator.piano.notes.clear');activeNotes=[];selectedNoteId=null;renderNotes()}else noteCommand('creator.pattern.clear')};
  stepModeButton.onclick=()=>setPianoMode(!pianoMode);
- buildPiano();setPianoMode(true);
+ buildPiano();setPianoMode(false);
  const animatePianoPlayhead=()=>{const state=window.__zpPlayheadState,head=$('#zpPianoPlayhead');if(state&&head&&!pianoViewport.hidden){const stepDuration=60000/Math.max(40,Math.min(240,state.bpm||120))/4,progress=Math.min(.999,Math.max(0,(performance.now()-state.at)/stepDuration));head.style.gridColumn=String(state.step+2);head.style.transform='translateX('+(progress*100)+'%)';}requestAnimationFrame(animatePianoPlayhead)};requestAnimationFrame(animatePianoPlayhead);
  pianoGrid.addEventListener('click',e=>{const cell=e.target.closest('.piano-cell');if(!cell||!drawMode)return;const step=clamp(Math.round(Number(cell.dataset.step)/snapSize)*snapSize,0,16-snapSize),pitch=Number(cell.dataset.pitch),existing=activeNotes.find(n=>n.step===step&&n.pitch===pitch);if(existing){setSelected(existing);return}upsertNote({id:'ui-midi-'+Date.now()+'-'+(++noteSequence),step,pitch,length:Math.min(defaultLength,16-step),velocity:Number(velocityInput.value)||100})});
  const swipePattern={active:false,last:-1,pad:1};
@@ -1087,7 +1087,17 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  pianoGrid.addEventListener('pointermove',e=>{if(!noteDrag)return;const rawDx=(e.clientX-noteDrag.startX)/noteDrag.cellWidth,unsnapped=!!(e.shiftKey||freeMove),dx=unsnapped?rawDx:Math.round(Math.round(rawDx)/snapSize)*snapSize,dy=Math.round((e.clientY-noteDrag.startY)/noteDrag.rowHeight),n=activeNotes.find(x=>x.id===noteDrag.id);if(!n)return;noteDrag.moved=noteDrag.moved||Math.abs(dx)+Math.abs(dy)>0;if(noteDrag.resize){n.length=clamp(noteDrag.startLength+Math.round(dx),1,16-noteDrag.startStep)}else{const position=clamp(noteDrag.startStep+(noteDrag.startMicro||0)+dx,0,15.999),whole=Math.floor(position);n.step=clamp(whole,0,15);n.micro=unsnapped?clamp(position-whole,0,.999):0;n.pitch=clamp(noteDrag.startPitch-dy,36,96)}noteDrag.el.style.gridColumn=(n.step+2)+' / span '+n.length;noteDrag.el.style.transform=n.micro?'translateX('+(n.micro*100)+'%)':'none';const row=topMidi-n.pitch;if(row>=0&&row<24)noteDrag.el.style.gridRow=String(row+2)});
  const finishDrag=()=>{if(!noteDrag)return;const n=activeNotes.find(x=>x.id===noteDrag.id);if(n&&noteDrag.moved)upsertNote({...n});else renderNotes();noteDrag=null};
  pianoGrid.addEventListener('pointerup',finishDrag);pianoGrid.addEventListener('pointercancel',finishDrag);
- const patternButton=[...document.querySelectorAll('#rows .b')].find(b=>b.textContent.replace(/\s/g,'').toUpperCase()==='PATTERNEDIT');patternButton?.addEventListener('click',()=>setTimeout(()=>setPianoMode(scr.classList.contains('pr')),0));
+ const patternButton=by('PATTERNEDIT');
+  const setPatternEditOpen=open=>{
+   const active=!!open;
+   scr.classList.toggle('pr',active);
+   patternButton?.classList.toggle('lit',active);
+   patternButton?.setAttribute('aria-expanded',String(active));
+   setPianoMode(active);
+  };
+  patternButton?.setAttribute('aria-expanded','false');
+  patternButton?.addEventListener('click',()=>setPatternEditOpen(!scr.classList.contains('pr')));
+  window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false));
 
  let bpmValue=120,lastY=null,remainder=0;
  const adjustTempo=delta=>{bpmValue=Math.max(40,Math.min(240,bpmValue+delta));bpm.textContent='BPM:'+bpmValue;window.zpBridgeSend?.('creator.bpm.adjust',{delta})};
