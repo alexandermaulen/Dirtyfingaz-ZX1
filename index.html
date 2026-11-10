@@ -401,7 +401,7 @@ function bindLongPress(el,shortAction,longAction,delay=480){if(!el)return;let ti
 transportMenu.querySelector(".zp-transport-close").addEventListener("click",()=>{transportMenu.hidden=true});
 
 const utilityPanel=mk("div","lcd-menu zp-utility-panel");utilityPanel.hidden=true;utilityPanel.innerHTML="<header><b>UTILITY CENTER</b><button type=\"button\" class=\"zp-utility-close\">×</button></header><div class=\"utility-search\"><input type=\"search\" placeholder=\"SEARCH UTILITY TOOLS\" aria-label=\"Buscar herramientas\"></div><div class=\"utility-toolbar\"><button type=\"button\" class=\"utility-favorites-toggle\">☆ FAVORITES</button><small>8 MODULE GROUPS</small></div><div class=\"utility-groups\"></div><small>INDEPENDENT GROUPS · MULTIPLE OPEN · SAVED ORDER</small>";scr.append(utilityPanel);
-let latestEngineState={bpm:96,activePad:1,activeBank:"A",activePatternId:"PATTERN_01",keyRoot:"C",scaleName:"MAJOR",quantizeEnabled:false,quantizeDivision:"1/16",audio:{state:"not-created"}};
+let latestEngineState={bpm:96,activePad:1,activeBank:"A",activePatternId:"PATTERN_01",keyRoot:"C",scaleName:"MAJOR",quantizeEnabled:false,quantizeDivision:"1/16",metronomeAccent:true,timeSignature:"4/4",countInEnabled:false,audio:{state:"not-created"}};
 const utilityIds=["pad","metronome","tempo","key","tuner","quantize","audio","master","panic","shortcuts","bpm-detector","scale-guide","metrics"];
 const utilityDefinitions={
  pad:{title:"PAD / VALORES",search:"pad sample volume pitch filter",description:"Copiar PAD, copiar valor y pegar en el último seleccionado."},
@@ -454,6 +454,9 @@ function utilityGroupContent(id,body){
  }else if(id==="metronome"){
   const row=utilityRow();row.append(utilityButton(st.metronomeEnabled?"METRONOME · ON":"METRONOME · OFF",()=>utilitySend("creator.metronome.toggle",{}),true));body.append(row);
   body.append(utilityRange("CLICK LEVEL",st.metronomeLevel??.35,.01,1,.01,v=>utilitySend("creator.metronome.level.set",{value:v})));
+  const accent=utilityRow();accent.append(utilityButton(st.metronomeAccent===false?"ACCENT · OFF":"ACCENT · ON",()=>utilitySend("creator.metronome.accent.set",{enabled:st.metronomeAccent===false}),true));body.append(accent);
+  const count=utilityRow();count.append(utilityButton(st.countInEnabled?"COUNT-IN · ON":"COUNT-IN · OFF",()=>utilitySend("creator.record.countin.toggle",{}),true));body.append(count);
+  const signature=utilityRow();signature.append(utilityText("TIME SIGNATURE"));signature.append(utilitySelect(["2/4","3/4","4/4","5/4","6/8","7/8"].map(x=>({value:x,label:x})),st.timeSignature||"4/4",v=>utilitySend("creator.metronome.signature.set",{signature:v})));body.append(signature);
  }else if(id==="tempo"){
   const row=utilityRow();row.append(utilityText("BPM "+(st.bpm||96)));row.append(utilityButton("−1",()=>utilitySend("creator.bpm.adjust",{delta:-1})));row.append(utilityButton("+1",()=>utilitySend("creator.bpm.adjust",{delta:1})));row.append(utilityButton("TAP",()=>utilitySend("creator.bpm.tap",{})));body.append(row);
   const input=document.createElement("input");input.type="number";input.min="40";input.max="240";input.value=st.bpm||96;input.setAttribute("aria-label","BPM");input.addEventListener("change",()=>utilitySend("creator.bpm.set",{bpm:Number(input.value)}));const r=utilityRow();r.append(utilityText("SET BPM"),input,utilityButton("APPLY",()=>utilitySend("creator.bpm.set",{bpm:Number(input.value)})));body.append(r);
