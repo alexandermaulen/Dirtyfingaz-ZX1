@@ -113,6 +113,13 @@ check(gui.includes("defaultLength=selected.length") &&
   gui.includes("if(n)upsertNote({...n,length:defaultLength})"),
   "Selected-note length must synchronize with NOTE LEN and persist through the engine upsert command");
 
+check(html.includes("creator.quantize.set") &&
+  html.includes("latestEngineState.quantizeEnabled?latestEngineState.quantizeDivision:'OFF'") &&
+  html.includes("zp-agent-runtime-context"),
+  "Piano SNAP must send quantization commands and resync from engine radio state");
+check(html.includes("order=['OFF','1/16','1/8','1/4']") &&
+  html.includes("enabled:next!=='OFF'"),
+  "Piano SNAP cycle must explicitly enable/disable engine quantization");
 check(gui.includes("1/16T"), "Triplet quantization UI missing");
 check(engine.includes('"1/16T":2/3'), "Triplet quantization engine mapping missing");
 check(engine.includes('runtime.register("creator.metronome.accent.set"'), "Metronome accent command missing");
