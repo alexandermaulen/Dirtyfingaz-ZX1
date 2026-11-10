@@ -603,7 +603,7 @@ row('repeat(9,1fr)',[['',6],['BANK',2],['ROLL SET',1]],
 const all=[...document.querySelectorAll('#rows .b')];const by=t=>all.find(b=>b.textContent.replace(/\s/g,'')===t.replace(/\s/g,''));
 by('A').classList.add('lit');
 const bank=['A','B','C','D','E'].map(by);
-bank.forEach((b,i)=>{b.dataset.bank=["A","B","C","D","E"][i];b.addEventListener('click',()=>{bank.forEach(x=>x.classList.remove('lit'));b.classList.add('lit')})});
+bank.forEach((b,i)=>{b.dataset.bank=["A","B","C","D","E"][i];b.addEventListener('click',()=>{window.zpBridgeSend?.("creator.bank.select",{bank:b.dataset.bank})})});
 shiftControl?.addEventListener("pointerdown",event=>{event.preventDefault();shiftControl.classList.add("lit");window.__zpShiftHeld=true});["pointerup","pointercancel","pointerleave"].forEach(type=>shiftControl?.addEventListener(type,()=>{shiftControl.classList.remove("lit");window.__zpShiftHeld=false}));
 /* pads: multitouch real, luz al sonar */
 const held=new Map();
