@@ -76,9 +76,11 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 - INC-001 · `README.md` prescribe trabajar directamente en `main` y prohíbe ramas de trabajo. Esto contradice la estrategia de esta auditoría, autorizada explícitamente para `mejoras/auditoria`. Se actualizará el texto documental en esta rama para reflejar el flujo solicitado, sin alterar la historia funcional del proyecto.
 - INC-002 · El último workflow conocido de Pages, run `42771493943`, falló en la comprobación del toggle PATTERN EDIT. Evidencia: log del job `deploy`, que informa `PATTERN EDIT open/close toggle contract missing`. La sintaxis de los scripts inline y de `zp-storage.js` sí pasó. El despliegue fue omitido.
 - INC-003 · El workflow actual escucha push solo en `main`; por tanto, los commits de `mejoras/auditoria` no activan automáticamente la validación existente. Se necesita una ruta de test no desplegable para obtener evidencia CI en esta rama.
+- INC-004 · El validador esperaba un listener click sin parámetro, pero el código real usa `event=>{event.preventDefault();...}` para evitar la acción predeterminada del botón. El contrato funcional está presente; la aserción literal estaba obsoleta.
 
 ## Registro de cambios
 
 | Fecha | Cambio | Evidencia / verificación |
 |---|---|---|
 | 2026-11-10 | Inicio de auditoría y creación de esta bitácora | Repositorio, árbol recursivo, SHA de main y workflow inspeccionados |
+| 2026-11-10 | Corrección de aserción PATTERN EDIT | Se alinea el validador con el listener real que recibe el evento y ejecuta preventDefault; el comportamiento de la GUI no se modifica |

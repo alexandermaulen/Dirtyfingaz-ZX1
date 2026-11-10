@@ -89,7 +89,7 @@ check(gui.includes("FAVORITES ONLY"), "UTILITY favorites filter missing");
 check(gui.includes("pianoMode=false") && gui.includes("buildPiano();setPianoMode(false);"),
   "PATTERN EDIT must start closed with the step sequencer visible");
 check(gui.includes("const setPatternEditOpen=open=>") &&
-  gui.includes("patternButton?.addEventListener('click',()=>setPatternEditOpen(!scr.classList.contains('pr')))") &&
+  gui.includes("patternButton?.addEventListener('click',event=>{event.preventDefault();setPatternEditOpen(!scr.classList.contains('pr'))})") &&
   gui.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false))"),
   "PATTERN EDIT open/close toggle contract missing");
 check(!gui.includes("setTimeout(()=>setPianoMode(scr.classList.contains('pr')),0)"),
