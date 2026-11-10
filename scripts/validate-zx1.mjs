@@ -7,11 +7,11 @@ const check = (condition, message) => { if (!condition) errors.push(message); };
 
 for (const file of ["index.html", "creator-engine.html"]) {
   const html = read(file);
-  const tags = [...html.matchAll(/<script\\b([^>]*)>([\\s\\S]*?)<\\/script>/gi)];
+  const tags = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
   let parsed = 0;
   for (const [, attrs, source] of tags) {
-    if (/\\bsrc\\s*=/.test(attrs)) continue;
-    const type = attrs.match(/\\btype\\s*=\\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
+    if (/\bsrc\s*=/.test(attrs)) continue;
+    const type = attrs.match(/\btype\s*=\s*["']([^"']+)["']/i)?.[1]?.toLowerCase();
     if (type && !["text/javascript", "application/javascript", "module"].includes(type)) continue;
     if (!source.trim()) continue;
     try {
@@ -46,7 +46,7 @@ for (const command of registry.utilitySystem?.engineCommands || []) {
 }
 
 if (errors.length) {
-  console.error("\\nVALIDATION FAILED");
+  console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
   process.exitCode = 1;
 } else {
