@@ -29,7 +29,7 @@ const engine = read("creator-engine.html");
 const gui = read("index.html");
 const survey = read("CM-ZX1-SURVEY.md");
 
-const padBootstrap = gui.match(/<script id="zp-pad-bootstrap">([\\s\\S]*?)<\\/script>/)?.[1];
+const padBootstrap = gui.split('<script id="zp-pad-bootstrap">')[1]?.split('</script>')[0];
 check(!!padBootstrap, "PAD bootstrap script missing");
 if (padBootstrap) {
   const host = { children: [], dataset: {}, append(node) { this.children.push(node); }, querySelectorAll(selector) { return selector === ".p" ? this.children.filter(node => node.className === "p") : []; } };
