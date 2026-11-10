@@ -925,5 +925,52 @@
       "creator.bpm.sync.toggle",
       "creator.bpm.preset.set"
     ]
+  },
+  "surveyTraceability": {
+    "sourceOfTruth": "Notion",
+    "sourceTitle": "CM-ZX1 · Encuesta maestra y plan de ejecución",
+    "sourceUrl": "https://app.notion.com/p/41348df94c488065b575ed6c0fafb024?pvs=204",
+    "repositorySnapshot": "CM-ZX1-SURVEY.md",
+    "policy": [
+      "La encuesta maestra contiene decisiones de usuario, no prueba de implementación.",
+      "Cada requisito se cierra únicamente con cambio de código y validación reproducible.",
+      "No inventar respuestas para CM-ZX1-04, CM-ZX1-45 (ficha funcional) ni CM-ZX1-58.",
+      "No continuar preguntas nuevas hasta ejecutar y verificar las decisiones ya respondidas.",
+      "Un único repositorio y una sola línea de desarrollo; no crear ramas nuevas.",
+      "Mantener BANK_ID independiente de PATTERN_ID.",
+      "No abrir paneles, procesos de audio ni proyectos automáticamente al iniciar."
+    ],
+    "decisions": {
+      "confirmed": "CM-ZX1-01..03,05..57, except decisions explicitly superseded or excluded in the master survey",
+      "pending": [
+        "CM-ZX1-04",
+        "CM-ZX1-45-functional-detail",
+        "CM-ZX1-58"
+      ],
+      "superseded": [
+        "CM-ZX1-13",
+        "CM-ZX1-14"
+      ],
+      "excluded": [
+        "BTN_GATE",
+        "BTN_REMAIN"
+      ]
+    },
+    "executionOrder": [
+      "Fase 1: auditoría e inventario completo control por control.",
+      "Fase 2: especificaciones y contratos GUI↔motor.",
+      "Fase 3: implementación secuencial por módulo.",
+      "Fase 4: integración, persistencia y pruebas.",
+      "Fase 5: publicación y verificación después de autorización."
+    ],
+    "lastRepositoryAudit": {
+      "mainHeadBeforeSnapshot": "7ae59e1bfa7a7f255933eecac5c1fd7b666d22da",
+      "auditFindings": [
+        "La GUI y el motor ya incluyen Utility Center, Pattern Manager, transporte REC/LOOP/BPM y ADSR por PAD.",
+        "UTILITY todavía no refleja la taxonomía de ocho grupos solicitada: la GUI presenta doce herramientas como grupos independientes.",
+        "UTILITY carece de algunas capacidades expresamente solicitadas: compás, acento/count-in del metrónomo, triplets, selección explícita de entrada/salida, favoritos, búsqueda resaltada, métricas CPU/memoria y LUFS.",
+        "El registro técnico debe seguir creciendo con fichas por control; los 11 parámetros actuales no equivalen al inventario completo."
+      ]
+    }
   }
 }
