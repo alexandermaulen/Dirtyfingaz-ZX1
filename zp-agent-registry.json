@@ -870,7 +870,10 @@
         "count-in",
         "overdub"
       ],
-      "audio": "Microphone capture through MediaRecorder saves the recording as the sample assigned to the active bank/PAD."
+      "audio": "Microphone capture through MediaRecorder saves the recording as the sample assigned to the active bank/PAD.",
+      "defaultOverdub": true,
+      "defaultMode": "MIDI",
+      "countInDefault": false
     },
     "loop": {
       "independentOfPlay": true,
@@ -884,7 +887,8 @@
         "set out",
         "loop record"
       ],
-      "recording": "When LOOP RECORD is enabled, recording continues across loop wraps; otherwise the recording pass ends at the first wrap."
+      "recording": "When LOOP RECORD is enabled, recording continues across loop wraps; otherwise the recording pass ends at the first wrap.",
+      "defaultLoopRecord": false
     },
     "bpm": {
       "global": true,
