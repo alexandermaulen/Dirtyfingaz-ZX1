@@ -2,7 +2,7 @@ name: Deploy ZX1 demo to GitHub Pages
 
 on:
   push:
-    branches: [auxiliary]
+    branches: [main]
   workflow_dispatch:
 
 permissions:
@@ -21,7 +21,7 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout auxiliary
+      - name: Checkout main
         uses: actions/checkout@v4
       - name: Configure Pages
         uses: actions/configure-pages@v5
