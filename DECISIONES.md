@@ -94,6 +94,14 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 - Alternativas descartadas: incorporar un bundler o dependencias de terceros solo para estas comprobaciones.
 - Impacto: las comprobaciones se ejecutan en CI con módulos nativos de Node y no modifican la arquitectura runtime.
 
+### AUD-DEC-005 · Protección del despliegue Pages
+
+- Fecha: 2026-11-10
+- Decisión: condicionar el job de Pages a `github.ref == 'refs/heads/main'`, incluso cuando se invoque manualmente.
+- Motivo: evitar que una ejecución manual seleccionando la rama de auditoría publique cambios no revisados.
+- Alternativas descartadas: confiar solo en el filtro `push.branches`, que no restringe el evento `workflow_dispatch`.
+- Impacto: la rama de auditoría conserva pruebas no desplegables; la publicación queda restringida a main.
+
 ## Registro de cambios
 
 | Fecha | Cambio | Evidencia / verificación |
@@ -102,3 +110,4 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 | 2026-11-10 | Corrección de aserción PATTERN EDIT | Se alinea el validador con el listener real que recibe el evento y ejecuta preventDefault; el comportamiento de la GUI no se modifica |
 | 2026-11-10 | CI aislado y documentación del flujo | Workflow de auditoría solo ejecuta validación en `mejoras/auditoria`; README deja de prescribir trabajo directo en main |
 | 2026-11-10 | Pruebas de integridad ampliadas | Se añaden verificaciones de existencia de recursos locales y correspondencia de los 13 comandos estáticos del agente con el motor |
+| 2026-11-10 | Protección del job Pages | Se añade condición de rama main al job de despliegue para bloquear publicaciones manuales desde mejoras/auditoria |
