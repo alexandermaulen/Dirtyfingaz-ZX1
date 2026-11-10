@@ -769,7 +769,7 @@
     "separation": "BANK_ID and PATTERN_ID are independent. Selecting a bank never changes the active pattern. Selecting a pattern never changes the active bank.",
     "storage": {
       "engine": "creator-engine.html",
-      "projectSnapshotVersion": 8,
+      "projectSnapshotVersion": 10,
       "legacyMigration": "Legacy bank-keyed step/MIDI data A-E migrates to independent PATTERN_01-PATTERN_05 records."
     },
     "menu": [
