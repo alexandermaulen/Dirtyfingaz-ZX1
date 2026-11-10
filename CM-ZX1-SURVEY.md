@@ -1225,3 +1225,12 @@ Commits verificados:
 **Pruebas añadidas:** el validador verifica que A-E envíe el comando, que el motor registre y actualice el banco, y que la GUI sincronice el highlight desde el estado del motor.
 
 **QA pendiente:** probar los cinco bancos en Safari/iPhone 11; confirmar que el banco activo cambia, los samples permanecen por PAD/banco, el patrón seleccionado no cambia y los disparos suenan desde el banco esperado. No se declara respuesta audible probada.
+
+## AUD-004 · corrección de activación móvil · 2026-11-10
+
+- Causa técnica corregida: PATTERN EDIT se generaba como un `div.b` genérico y dependía de un click sintetizado sobre un elemento no interactivo, una ruta frágil para Safari/iOS.
+- El control se convierte ahora en `button type="button"`, preservando su clase, contenido y ubicación. Se neutralizan estilos nativos para conservar la GUI, y se añade `touch-action: manipulation`.
+- El botón conserva el listener de toggle y ahora tiene `aria-label`, `aria-expanded` y `aria-controls="zpPianoViewport"`. El viewport recibe un ID estable.
+- Se amplió el validador para comprobar la conversión a botón nativo, el tipo, el estilo táctil, el listener, el estado accesible y la sincronización de visibilidad del Piano Roll.
+- No se alteran los demás controles ni la lógica del motor.
+- CI y despliegue pendientes. QA táctil físico Safari/iPhone 11 sigue pendiente y no se declara como probado.
