@@ -619,7 +619,7 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
  /* Selector de bancos A-E: BANK_ID independiente de PATTERN_ID. */
  ["A","B","C","D","E"].forEach(label=>bind(label,()=>zpBridgeSend("creator.pattern.select",{bank:label})));
  bind("PATTERNSELECT",()=>{
-  const banks=["A","B","C","D","E"],active=document.querySelector("#rows .b.lit");
+  const banks=["A","B","C","D","E"],active=document.querySelector("#rows .b[data-bank].lit");
   const next=banks[(Math.max(0,banks.indexOf(active?.dataset.bank||"A"))+1)%5];
   zpBridgeSend("creator.pattern.select",{bank:next});
  });
