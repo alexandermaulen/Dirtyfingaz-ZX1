@@ -809,18 +809,14 @@
     "reorder": "Persistent order with up/down controls",
     "persistenceKey": "dirtyfingaz-zx1-utility-layout",
     "groups": [
-      "PAD / VALORES",
-      "METRÓNOMO",
-      "TEMPO / BPM",
-      "TONALIDAD / ESCALA",
-      "AFINADOR",
+      "EDICIÓN RÁPIDA",
+      "METRÓNOMO Y TEMPO",
       "CUANTIZACIÓN",
-      "AUDIO / RENDIMIENTO",
-      "MEDIDORES MASTER",
-      "PANIC",
-      "ATAJOS / GESTOS",
-      "DETECTOR BPM",
-      "GUÍA ESCALAS / ACORDES"
+      "AUDIO",
+      "RENDIMIENTO",
+      "TONALIDAD Y AFINACIÓN",
+      "MASTER Y SEGURIDAD",
+      "ANÁLISIS Y CONTROL"
     ],
     "engineCommands": [
       "creator.utility.state",
@@ -834,9 +830,38 @@
       "creator.tuner.start",
       "creator.tuner.stop",
       "creator.bpm.detect",
-      "creator.panic"
+      "creator.panic",
+      "creator.metronome.accent.set",
+      "creator.metronome.signature.set"
     ],
-    "audioPolicy": "No AudioContext or microphone stream is created at startup. Metronome, tuner and audio playback activate only after explicit interaction."
+    "audioPolicy": "No AudioContext or microphone stream is created at startup. Metronome, tuner and audio playback activate only after explicit interaction.",
+    "groupLayout": {
+      "multipleOpen": true,
+      "persistentOrder": true,
+      "persistentOpenState": true,
+      "reorder": "Up/down controls",
+      "favorites": true,
+      "favoritesOnlyFilter": true,
+      "searchHighlight": true,
+      "storageKey": "dirtyfingaz-zx1-utility-layout-v2"
+    },
+    "implementedRequirements": [
+      "Eight survey-defined groups with independent open/close state",
+      "Persistent group order",
+      "Favorites per tool and favorites-only filter",
+      "Search across group/tool descriptions with matching text highlight",
+      "Metronome accent on the first beat",
+      "Metronome time signatures: 2/4, 3/4, 4/4, 5/4, 6/8, 7/8",
+      "Metronome count-in toggle connected to REC count-in",
+      "Quantization OFF, straight 1/4, 1/8, 1/16, 1/32 and triplets 1/4T, 1/8T, 1/16T"
+    ],
+    "pendingRequirements": [
+      "Explicit audio input/output device selection and routing",
+      "CPU load and memory usage metrics where browser APIs expose them",
+      "True LUFS metering; current master meter is peak-only",
+      "Copy PAD, copy value and paste into last-selected control",
+      "Metronome accent/count-in behavior validation in Safari/iPhone"
+    ]
   },
   "projectMenu": {
     "button": "BTN_PROJECT",
@@ -964,12 +989,14 @@
       "Fase 5: publicación y verificación después de autorización."
     ],
     "lastRepositoryAudit": {
-      "mainHeadBeforeSnapshot": "7ae59e1bfa7a7f255933eecac5c1fd7b666d22da",
+      "mainHeadBeforeSnapshot": "9bcaa5ed9c296e2b33bcce6f60ea89537cffd9a9",
       "auditFindings": [
-        "La GUI y el motor ya incluyen Utility Center, Pattern Manager, transporte REC/LOOP/BPM y ADSR por PAD.",
-        "UTILITY todavía no refleja la taxonomía de ocho grupos solicitada: la GUI presenta doce herramientas como grupos independientes.",
-        "UTILITY carece de algunas capacidades expresamente solicitadas: compás, acento/count-in del metrónomo, triplets, selección explícita de entrada/salida, favoritos, búsqueda resaltada, métricas CPU/memoria y LUFS.",
-        "El registro técnico debe seguir creciendo con fichas por control; los 11 parámetros actuales no equivalen al inventario completo."
+        "The full CM-ZX1 master survey is versioned in CM-ZX1-SURVEY.md; Notion remains canonical for decision changes.",
+        "UTILITY now follows the eight survey-defined group headings, with independent multiple-open state, persistent order, favorites, favorites-only filtering and highlighted search.",
+        "Metronome now exposes level, accent, count-in and time signature; supported meters: 2/4, 3/4, 4/4, 5/4, 6/8 and 7/8.",
+        "Quantization now exposes OFF, straight 1/4, 1/8, 1/16, 1/32 and triplet 1/4T, 1/8T, 1/16T divisions.",
+        "Still pending: audio device selection/routing, real CPU/memory load telemetry, true LUFS metering, copy/paste PAD/value and Safari/iPhone validation.",
+        "The current UI and engine contain Utility Center, Pattern Manager, transport, REC/LOOP/BPM, bank/pattern separation and per-PAD ADSR."
       ]
     }
   },
