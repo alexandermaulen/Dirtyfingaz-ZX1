@@ -527,7 +527,7 @@ projectDialog.querySelector("#zp-project-history").onclick=()=>{projectDialog.cl
 historyDialog.querySelector("#zp-history-project-snapshot").onclick=()=>zpBridgeSend("creator.history.create",{scope:"PROJECT",label:"Snapshot de proyecto"});
 historyDialog.querySelector("#zp-history-module-snapshot").onclick=()=>zpBridgeSend("creator.history.create",{scope:"MODULE",module:historyDialog.querySelector("#zp-history-module").value});
 historyDialog.querySelector("#zp-history-refresh").onclick=refreshHistory;
-historyDialog.querySelector("#zp-history-restore").onclick=()=>{if(historyList.value&&confirm("¿Restaurar "+historyList.value+"?"))zpBridgeSend("creator.history.restore",{version:historyList.value});};
+historyDialog.querySelector("#zp-history-restore").onclick=()=>{if(historyList.value&&confirm("¿Restaurar "+historyList.value+"? El estado actual del proyecto será reemplazado."))zpBridgeSend("creator.history.restore",{version:historyList.value});};
 historyDialog.querySelector("#zp-history-prev").onclick=()=>{if(historyList.selectedIndex>0)historyList.selectedIndex--;};
 historyDialog.querySelector("#zp-history-next").onclick=()=>{if(historyList.selectedIndex<historyList.options.length-1)historyList.selectedIndex++;};
 window.addEventListener("zp-engine-result",event=>{const d=event.detail||{},data=d.result?.data||d.result;if(d.command==="creator.history.list"){renderHistoryList(data);return;}if(d.command==="creator.history.create"){historyStatus.textContent="GUARDADO · "+(data?.version||"");refreshHistory();return;}if(d.command==="creator.history.restore"){historyStatus.textContent="RESTAURADO · "+(data?.version||"");refreshHistory();}});
