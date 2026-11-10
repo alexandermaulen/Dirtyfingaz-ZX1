@@ -18,6 +18,8 @@ Mobile-first sampler workstation for Safari on iPhone. This branch ports the act
 - UTILITY opens a searchable utility center with independently collapsible groups, multiple groups open at once, and a persistent reorderable layout. Includes PAD controls, metronome, BPM/tap, key/scale, tuner, quantization, audio status, master meter, Panic, shortcuts, BPM detection and scale/chord guide.
 - Transport: PLAY/CONTINUE, dedicated STOP actions, REC arming with MIDI/AUDIO modes, count-in and overdub, loop boundaries and loop recording, BPM tap and presets. Audio REC captures microphone input into the active PAD sample slot.
 - PAD Settings: per-PAD pitch, volume, pan, delay/reverb sends, choke group and MASTER/GROUP_A/GROUP_B routing; independent ADSR knobs and touch curve with zoom, grid, SHIFT precision, preview and restore.
+- Sample Edit: destructive reverse/normalize/fades, per-PAD pitch and playback-rate controls, destructive/nondestructive modes, IN/OUT trim and manual waveform chop. Manual slices are saved to available PADs in the same bank without overwriting the source.
+- Typed clipboard: BTN_COPY copies PAD, sample range, ADSR, FX, MIDI pattern/note, sequencer step or individual value. Long press opens PASTE. DEL is selection-aware and never deletes an entire PAD or pattern.
 - HOME requests the integrated host main view without ejecting standalone Creator. EXIT closes the current context without leaving Creator.
 - Transport, recording controls, BPM adjustment, pad settings, effects controls and project manager are retained from the source Creator.
 - Local project/sample storage uses ZX1-specific IndexedDB and localStorage keys.
