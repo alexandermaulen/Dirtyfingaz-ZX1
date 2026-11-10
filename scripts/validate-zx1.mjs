@@ -106,7 +106,7 @@ check(gui.includes('id="zpLen" aria-label="NOTE LENGTH 1">NOTE LEN 1') &&
   "Piano controls must use explicit NOTE LEN and SNAP labels");
 check(gui.includes("const syncPianoControls=()=>") &&
   gui.includes("lengthButton.textContent='NOTE LEN '+length") &&
-  gui.includes("snapButton.textContent='SNAP 1/'+division") &&
+  gui.includes("snapButton.textContent='SNAP '+engineDivision") &&
   gui.includes("syncPianoControls()"),
   "NOTE LEN and SNAP must render from the single Piano Roll state");
 check(gui.includes("defaultLength=selected.length") &&
@@ -114,7 +114,7 @@ check(gui.includes("defaultLength=selected.length") &&
   "Selected-note length must synchronize with NOTE LEN and persist through the engine upsert command");
 
 check(gui.includes("creator.quantize.set") &&
-  html.includes("latestEngineState.quantizeEnabled?latestEngineState.quantizeDivision:'OFF'") &&
+  gui.includes("latestEngineState?.quantizeEnabled?latestEngineState.quantizeDivision:'OFF'") &&
   html.includes("zp-agent-runtime-context"),
   "Piano SNAP must send quantization commands and resync from engine radio state");
 check(html.includes("order=['OFF','1/16','1/8','1/4']") &&
