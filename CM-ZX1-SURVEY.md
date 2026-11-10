@@ -1233,4 +1233,4 @@ Commits verificados:
 - El botón conserva el listener de toggle y ahora tiene `aria-label`, `aria-expanded` y `aria-controls="zpPianoViewport"`. El viewport recibe un ID estable.
 - Se amplió el validador para comprobar la conversión a botón nativo, el tipo, el estilo táctil, el listener, el estado accesible y la sincronización de visibilidad del Piano Roll.
 - No se alteran los demás controles ni la lógica del motor.
-- CI y despliegue pendientes. QA táctil físico Safari/iPhone 11 sigue pendiente y no se declara como probado.
+- CI de auditoría en `mejoras/auditoria`: PASS, ejecución 42776026158 sobre el commit e92c49a67cad70500f80f215aa8834b228914d22. Esta validación no publica GitHub Pages. El despliegue Pages de la versión actual sigue pendiente porque `main` no se ha modificado ni integrado con esta rama. QA táctil físico Safari/iPhone 11 y validación audible real siguen pendientes; no se declaran como probados.

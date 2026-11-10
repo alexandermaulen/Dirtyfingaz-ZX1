@@ -129,6 +129,14 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 - Salida real: `Repository integrity checks: local assets and 13 agent commands`, `ZX1 survey contracts OK: 8 UTILITY groups`, `Registry JSON OK`.
 - Los runs `42775728435` y `42775774498` fallaron durante el desarrollo de la prueba ampliada (expresión regular mal escapada); el fallo se corrigió y el run posterior indicado arriba pasó.
 
+### AUD-DEC-008 · Actualización de estado de AUD-004 en la encuesta
+
+- Fecha: 2026-11-10
+- Decisión: registrar por separado el PASS de CI de auditoría, el estado pendiente de Pages y el QA táctil/audible físico.
+- Motivo: el texto anterior agrupaba CI y despliegue como pendientes, aunque la validación aislada ya había pasado.
+- Alternativas descartadas: declarar el despliegue o la prueba física como completados sin evidencia.
+- Impacto: la encuesta distingue validación estática en CI de despliegue y pruebas reales en dispositivo.
+
 ## Registro de cambios
 
 | Fecha | Cambio | Evidencia / verificación |
@@ -141,3 +149,4 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 | 2026-11-10 | Corrección del test de integridad | Se corrige el escape de las expresiones regulares que causó SyntaxError en la primera ejecución ampliada; CI posterior PASS en run 42775826234 |
 | 2026-11-10 | Estado de incongruencias | INC-001, INC-003 e INC-004 resueltas en la rama; INC-005 queda abierta por discrepancia entre extracción web y fuente desplegada |
 | 2026-11-10 | Cobertura de sintaxis ampliada | Se añaden los módulos zp-core, zp-layout, zp-agent y LAME al parsing Node del workflow; run 42775964903 PASS con los siete grupos de scripts/recursos y 13 comandos del agente |
+| 2026-11-10 | Estado AUD-004 sincronizado | Encuesta distingue CI PASS en rama, Pages pendiente y QA táctil/audible pendiente; evidencia run 42776026158 |
