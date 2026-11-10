@@ -1185,3 +1185,17 @@ Commits verificados:
 **Archivos tocados:** `index.html`, `zp-agent-registry.json`, `scripts/validate-zx1.mjs`, `CM-ZX1-SURVEY.md`, `README.md`.
 
 **Validación esperada:** sintaxis de scripts inline, JSON del registro, PAD bootstrap idempotente y contratos CM-ZX1-04 en el validador de Pages. La validación de navegador Safari/iPhone permanece como prueba runtime independiente.
+
+
+## AUD-003 · PLAY / STOP · 2026-11-10
+
+**Inspección de código en HEAD inicial `627acfe62c218a52426440b0166bf312915902bf`:**
+
+- PLAY tenía un listener visual antiguo que animaba la rejilla con un `setInterval` local. Más adelante, el bootstrap reemplazaba el botón por un clon y añadía `creator.transport.toggle`, por lo que el listener antiguo quedaba desconectado en runtime. Era código muerto y una fuente de confusión para futuras modificaciones, no evidencia de un fallo activo de transporte.
+- STOP también se clona y usa `bindLongPress`: toque corto envía `creator.transport.stop`; pulsación larga abre el menú de acciones STOP.
+- El motor registra `creator.transport.toggle`, `stop`, `continue`, `reset` y `state`. `togglePlay` alterna entre detener conservando posición y continuar/reiniciar según el índice; `stopTransport` detiene scheduler y grabación, limpia estados y publica el estado de radio.
+- No se encontró evidencia suficiente para afirmar que la interacción física ni la respuesta audible se hayan probado. Se mantienen QA móvil/audio pendientes.
+
+**Ajuste aplicado:** retirado el listener visual local obsoleto y su variable no utilizada del bloque de inicialización. No cambia el contrato de transporte. Se amplía `scripts/validate-zx1.mjs` para comprobar el puente PLAY/STOP, gesto corto/largo, comandos del motor, publicación del estado y ausencia del temporizador visual desconectado.
+
+**Resultado AUD-003:** código inspeccionado; limpieza de código muerto y cobertura de contrato aplicadas. Estado de QA real: PENDIENTE. Pendiente confirmar el commit final, GitHub Actions, Pages y sincronización de `auxiliary`.
