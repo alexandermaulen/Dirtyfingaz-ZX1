@@ -1118,3 +1118,24 @@ Commits verificados:
 - Run `42759761373` asociado al snapshot actualizado `bce884088a6d8fb5769b4275b3f9ec4ac79578f1` estaba en cola al momento de esta anotación.
 - Mantener PUBLICACIÓN PÚBLICA como bloqueada/no verificada hasta resolver por qué Pages sirve la versión de 16 PADs. No marcar publicación final como correcta basándose únicamente en el éxito de Actions.
 - Siguiente ejecución del backlog ya respondido: HISTORIAL CM-ZX1-10 a CM-ZX1-14 (versiones manuales de proyecto/módulo, secuencia V001..., navegación y restauración), seguida por el inventario control-por-control y las familias de Sample Editor/Mixer/FX. No avanzar la encuesta a CM-ZX1-58 ni abrir nuevas preguntas mientras haya decisiones respondidas sin ejecutar.
+
+### Reinicio de ejecución integrada · 2026-11-10 · revisión 3 pasadas
+
+**Fuente canónica:** Notion «CM-ZX1 · Encuesta maestra y plan de ejecución». Se retoma el backlog confirmado CM-ZX1-01 a CM-ZX1-57; no se abren encuestas nuevas ni se altera el alcance excluido. CM-ZX1-04, la ficha funcional detallada de CM-ZX1-45 y CM-ZX1-58 siguen pendientes de decisión, no se inventan.
+
+**Auditoría de inicio:** se volvió a leer el registro maestro completo, se revisaron index.html, creator-engine.html, zp-layout.js, zp-storage.js, zp-agent-registry.json, scripts/validate-zx1.mjs y .github/workflows/pages.yml. Se confirmó que el árbol ya contiene implementaciones previas de bancos A-E, Lx/Rx, ADSR, UTILITY, transporte/REC/LOOP, Sample Edit, CHOP manual, COPY/PASTE y DEL; cada una conserva su estado de validación real y no se presume terminada por estar descrita.
+
+**Hallazgo prioritario PADs:** index.html contiene el contenedor #pads, el generador original de nueve PADs y estilos de matriz. No se encontró una regla CSS explícita que oculte .pads. La causa runtime exacta de la ausencia no pudo reproducirse todavía en Safari/iPhone ni en un navegador remoto. Para proteger la superficie se añadió un guard CSS y un bootstrap idempotente posterior al inicializador principal: completa cualquier PAD faltante hasta PAD_01–PAD_09, sin duplicar los existentes. El segundo inicializador sigue enlazando los eventos de PAD cuando el DOM está disponible.
+
+**Cambios nuevos:**
+- index.html: guard de visibilidad de la matriz y zp-pad-bootstrap de nueve PADs.
+- scripts/validate-zx1.mjs: prueba aislada del bootstrap con DOM simulado, comprobando exactamente nueve nodos e IDs consecutivos.
+- Commits: 75fe754eb2ecc5a369c852cdf173cc132a72afe3 (GUI), c89f9297568f9e0513b6ab17bf4c59ff677c9fa5 (prueba inicial), 05883b6074ba36e70f864dda5748d64efd292b28 (corrección del extractor de la prueba).
+- main y auxiliary verificadas idénticas en 05883b6074ba36e70f864dda5748d64efd292b28 antes de actualizar este snapshot; no se creó ninguna rama nueva. La rama preexistente test no se modificó.
+
+**Tres pasadas de revisión:**
+1. Fuente/DOM: verificados contenedor, IDs, guard CSS y bootstrap idempotente en el archivo de interfaz.
+2. Contrato de prueba: revisado el harness VM que construye el DOM simulado y comprueba cantidad e IDs; se corrigió la extracción del script para evitar un regex mal escapado.
+3. Integración/publicación: verificadas las dos ramas operativas idénticas y revisado el workflow. El run nuevo asociado al commit 05883b6 y el artefacto nuevo aún no están confirmados mediante una lectura de Actions; la URL pública no pudo leerse con el navegador de verificación. Por lo tanto, no declarar CI, PADs visibles en runtime ni despliegue final como verificados todavía.
+
+**Siguiente orden obligatorio:** (1) obtener resultado de CI/artefacto del HEAD actual y verificar que el artefacto contiene el bootstrap; (2) resolver la discrepancia Pages/CDN que anteriormente devolvía 16 slots; (3) probar los nueve PADs en navegador real; (4) implementar HISTORIAL CM-ZX1-10–14 con snapshots manuales de proyecto y módulo, IDs V001..., navegación y restauración; (5) continuar fichas confirmadas pendientes en secuencia, empezando por inventario control-por-control y contratos GUI↔motor. No marcar tareas como terminadas hasta superar sus pruebas.
