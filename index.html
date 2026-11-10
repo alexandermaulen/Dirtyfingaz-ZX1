@@ -678,11 +678,6 @@ requestAnimationFrame(()=>requestAnimationFrame(fit));
 const gr=$('#gr');gr.append(mk('em',''));for(let s=1;s<=16;s++)gr.append(mk('em','',s));
 for(let l=1;l<=9;l++){gr.append(mk('em','',l));for(let s=0;s<16;s++){const c=mk('div','c');c.dataset.s=s;gr.append(c)}}
 
-const pb=by('PATTERNEDIT');
-let tm=null,st=0;const cells=()=>[...gr.querySelectorAll('.c')];
-$('#play').addEventListener('click',()=>{const p=$('#play');
- if(tm){clearInterval(tm);tm=null;p.innerHTML='&#9654; PLAY';cells().forEach(c=>c.classList.remove('hd2'))}
- else{p.innerHTML='&#9632; STOP';st=0;tm=setInterval(()=>{cells().forEach(c=>c.classList.toggle('hd2',+c.dataset.s===st));st=(st+1)%9},125)}});
 
 document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UNDO','CHOP','ENVELOPE','PUSH ENTER'].includes(t))s.classList.add('pl');else if(['PATTERN SEQUENCER','SAMPLING'].includes(t))s.classList.add('tr');else if(t)s.classList.add('tl')});
 /* shader: toca el título para alternar 8-bit / TV / apagado */
