@@ -86,6 +86,14 @@ check(Array.isArray(registry.utilitySystem?.groups) && registry.utilitySystem.gr
 check(gui.includes("utilityGroupDefinitions") && gui.includes("utility-search-hit"),
   "UTILITY grouping/search highlight contract missing");
 check(gui.includes("FAVORITES ONLY"), "UTILITY favorites filter missing");
+check(gui.includes("pianoMode=false") && gui.includes("buildPiano();setPianoMode(false);"),
+  "PATTERN EDIT must start closed with the step sequencer visible");
+check(gui.includes("const setPatternEditOpen=open=>") &&
+  gui.includes("patternButton?.addEventListener('click',()=>setPatternEditOpen(!scr.classList.contains('pr')))") &&
+  gui.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false))"),
+  "PATTERN EDIT open/close toggle contract missing");
+check(!gui.includes("setTimeout(()=>setPianoMode(scr.classList.contains('pr')),0)"),
+  "Legacy asynchronous PATTERN EDIT duplicate handler must be removed");
 check(gui.includes("1/16T"), "Triplet quantization UI missing");
 check(engine.includes('"1/16T":2/3'), "Triplet quantization engine mapping missing");
 check(engine.includes('runtime.register("creator.metronome.accent.set"'), "Metronome accent command missing");
