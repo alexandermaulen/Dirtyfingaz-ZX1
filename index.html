@@ -438,6 +438,7 @@ function utilityGroupContent(id,body){
   body.append(utilityRange("VOLUME",st.padLevels?.[pad]??.85,0,1,.01,v=>utilitySend("creator.control.set",{name:"pad-volume",value:v,commit:true})));
   body.append(utilityRange("PITCH",((st.padPitch?.[pad]??0)+24)/48,0,1,.01,v=>utilitySend("creator.control.set",{name:"pad-pitch",value:v,commit:true})));
   body.append(utilityRange("FILTER",((st.padFilter?.[pad]??18000)-300)/17700,0,1,.01,v=>utilitySend("creator.control.set",{name:"pad-filter",value:v,commit:true})));
+  body.append(utilityRange("PAN",((st.padPan?.[pad]??0)+1)/2,0,1,.01,v=>utilitySend("creator.pad.setting.set",{pad,pan:(v*2)-1,commit:true})));
  }else if(id==="metronome"){
   const row=utilityRow();row.append(utilityButton(st.metronomeEnabled?"METRONOME · ON":"METRONOME · OFF",()=>utilitySend("creator.metronome.toggle",{}),true));body.append(row);
   body.append(utilityRange("CLICK LEVEL",st.metronomeLevel??.35,.01,1,.01,v=>utilitySend("creator.metronome.level.set",{value:v})));
