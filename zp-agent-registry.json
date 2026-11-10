@@ -800,5 +800,59 @@
       "creator.pattern.paste.midi",
       "creator.pattern.step.toggle"
     ]
+  },
+  "utilitySystem": {
+    "toggle": "BTN_UTILITY",
+    "defaultOpen": false,
+    "multipleGroupsOpen": true,
+    "search": true,
+    "reorder": "Persistent order with up/down controls",
+    "persistenceKey": "dirtyfingaz-zx1-utility-layout",
+    "groups": [
+      "PAD / VALORES",
+      "METRÓNOMO",
+      "TEMPO / BPM",
+      "TONALIDAD / ESCALA",
+      "AFINADOR",
+      "CUANTIZACIÓN",
+      "AUDIO / RENDIMIENTO",
+      "MEDIDORES MASTER",
+      "PANIC",
+      "ATAJOS / GESTOS",
+      "DETECTOR BPM",
+      "GUÍA ESCALAS / ACORDES"
+    ],
+    "engineCommands": [
+      "creator.utility.state",
+      "creator.metronome.toggle",
+      "creator.metronome.level.set",
+      "creator.bpm.adjust",
+      "creator.bpm.set",
+      "creator.bpm.tap",
+      "creator.key.set",
+      "creator.quantize.set",
+      "creator.tuner.start",
+      "creator.tuner.stop",
+      "creator.bpm.detect",
+      "creator.panic"
+    ],
+    "audioPolicy": "No AudioContext or microphone stream is created at startup. Metronome, tuner and audio playback activate only after explicit interaction."
+  },
+  "projectMenu": {
+    "button": "BTN_PROJECT",
+    "items": [
+      "PROJECT MANAGER",
+      "CAMBIAR TEMA",
+      "CONFIGURACIÓN"
+    ],
+    "removedLegacySubmenus": [
+      "SYSTEM CONFIG",
+      "SYSTEM CTRL",
+      "SYSTEM INIT",
+      "D BEAM SETTING",
+      "MIDI UTILITY",
+      "USB AUDIO/MIDI",
+      "USB MASS STORAGE"
+    ]
   }
 }
