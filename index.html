@@ -645,6 +645,21 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
   knob.addEventListener("pointerup",()=>{const angle=parseFloat(getComputedStyle(knob).getPropertyValue("--r"))||0;const value=Math.max(0,Math.min(1,(angle+135)/270));zpBridgeSend("creator.control.set",{name:knobNames[i],value,commit:true});});
  });
  const valueEncoder=document.querySelector(".pe");
+ window.__zpEncoderModes=window.__zpEncoderModes||{lx:"trim.start",rx:"trim.end"};
+ window.addEventListener("zp-panel-option-select",event=>{
+  const d=event.detail||{};if(d.context!=="sample")return;
+  const side=d.side==="L"?"lx":"rx",option=String(d.option||"").trim().toUpperCase();
+  let mode=null;
+  if(side==="lx"&&["START","IN"].includes(option))mode="trim.start";
+  if(side==="rx"&&["END","OUT"].includes(option))mode="trim.end";
+  if(["PITCH","TRANSPOSE"].includes(option))mode="pad-pitch";
+  const encoder=side==="lx"?lx:valueEncoder;
+  if(!mode){encoder.dataset.panelOption=option;encoder.title=side.toUpperCase()+" · "+option+" · SIN ACCIÓN ASIGNADA";return;}
+  window.__zpEncoderModes[side]=mode;
+  encoder.dataset.editTarget=mode==="pad-pitch"?"PAD PITCH":mode==="trim.start"?"SAMPLE IN":"SAMPLE OUT";
+  encoder.setAttribute("aria-label",side.toUpperCase()+" · "+encoder.dataset.editTarget);
+  encoder.title=encoder.dataset.editTarget+" · SHIFT para ajuste fino";
+ });
  const bindTrimEncoder=(encoder,trimTarget)=>{
   let previous=null,menuRemainder=0;
   encoder.addEventListener("pointerdown",()=>{previous=parseFloat(getComputedStyle(encoder).getPropertyValue("--r"))||0;menuRemainder=0});
@@ -658,7 +673,11 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
    const sampleContext=midContainer.classList.contains("sample-context")&&!midContainer.classList.contains("piano-open");
    if(!window.__zpPianoEncoderMode&&(phase===3||(phase===1&&sampleContext))){
     if(window.__zpMidiRotorActive)return;
-    const target=sampleContext?trimTarget:(phase===3?trimTarget:(state.target||activeTrimTarget)),range=state.range||{start:0,end:1},fineStep=by('SHIFT')?.classList.contains('lit')?.00015:.0015;
+    const side=encoder===lx?"lx":"rx",mode=window.__zpEncoderModes?.[side]||(side==="lx"?"trim.start":"trim.end");
+    if(mode==="pad-pitch"){
+     zpBridgeSend("creator.control.set",{name:"pad-pitch",value:Math.max(0,Math.min(1,(angle+135)/270)),commit:false});return;
+    }
+    const target=mode==="trim.start"?"start":mode==="trim.end"?"end":trimTarget,range=state.range||{start:0,end:1},fineStep=by('SHIFT')?.classList.contains('lit')?.00015:.0015;
     const next=target==="start"?Math.max(0,Math.min(range.end-.0001,range.start+delta*fineStep)):Math.max(range.start+.0001,Math.min(1,range.end+delta*fineStep));
     state.active=true;state.target=target;state.range=target==="start"?{...range,start:next}:{...range,end:next};
     zpBridgeSend("creator.sample.trim.set",{target,position:next,commit:false});return;
@@ -668,8 +687,9 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
   ["pointerup","pointercancel"].forEach(type=>encoder.addEventListener(type,()=>{
    previous=null;if(window.__zpPianoEncoderMode)return;if(window.__zpSystemMenuOpen&&encoder===valueEncoder)return;const phase=window.__zpTrimPhase,state=window.__zpTrimRotor,sampleContext=midContainer.classList.contains("sample-context")&&!midContainer.classList.contains("piano-open");
    if(phase===3||(phase===1&&sampleContext)){
-    const target=sampleContext?trimTarget:(phase===3?trimTarget:(state.target||activeTrimTarget)),range=state.range||{start:0,end:1};
-    zpBridgeSend("creator.sample.trim.set",{target,position:target==="start"?range.start:range.end,commit:true});
+    const side=encoder===lx?"lx":"rx",mode=window.__zpEncoderModes?.[side]||(side==="lx"?"trim.start":"trim.end");
+    if(mode==="pad-pitch")zpBridgeSend("creator.control.set",{name:"pad-pitch",value:Math.max(0,Math.min(1,(parseFloat(getComputedStyle(encoder).getPropertyValue("--r"))+135)/270)),commit:true});
+    else{const target=mode==="trim.start"?"start":mode==="trim.end"?"end":trimTarget,range=state.range||{start:0,end:1};zpBridgeSend("creator.sample.trim.set",{target,position:target==="start"?range.start:range.end,commit:true});}
    }
   }));
  };
