@@ -196,6 +196,23 @@ check(!gui.includes("tm=setInterval(()=>{cells().forEach(c=>c.classList.toggle('
   !gui.includes("let tm=null,st=0;const cells="),
   "Detached local visual transport timer must not remain in the GUI source");
 
+
+/* AUD-004 · PATTERN EDIT open/close contract */
+check(g.includes("row('repeat(5,1fr)'") && g.includes("'PATTERN<br>EDIT'") &&
+  g.includes("const all=[...document.querySelectorAll('#rows .b')]") &&
+  g.includes("const by=t=>all.find(b=>b.textContent.replace(/\\s/g,'')===t.replace(/\\s/g,''))"),
+  "PATTERN EDIT control must be present in the hardware row and resolvable by normalized label");
+check(g.includes("const patternButton=by('PATTERNEDIT')") &&
+  g.includes("patternButton?.addEventListener('click',()=>setPatternEditOpen(!scr.classList.contains('pr')))"),
+  "PATTERN EDIT must toggle open and closed from the same control");
+check(g.includes("scr.classList.toggle('pr',active)") &&
+  g.includes("patternButton?.setAttribute('aria-expanded',String(active))") &&
+  g.includes("setPianoMode(active)"),
+  "PATTERN EDIT toggle must synchronize LCD mode, expanded state and Piano Roll mode");
+check(g.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false))") &&
+  g.includes("pianoViewport.hidden=!on") && g.includes("viewport.hidden=on"),
+  "PATTERN EDIT close event and content visibility must be wired");
+
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
