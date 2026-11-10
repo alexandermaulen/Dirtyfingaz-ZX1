@@ -503,7 +503,7 @@ async function createHistorySnapshot(payload={}){
 async function listHistorySnapshots(){return assetStorage.listHistory(currentProjectId);}
 async function restoreHistorySnapshot(payload={}){
   const version=String(payload.version||"");
-  if(!/^V\\d{3,}$/.test(version))throw Object.assign(new Error("Selecciona una versión válida"),{code:"INVALID_INPUT"});
+  if(!/^V\d{3,}$/.test(version))throw Object.assign(new Error("Selecciona una versión válida"),{code:"INVALID_INPUT"});
   const snapshot=await assetStorage.getHistorySnapshot(currentProjectId,version);
   if(!snapshot)throw Object.assign(new Error("La versión solicitada no existe"),{code:"NOT_FOUND"});
   await saveSession(true);
