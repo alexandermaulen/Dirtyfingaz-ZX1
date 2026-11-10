@@ -23,6 +23,8 @@ jobs:
     steps:
       - name: Checkout main
         uses: actions/checkout@v4
+      - name: Validate source and survey contracts
+        run: node scripts/validate-zx1.mjs
       - name: Configure Pages
         uses: actions/configure-pages@v5
       - name: Upload site
