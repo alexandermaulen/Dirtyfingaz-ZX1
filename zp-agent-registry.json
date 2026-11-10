@@ -673,10 +673,14 @@
         "L": {
           "START": "trim.start",
           "IN": "trim.start",
+          "END": "trim.end",
+          "OUT": "trim.end",
           "PITCH": "pad-pitch",
           "TRANSPOSE": "pad-pitch"
         },
         "R": {
+          "START": "trim.start",
+          "IN": "trim.start",
           "END": "trim.end",
           "OUT": "trim.end",
           "PITCH": "pad-pitch",
