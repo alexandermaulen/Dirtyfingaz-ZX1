@@ -229,14 +229,14 @@ check(gui.includes('document.querySelectorAll("#rows .b[data-bank]").forEach(b=>
 /* Repository integrity · local assets and GUI-to-engine command parity */
 for (const file of ["index.html", "creator-engine.html"]) {
   const html = read(file);
-  for (const [, reference] of html.matchAll(/<(?:script|link)\\b[^>]*?\\b(?:src|href)=["']([^"']+)["'][^>]*>/gi)) {
-    if (/^(?:https?:|data:|#|\\/\\/)/i.test(reference)) continue;
-    const localPath = reference.split(/[?#]/)[0].replace(/^\\.\\//, "");
+  for (const [, reference] of html.matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)=["']([^"']+)["'][^>]*>/gi)) {
+    if (/^(?:https?:|data:|#|\/\/)/i.test(reference)) continue;
+    const localPath = reference.split(/[?#]/)[0].replace(/^\.\//, "");
     check(fs.existsSync(path.resolve(localPath)), file + " local asset missing: " + reference);
   }
 }
 const agentSource = read("zp-agent.js");
-const agentCommands = [...new Set([...agentSource.matchAll(/send\\("(creator\\.[^"]+)"/g)].map(match => match[1]))];
+const agentCommands = [...new Set([...agentSource.matchAll(/send\("(creator\.[^"]+)"/g)].map(match => match[1]))];
 for (const command of agentCommands) {
   check(engine.includes('runtime.register("' + command + '"'), "Agent command is not registered by engine: " + command);
 }

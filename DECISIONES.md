@@ -102,6 +102,14 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 - Alternativas descartadas: confiar solo en el filtro `push.branches`, que no restringe el evento `workflow_dispatch`.
 - Impacto: la rama de auditoría conserva pruebas no desplegables; la publicación queda restringida a main.
 
+### AUD-DEC-006 · Corrección de sintaxis del test de integridad
+
+- Fecha: 2026-11-10
+- Decisión: expresar los patrones de rutas y comandos como literales RegExp con escapes JavaScript simples y validar el script en CI inmediatamente después de cada cambio.
+- Motivo: la primera versión del bloque de integridad produjo `SyntaxError: Invalid regular expression flags` en Node 22; la evidencia provino de la ejecución `42775728435`.
+- Alternativas descartadas: eliminar las comprobaciones nuevas o ocultar el fallo del test.
+- Impacto: se conserva la cobertura de rutas y comandos, corrigiendo únicamente el test.
+
 ## Registro de cambios
 
 | Fecha | Cambio | Evidencia / verificación |
@@ -111,3 +119,4 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 | 2026-11-10 | CI aislado y documentación del flujo | Workflow de auditoría solo ejecuta validación en `mejoras/auditoria`; README deja de prescribir trabajo directo en main |
 | 2026-11-10 | Pruebas de integridad ampliadas | Se añaden verificaciones de existencia de recursos locales y correspondencia de los 13 comandos estáticos del agente con el motor |
 | 2026-11-10 | Protección del job Pages | Se añade condición de rama main al job de despliegue para bloquear publicaciones manuales desde mejoras/auditoria |
+| 2026-11-10 | Corrección del test de integridad | Se corrige el escape de las expresiones regulares que causó SyntaxError en la primera ejecución ampliada |
