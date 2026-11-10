@@ -268,6 +268,34 @@
         "Probar navegación PROJECT, patrones y Piano Roll en Safari iOS",
         "Verificar PWA offline y sincronización futura con Supabase"
       ]
+    },
+    "menu": {
+      "entries": [
+        "PROJECT MANAGER",
+        "SYSTEM",
+        "D BEAM SETTING",
+        "MIDI UTILITY",
+        "USB AUDIO/MIDI",
+        "USB MASS STORAGE",
+        "MASTER LEVEL",
+        "CAMBIAR TEMA",
+        "CONFIGURACIÓN"
+      ],
+      "theme": {
+        "status": "implemented",
+        "storageKey": "dirtyfingaz-zx1-theme",
+        "options": [
+          "verde",
+          "ambar",
+          "cian",
+          "rojo"
+        ]
+      },
+      "configuration": {
+        "status": "future",
+        "label": "CONFIGURACIÓN",
+        "selectionFeedback": "CONFIGURACIÓN · PRÓXIMAMENTE"
+      }
     }
   },
   "controls": {

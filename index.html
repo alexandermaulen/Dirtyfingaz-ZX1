@@ -385,8 +385,17 @@ let projectCurrentId="current";
 const projectSelect=projectDialog.querySelector("#zp-project-select"),projectName=projectDialog.querySelector("#zp-project-name"),projectStatus=projectDialog.querySelector("#zp-project-status");
 const renderProjectList=(items,currentId,name)=>{projectCurrentId=currentId||"current";projectSelect.replaceChildren();(Array.isArray(items)?items:[]).forEach(item=>{const option=document.createElement("option");option.value=item.id;option.textContent=item.name+(item.id===projectCurrentId?" · ACTUAL":"");projectSelect.append(option)});if(![...projectSelect.options].some(option=>option.value===projectCurrentId)){const option=document.createElement("option");option.value=projectCurrentId;option.textContent=(name||"Proyecto actual")+" · ACTUAL";projectSelect.prepend(option)}projectSelect.value=projectCurrentId;projectName.value=name||"";projectDialog.querySelector("#zp-project-delete").disabled=projectSelect.value===projectCurrentId||projectSelect.value==="current";};
 const refreshProjects=()=>zpBridgeSend("creator.project.list",{});
+const skins=["verde","ambar","cian","rojo"];
+function applySkin(skin,save=true){
+ const next=skins.includes(String(skin).toLowerCase())?String(skin).toLowerCase():"verde";
+ unit.dataset.skin=next;
+ if(save){try{localStorage.setItem("dirtyfingaz-zx1-theme",next)}catch(error){console.warn("No se pudo guardar el tema:",error)}}
+ return next;
+}
+try{const savedSkin=localStorage.getItem("dirtyfingaz-zx1-theme");if(savedSkin&&skins.includes(savedSkin))applySkin(savedSkin,false)}catch(error){console.warn("No se pudo leer el tema guardado:",error)}
+
 window.addEventListener("zp-system-menu-state",event=>{const d=event.detail||{};window.__zpSystemMenuOpen=!!d.open;projectMenu.hidden=!d.open;if(!d.open)return;const list=projectMenu.querySelector(".menu-list");list.replaceChildren();(Array.isArray(d.items)?d.items:[]).forEach((item,index)=>{const row=mk("div","menu-item"+(index===d.index?" selected":""));row.textContent=String(item);list.append(row)});});
-window.addEventListener("zp-engine-result",event=>{const d=event.detail||{},data=d.result?.data;if(d.command==="creator.system.menu.select"&&data?.projectManager){renderProjectList(data.projects,data.currentProjectId,data.currentProjectName);projectDialog.showModal();}else if(d.command==="creator.project.list"){renderProjectList(data,projectCurrentId,projectName.value);projectStatus.textContent="INDEXEDDB · "+(Array.isArray(data)?data.length:0)+" PROYECTOS";}else if(["creator.project.create","creator.project.load","creator.project.delete","creator.project.save","creator.project.rename","creator.project.import"].includes(d.command)){refreshProjects();if(data?.name)projectName.value=data.name;}});
+window.addEventListener("zp-engine-result",event=>{const d=event.detail||{},data=d.result?.data;if(d.command==="creator.system.menu.select"&&data?.theme){applySkin(data.theme);return;}if(d.command==="creator.system.menu.select"&&data?.projectManager){renderProjectList(data.projects,data.currentProjectId,data.currentProjectName);projectDialog.showModal();}else if(d.command==="creator.project.list"){renderProjectList(data,projectCurrentId,projectName.value);projectStatus.textContent="INDEXEDDB · "+(Array.isArray(data)?data.length:0)+" PROYECTOS";}else if(["creator.project.create","creator.project.load","creator.project.delete","creator.project.save","creator.project.rename","creator.project.import"].includes(d.command)){refreshProjects();if(data?.name)projectName.value=data.name;}});
 projectSelect.addEventListener("change",()=>{projectDialog.querySelector("#zp-project-delete").disabled=projectSelect.value===projectCurrentId||projectSelect.value==="current";});
 projectDialog.querySelector("#zp-project-new").onclick=()=>zpBridgeSend("creator.project.create",{name:projectName.value});
 projectDialog.querySelector("#zp-project-save").onclick=()=>{zpBridgeSend("creator.project.rename",{name:projectName.value});zpBridgeSend("creator.project.save",{});};
@@ -511,8 +520,7 @@ document.querySelector("[data-trim-target=\"start\"]")?.classList.add("active");
 trimPhaseButton?.addEventListener("click",()=>setTrimPhase(window.__zpTrimPhase%3+1));
 
 requestAnimationFrame(()=>requestAnimationFrame(fit));
-/* temas: toca MENU */
-const skins=['verde','ambar','cian','rojo'];
+/* Temas gestionados desde PROJECT / CAMBIAR TEMA y persistidos localmente. */
 
 /* piano roll: botón PATTERN EDIT */
 const gr=$('#gr');gr.append(mk('em',''));for(let s=1;s<=16;s++)gr.append(mk('em','',s));

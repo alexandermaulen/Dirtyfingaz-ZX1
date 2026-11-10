@@ -518,7 +518,7 @@ runtime.register("creator.project.save",()=>saveSession());
 runtime.register("creator.envelope.mode.toggle",async()=>{envelopeMode=envelopeMode==="ADSR"?"ADR":"ADSR";await saveSession(true);notify("ENVELOPE · "+envelopeMode);publishRadioState();return {mode:envelopeMode,persisted:true}});
 runtime.register("creator.system.menu.open",()=>{if(!systemMenu){systemMenu=true;menuPage="MAIN";menuIndex=0;activeTab="MUESTRA";updateScreen()}publishSystemMenuState();return {open:systemMenu}});
 runtime.register("creator.system.menu.navigate",p=>{if(!systemMenu)return {open:false};const max=Math.max(0,menuItems().length-1);menuIndex=(menuIndex+Math.trunc(Number(p.delta)||0)+max+1)%(max+1);updateScreen();publishSystemMenuState();return {index:menuIndex}});
-runtime.register("creator.system.menu.select",async()=>{if(!systemMenu)return {open:false};const selected=menuItems()[menuIndex]||"";if(menuPage==="MAIN"&&selected.startsWith("0:")){systemMenu=false;updateScreen();publishSystemMenuState();return {open:false,projectManager:true,projects:await assetStorage.listProjects(),currentProjectId,currentProjectName}}enterSystemMenu();publishSystemMenuState();return {open:systemMenu,page:menuPage,index:menuIndex}});
+runtime.register("creator.system.menu.select",async()=>{if(!systemMenu)return {open:false};const selected=menuItems()[menuIndex]||"";if(menuPage==="MAIN"&&selected.startsWith("0:")){systemMenu=false;updateScreen();publishSystemMenuState();return {open:false,projectManager:true,projects:await assetStorage.listProjects(),currentProjectId,currentProjectName}}if(menuPage==="MAIN"&&selected.startsWith("8:")){notify("CONFIGURACIÓN · PRÓXIMAMENTE");publishSystemMenuState();return {configuration:{status:"future"}}}if(menuPage==="CAMBIAR TEMA"){const theme=["verde","ambar","cian","rojo"][menuIndex]||"verde";systemMenu=false;updateScreen();publishSystemMenuState();return {theme}}enterSystemMenu();publishSystemMenuState();return {open:systemMenu,page:menuPage,index:menuIndex}});
 runtime.register("creator.system.menu.close",()=>{systemMenu=false;updateScreen();publishSystemMenuState();return {open:false}});
 runtime.register("creator.project.manager.open",()=>openProjectManager());
 runtime.register("creator.project.list",()=>assetStorage.listProjects());
@@ -585,7 +585,7 @@ function changeValue(delta){
 function applyFxAmount(){if(!ctx){fxValueOutput.textContent=Math.round(fxAmount*100)+"%";if(fxReadout)fxReadout.innerHTML="FX AMOUNT <strong>"+Math.round(fxAmount*100)+"%</strong>";return}if(fxState.drive)driveAmount(fxAmount*35);if(fxState.delay)delayWet.gain.setTargetAtTime(fxAmount*.65,ctx.currentTime,.025);if(fxState.reverb)reverbWet.gain.setTargetAtTime(fxAmount*.55,ctx.currentTime,.025);fxValueOutput.textContent=Math.round(fxAmount*100)+"%";if(fxReadout)fxReadout.innerHTML="FX AMOUNT <strong>"+Math.round(fxAmount*100)+"%</strong>";}
 function menuItems(){
  const menus={
- MAIN:["0:PROJECT MANAGER","1:SYSTEM","2:D BEAM SETTING","3:MIDI UTILITY","4:USB AUDIO/MIDI","5:USB MASS STORAGE","6:MASTER LEVEL"],
+ MAIN:["0:PROJECT MANAGER","1:SYSTEM","2:D BEAM SETTING","3:MIDI UTILITY","4:USB AUDIO/MIDI","5:USB MASS STORAGE","6:MASTER LEVEL","7:CAMBIAR TEMA","8:CONFIGURACIÓN"],
  SYSTEM:["SYSTEM CONFIG","SYSTEM CTRL","SYSTEM INIT"],
  "SYSTEM CONFIG":["LCD CONTRAST · 07","SAMPLING GRADE · STANDARD","METRO. MODE · OFF","METRONOME LEVEL · 0","PRELOAD PTN · WRITABLE"],
  "SYSTEM CTRL":["FOOT SW ASSIGN · OFF","D BEAM SENS · 64"],
@@ -594,7 +594,8 @@ function menuItems(){
  "MIDI UTILITY":["MIDI CHANNEL","SYNC MODE","MIDI CLOCK"],
  "USB AUDIO/MIDI":["VENDOR DRIVER · ON","USB AUDIO INPUT · OFF","USB AUDIO OUTPUT · MIX"],
  "USB MASS STORAGE":["CONNECT TO COMPUTER","DISCONNECT"],
- "MASTER LEVEL":["MASTER LEVEL · "+Math.round((master?.gain.value??.58)*127)]
+ "MASTER LEVEL":["MASTER LEVEL · "+Math.round((master?.gain.value??.58)*127)],
+ "CAMBIAR TEMA":["VERDE","ÁMBAR","CIAN","ROJO"]
  };
  return menus[menuPage]||["SELECT","VALUE"];
 }
@@ -602,7 +603,7 @@ function publishSystemMenuState(){parent.postMessage({type:"zp-engine-system-men
 function enterSystemMenu(){
  if(!systemMenu){systemMenu=true;menuPage="MAIN";menuIndex=0;activeTab="MUESTRA";updateScreen();return}
  const selected=menuItems()[menuIndex]||"";
- if(menuPage==="MAIN"){if(selected.startsWith("0:")){systemMenu=false;updateScreen();openProjectManager();return}menuPage=selected.startsWith("1:")?"SYSTEM":selected.startsWith("2:")?"D BEAM SETTING":selected.startsWith("3:")?"MIDI UTILITY":selected.startsWith("4:")?"USB AUDIO/MIDI":selected.startsWith("5:")?"USB MASS STORAGE":"MASTER LEVEL";menuIndex=0;updateScreen();return}
+ if(menuPage==="MAIN"){if(selected.startsWith("0:")){systemMenu=false;updateScreen();openProjectManager();return}menuPage=selected.startsWith("1:")?"SYSTEM":selected.startsWith("2:")?"D BEAM SETTING":selected.startsWith("3:")?"MIDI UTILITY":selected.startsWith("4:")?"USB AUDIO/MIDI":selected.startsWith("5:")?"USB MASS STORAGE":selected.startsWith("7:")?"CAMBIAR TEMA":"MASTER LEVEL";menuIndex=0;updateScreen();return}
  if(menuPage==="SYSTEM"){menuPage=["SYSTEM CONFIG","SYSTEM CTRL","SYSTEM INIT"][menuIndex]||"SYSTEM CONFIG";menuIndex=0;updateScreen();return}
  if(menuPage==="SYSTEM CONFIG"||menuPage==="SYSTEM CTRL"){notify("VALUE EDIT · "+selected);return}
  if(menuPage==="SYSTEM INIT"){notify("INIT · CONFIRMAR CON F3");return}
