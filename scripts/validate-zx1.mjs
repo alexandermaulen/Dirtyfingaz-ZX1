@@ -94,6 +94,11 @@ check(gui.includes("const setPatternEditOpen=open=>") &&
   "PATTERN EDIT open/close toggle contract missing");
 check(!gui.includes("setTimeout(()=>setPianoMode(scr.classList.contains('pr')),0)"),
   "Legacy asynchronous PATTERN EDIT duplicate handler must be removed");
+check(gui.includes("const scr=$('#scr'),v2=document.querySelector('.v2'),grid=$('#gr'),bpm=$('#bpmWheel'),browse=$('#browse');") &&
+  gui.includes("if(!scr||!v2||!grid||!bpm||!browse)return;") &&
+  !gui.includes("menu=$('#menu')") &&
+  !gui.includes("!menu||!browse"),
+  "PATTERN EDIT initializer must not depend on the nonexistent #menu element");
 check(gui.includes("1/16T"), "Triplet quantization UI missing");
 check(engine.includes('"1/16T":2/3'), "Triplet quantization engine mapping missing");
 check(engine.includes('runtime.register("creator.metronome.accent.set"'), "Metronome accent command missing");
