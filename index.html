@@ -599,6 +599,27 @@ row('repeat(8,1fr)',[['UNDO',1],['SAMPLING',2],['CHOP',1],['ENVELOPE',2],['SAMPL
  ['DEL','REC','RESAMPLE','BPM<br>SYNC','GATE','LOOP','REVERSE','ROLL'],'big');
 row('repeat(9,1fr)',[['',6],['BANK',2],['ROLL SET',1]],
  ['EXIT','COPY',null,'A','B','C','D','E','SHIFT'],'big');
+/* PATTERN EDIT: botón nativo para activación táctil consistente en Safari/iOS. */
+const patternEditControl=[...document.querySelectorAll("#rows .b")].find(el=>el.textContent.replace(/\s/g,"")==="PATTERNEDIT");
+if(patternEditControl&&patternEditControl.tagName!=="BUTTON"){
+ const nativePatternEdit=document.createElement("button");
+ nativePatternEdit.type="button";
+ nativePatternEdit.className=patternEditControl.className+" pattern-edit-trigger";
+ nativePatternEdit.innerHTML=patternEditControl.innerHTML;
+ nativePatternEdit.setAttribute("aria-label","PATTERN EDIT");
+ nativePatternEdit.style.appearance="none";
+ nativePatternEdit.style.webkitAppearance="none";
+ nativePatternEdit.style.font="inherit";
+ nativePatternEdit.style.color="inherit";
+ nativePatternEdit.style.cursor="pointer";
+ nativePatternEdit.style.width="100%";
+ nativePatternEdit.style.margin="0";
+ nativePatternEdit.style.padding="0";
+ nativePatternEdit.style.border="0";
+ nativePatternEdit.style.background="transparent";
+ nativePatternEdit.style.touchAction="manipulation";
+ patternEditControl.replaceWith(nativePatternEdit);
+}
 /* estados fijos como en la imagen */
 const all=[...document.querySelectorAll('#rows .b')];const by=t=>all.find(b=>b.textContent.replace(/\s/g,'')===t.replace(/\s/g,''));
 by('A').classList.add('lit');
@@ -911,7 +932,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  const line=mk('div','transport-line'),fill=mk('i');line.append(fill);
  const tools=mk('div','piano-tools','<div class="piano-zoom"><button type="button" id="zpZoomOut" aria-label="Alejar">−</button><button type="button" id="zpZoomIn" aria-label="Acercar">+</button></div><button type="button" id="zpOctDown">OCT−</button><button type="button" id="zpDraw" class="selected">DRAW</button><button type="button" id="zpSnap" aria-label="SNAP GRID 1/16">SNAP 1/16</button><button type="button" id="zpLen" aria-label="NOTE LENGTH 1">NOTE LEN 1</button><label class="piano-vel">VEL<input id="zpVelocity" type="range" min="1" max="127" value="100"></label><button type="button" id="zpDelete">DEL</button><button type="button" id="zpOctUp">OCT+</button><button type="button" id="zpClear">CLR</button><button type="button" id="zpStepMode">STEP</button><button type="button" id="zpNudge" title="Rotor MIDI continuo">↕</button>');
  const viewport=mk('div','grid-viewport');grid.parentNode.insertBefore(viewport,grid);viewport.append(grid);
- const pianoViewport=mk('div','piano-viewport'),pianoGrid=mk('div','piano-grid');pianoViewport.append(pianoGrid);pianoViewport.hidden=true;
+ const pianoViewport=mk('div','piano-viewport'),pianoGrid=mk('div','piano-grid');pianoViewport.id='zpPianoViewport';pianoViewport.append(pianoGrid);pianoViewport.hidden=true;
   const midContainer=document.querySelector('.mid'),encoderDock=mk('div','piano-encoder-dock'),leftEncoder=midContainer.querySelector(':scope>.lx'),rightEncoder=midContainer.querySelector(':scope>.rx'),shiftButton=[...document.querySelectorAll('#rows .b')].find(b=>b.textContent.replace(/\s/g,'')==='SHIFT');if(shiftButton){shiftButton.id='zpShiftDock';shiftButton.setAttribute('aria-label','SHIFT · ajuste fino');}const shiftHome=shiftButton?{parent:shiftButton.parentNode,next:shiftButton.nextSibling}:null;midContainer.append(encoderDock);
  const ph=v2.querySelector('.ph');v2.insertBefore(line,grid.parentNode);v2.insertBefore(tools,viewport);v2.insertBefore(pianoViewport,viewport.nextSibling);
  let zoom=1;const applyZoom=()=>{grid.style.width=(zoom*100)+'%';grid.style.minWidth=(zoom*100)+'%';pianoGrid.style.minWidth=(360*zoom)+'px';$('#zpZoomOut').disabled=zoom<=1;$('#zpZoomIn').disabled=zoom>=2.5};
@@ -1093,7 +1114,8 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
    setPianoMode(active);
   };
   patternButton?.setAttribute('aria-expanded','false');
-  patternButton?.addEventListener('click',()=>setPatternEditOpen(!scr.classList.contains('pr')));
+  patternButton?.setAttribute('aria-controls','zpPianoViewport');
+  patternButton?.addEventListener('click',event=>{event.preventDefault();setPatternEditOpen(!scr.classList.contains('pr'))});
   window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false));
 
  let bpmValue=96,lastY=null,remainder=0;
