@@ -31,15 +31,15 @@
     <section class="creator-head">
       <div class="section-kicker"><span>01 / CREATOR</span><span class="line"></span><span class="status">READY</span></div>
       <div class="creator-title-row">
-        <div><h1>PAD MATRIX</h1><p>16 tactile slots <span>·</span> BANK A</p></div>
+        <div><h1>PAD MATRIX</h1><p id="BANK_LABEL">16 tactile slots · BANK A</p></div>
         <div class="bank-switch" aria-label="Pad bank">
-          <button class="bank-button active" id="BTN_BANK_A" type="button">A</button>
-          <button class="bank-button" id="BTN_BANK_B" type="button">B</button>
+          <button class="bank-button active" id="BTN_BANK_A" type="button" aria-pressed="true">A</button>
+          <button class="bank-button" id="BTN_BANK_B" type="button" aria-pressed="false">B</button>
         </div>
       </div>
     </section>
 
-    <section class="pad-matrix" id="PAD_MATRIX" aria-label="Matriz de 16 pads">
+    <section class="pad-matrix" id="PAD_MATRIX" aria-label="Matriz de 16 pads · Bank A">
       <button class="pad" id="PAD_01" data-pad="1" type="button"><span class="pad-number">01</span><span class="pad-name">PAD 01</span><span class="pad-state">EMPTY</span></button>
       <button class="pad" id="PAD_02" data-pad="2" type="button"><span class="pad-number">02</span><span class="pad-name">PAD 02</span><span class="pad-state">EMPTY</span></button>
       <button class="pad" id="PAD_03" data-pad="3" type="button"><span class="pad-number">03</span><span class="pad-name">PAD 03</span><span class="pad-state">EMPTY</span></button>
@@ -58,7 +58,7 @@
       <button class="pad" id="PAD_16" data-pad="16" type="button"><span class="pad-number">16</span><span class="pad-name">PAD 16</span><span class="pad-state">EMPTY</span></button>
     </section>
 
-    <input id="AUDIO_FILE_INPUT" class="file-input" type="file" accept="audio/*,.wav,.mp3,.aiff,.m4a,.aac,.ogg" multiple aria-label="Cargar samples de audio">
+    <input id="AUDIO_FILE_INPUT" class="file-input" type="file" accept="audio/*,.wav,.mp3,.aiff,.m4a,.aac,.ogg,.flac" multiple aria-label="Cargar samples de audio">
 
     <section class="control-strip">
       <div class="encoder-block">
@@ -88,7 +88,7 @@
       </div>
       <div class="bpm-control"><button id="BTN_BPM_DOWN" type="button" aria-label="Decrease BPM">−</button><div><small>BPM</small><strong id="BPM_VALUE">120</strong></div><button id="BTN_BPM_UP" type="button" aria-label="Increase BPM">+</button></div>
     </footer>
-    <div class="bottom-edge"><span>DFX / ZX1.2</span><span id="SYSTEM_MESSAGE">SYSTEM READY · NO AUDIO ENGINE</span><span>48K / --</span></div>
+    <div class="bottom-edge"><span>DFX / ZX1.2</span><span id="SYSTEM_MESSAGE" role="status" aria-live="polite">SYSTEM READY · AUDIO ENGINE STANDBY</span><span>48K / --</span></div>
   </main>
   <script src="app.js"></script>
 </body>
