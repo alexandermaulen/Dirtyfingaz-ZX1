@@ -31,7 +31,7 @@ function renderDock(){
  const options=document.createElement("div");options.className="zp-panel-options";options.hidden=!expanded;
  const contextual=current?.contexts?.[context]||current?.options||[];
  contextual.forEach(option=>{const item=button(option);item.addEventListener("click",()=>{const timestamp=new Date().toISOString(),requestId="panel-"+Date.now().toString(36)+"-"+Math.random().toString(36).slice(2,8);const detail={schemaVersion:1,requestId,side,group:current.id,option,context,module:"Creator",padId:document.querySelector("#zp-pad-config")?.dataset.padId||null,timestamp};emit("zp-panel-option-select",detail);closeDock()});options.append(item)});
- const foot=document.createElement("div");foot.className="zp-panel-foot";foot.textContent=expanded?"SELECCIÓN CONTEXTUAL · SIN COMANDO DE MOTOR":"MANTÉN Lx/Rx 420 ms PARA EXPANDIR";
+ const foot=document.createElement("div");foot.className="zp-panel-foot";foot.textContent=expanded?"DESTINO ARMADO · GIRA EL ENCODER PARA EDITAR":"MANTÉN Lx/Rx 420 ms PARA EXPANDIR";
  dock.append(head,tabs,label,options,foot);dock.hidden=false;
 }
 function openDock(side,expand){activeSide=side;expanded=!!expand;renderDock()}
@@ -39,7 +39,7 @@ function bindEncoderHold(selector,side){
  const encoder=document.querySelector(selector);if(!encoder)return;
  let timer=null,start=null;
  const clear=()=>{if(timer)clearTimeout(timer);timer=null};
- encoder.addEventListener("pointerdown",event=>{clear();start={x:event.clientX,y:event.clientY};timer=setTimeout(()=>{const ctx=contextNow();if(ctx==="sample"||(side==="L"&&ctx!=="pattern"&&ctx!=="piano"))return;openDock(side,true)},HOLD_MS)});
+ encoder.addEventListener("pointerdown",event=>{clear();start={x:event.clientX,y:event.clientY};timer=setTimeout(()=>{const ctx=contextNow();if(!["sample","pattern","piano"].includes(ctx))return;openDock(side,true)},HOLD_MS)});
  encoder.addEventListener("pointermove",event=>{if(start&&Math.hypot(event.clientX-start.x,event.clientY-start.y)>9)clear()});
  const end=()=>{clear();start=null};
  encoder.addEventListener("pointerup",end);encoder.addEventListener("pointercancel",end);
