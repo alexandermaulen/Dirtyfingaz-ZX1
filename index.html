@@ -447,12 +447,12 @@ if(trimPhaseButton){trimPhaseButton.classList.add("trim-phase-button");trimPhase
 row('repeat(8,1fr)',[['UNDO',1],['SAMPLING',2],['CHOP',1],['ENVELOPE',2],['SAMPLE MODE',2]],
  ['DEL','REC','RESAMPLE','BPM<br>SYNC','GATE','LOOP','REVERSE','ROLL'],'big');
 row('repeat(9,1fr)',[['',6],['BANK',2],['ROLL SET',1]],
- ['EXIT','COPY','REMAIN','A/F','B/G','C/H','D/I','E/J','SHIFT'],'big');
+ ['EXIT','COPY','REMAIN','A','B','C','D','E','SHIFT'],'big');
 /* estados fijos como en la imagen */
 const all=[...document.querySelectorAll('#rows .b')];const by=t=>all.find(b=>b.textContent.replace(/\s/g,'')===t.replace(/\s/g,''));
-by('REC').classList.add('lit');by('A/F').classList.add('lit');
-const bank=['A/F','B/G','C/H','D/I','E/J'].map(by);
-bank.forEach((b,i)=>{if(i<4)b.dataset.bank=["A","B","C","D"][i];b.addEventListener('click',()=>{bank.forEach(x=>x.classList.remove('lit'));b.classList.add('lit')})});
+by('REC').classList.add('lit');by('A').classList.add('lit');
+const bank=['A','B','C','D','E'].map(by);
+bank.forEach((b,i)=>{b.dataset.bank=["A","B","C","D","E"][i];b.addEventListener('click',()=>{bank.forEach(x=>x.classList.remove('lit'));b.classList.add('lit')})});
 ['REC','SHIFT'].forEach(t=>by(t).addEventListener('click',e=>e.currentTarget.classList.toggle('lit')));
 /* pads: multitouch real, luz al sonar */
 const held=new Map();
@@ -570,7 +570,7 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
  window.addEventListener("zp-engine-timeout",ev=>console.error("Creator engine timeout:",ev.detail.command));
  window.addEventListener("zp-engine-error",ev=>console.error("Creator engine error:",ev.detail.command,ev.detail.error||ev.detail.message));
  window.addEventListener("zp-engine-result",ev=>{if(ev.detail.result?.ok===false)console.error("Creator command failed:",ev.detail.command,ev.detail.result.error)});
- window.addEventListener("message",ev=>{const d=ev.data;if(ev.source===frame.contentWindow&&ev.origin===location.origin&&d?.type==="zp-engine-radio-state"&&d.protocolVersion===1&&d.source==="creator.engine"){parent.postMessage({type:"zp-radio-publish-state",protocolVersion:1,source:"creator.ui",state:d.state},location.origin);return}if(ev.source===parent&&ev.origin===location.origin&&d?.type==="zp-radio-state"&&d.protocolVersion===1&&d.source==="radio.gateway"){zpBridgeSend("creator.radio.apply-state",{state:d.state})}});
+ window.addEventListener("message",ev=>{const d=ev.data;if(ev.source===frame.contentWindow&&ev.origin===location.origin&&d?.type==="zp-engine-radio-state"&&d.protocolVersion===1&&d.source==="creator.engine"){document.querySelectorAll("#rows .b[data-bank]").forEach(b=>b.classList.toggle("lit",b.dataset.bank===d.state?.activeBank));parent.postMessage({type:"zp-radio-publish-state",protocolVersion:1,source:"creator.ui",state:d.state},location.origin);return}if(ev.source===parent&&ev.origin===location.origin&&d?.type==="zp-radio-state"&&d.protocolVersion===1&&d.source==="radio.gateway"){zpBridgeSend("creator.radio.apply-state",{state:d.state})}});
 
  const norm=s=>(s||"").replace(/<[^>]*>/g,"").replace(/\s+/g,"").toUpperCase();
  const allButtons=()=>[...document.querySelectorAll("#rows .b,#bt .b")];
@@ -615,11 +615,11 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
  bind("DELAY",()=>zpBridgeSend("creator.fx.master.toggle",{name:"delay"}));
  bind("MFX",()=>zpBridgeSend("creator.fx.master.toggle",{name:"reverb"}));
  // START/END recorre tres modos de interacción coordinados desde la GUI.
- /* Selector de bancos A-D */
- ["A/F","B/G","C/H","D/I"].forEach((label,i)=>bind(label,()=>zpBridgeSend("creator.pattern.select",{bank:["A","B","C","D"][i]})));
+ /* Selector de bancos A-E: BANK_ID independiente de PATTERN_ID. */
+ ["A","B","C","D","E"].forEach(label=>bind(label,()=>zpBridgeSend("creator.pattern.select",{bank:label})));
  bind("PATTERNSELECT",()=>{
-  const banks=["A","B","C","D"],active=document.querySelector("#rows .b.lit");
-  const next=banks[(Math.max(0,banks.indexOf((active?.textContent||"A/F").charAt(0)))+1)%4];
+  const banks=["A","B","C","D","E"],active=document.querySelector("#rows .b.lit");
+  const next=banks[(Math.max(0,banks.indexOf(active?.dataset.bank||"A"))+1)%5];
   zpBridgeSend("creator.pattern.select",{bank:next});
  });
  /* Piano roll 9x9: filas seleccionan pad y columnas activan pasos reales */
