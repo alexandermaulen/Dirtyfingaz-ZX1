@@ -854,5 +854,72 @@
       "USB AUDIO/MIDI",
       "USB MASS STORAGE"
     ]
+  },
+  "transportSystem": {
+    "snapshotVersion": 10,
+    "play": "BTN_PLAY toggles PLAY/PAUSE and resumes from the current step as CONTINUE.",
+    "stop": "Dedicated BTN_STOP short press stops without resetting position; long press exposes RESET POSITION, STOP RECORDING and RELEASE NOTES.",
+    "record": {
+      "button": "Single BTN_REC; short press arms/disarms, long press opens internal modes.",
+      "modes": [
+        "MIDI",
+        "AUDIO"
+      ],
+      "features": [
+        "arm",
+        "count-in",
+        "overdub"
+      ],
+      "audio": "Microphone capture through MediaRecorder saves the recording as the sample assigned to the active bank/PAD."
+    },
+    "loop": {
+      "independentOfPlay": true,
+      "default": {
+        "start": 0,
+        "end": 15
+      },
+      "actions": [
+        "toggle",
+        "set in",
+        "set out",
+        "loop record"
+      ],
+      "recording": "When LOOP RECORD is enabled, recording continues across loop wraps; otherwise the recording pass ends at the first wrap."
+    },
+    "bpm": {
+      "global": true,
+      "sharedWith": [
+        "transport",
+        "metronome",
+        "patterns",
+        "sequencer",
+        "render"
+      ],
+      "actions": [
+        "adjust",
+        "tap",
+        "sync state",
+        "presets"
+      ]
+    },
+    "commands": [
+      "creator.transport.toggle",
+      "creator.transport.stop",
+      "creator.transport.reset",
+      "creator.transport.continue",
+      "creator.record.toggle",
+      "creator.record.stop",
+      "creator.record.mode.set",
+      "creator.record.overdub.toggle",
+      "creator.record.countin.toggle",
+      "creator.midi.release",
+      "creator.loop.toggle",
+      "creator.loop.set",
+      "creator.loop.record.toggle",
+      "creator.bpm.adjust",
+      "creator.bpm.tap",
+      "creator.bpm.sync.toggle",
+      "creator.bpm.preset.set"
+    ]
   }
 }
