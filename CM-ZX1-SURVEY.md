@@ -1199,3 +1199,18 @@ Commits verificados:
 **Ajuste aplicado:** retirado el listener visual local obsoleto y su variable no utilizada del bloque de inicialización. No cambia el contrato de transporte. Se amplía `scripts/validate-zx1.mjs` para comprobar el puente PLAY/STOP, gesto corto/largo, comandos del motor, publicación del estado y ausencia del temporizador visual desconectado.
 
 **Resultado AUD-003:** código inspeccionado; limpieza de código muerto y cobertura de contrato aplicadas. Estado de QA real: PENDIENTE. Pendiente confirmar el commit final, GitHub Actions, Pages y sincronización de `auxiliary`.
+
+
+## AUD-004 · PATTERN EDIT · inspección inicial · 2026-11-10
+
+**Síntoma reportado:** PATTERN EDIT no abre; el comportamiento esperado es alternar abrir/cerrar con toques sucesivos en el mismo control.
+
+**Inspección estática en HEAD posterior a AUD-003:**
+- El control físico se crea en la fila de hardware como `PATTERN<br>EDIT`; el helper `by()` normaliza los espacios de `textContent` y lo resuelve como `PATTERNEDIT`.
+- El listener de click alterna la clase `pr` del LCD, sincroniza `aria-expanded` y llama a `setPianoMode(active)`.
+- `setPianoMode` cambia la visibilidad del Piano Roll y la rejilla de patrones; el evento `zp-pattern-edit-close` fuerza el cierre.
+- La ruta de apertura/cierre está presente en el código. La inspección estática no permite concluir que el toque real funcione ni identificar un fallo reproducible en Safari.
+
+**Acción aplicada:** se añadieron comprobaciones estáticas al validador para la existencia del control, resolución de etiqueta, toggle, sincronización del estado expandido, modo Piano Roll y cierre por evento. No se altera todavía el comportamiento de runtime porque falta reproducir el fallo en el dispositivo y no corresponde introducir un cambio especulativo.
+
+**Estado AUD-004:** contrato de código presente; QA táctil iPhone 11 y causa raíz: PENDIENTES. Próximo paso: probar el botón en Safari con inspector/telemetría de eventos y registrar si el click llega al control y si cambian `.scr.pr`, `aria-expanded` y `pianoViewport.hidden`.
