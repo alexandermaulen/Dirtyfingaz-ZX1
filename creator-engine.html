@@ -514,7 +514,6 @@ async function restoreHistorySnapshot(payload={}){
     Object.assign(restored,historyClone(snapshot.data));
   }
   await assetStorage.saveProject(restored,currentProjectId,currentProjectName);
-  if(Array.isArray(snapshot.samples)&&snapshot.samples.length)await assetStorage.replaceProjectSamples(currentProjectId,snapshot.samples);
   if(snapshot.scope==="PROJECT"||snapshot.module==="SAMPLE_EDITOR"||snapshot.module==="PADS")await assetStorage.replaceProjectSamples(currentProjectId,snapshot.samples||[]);
   await loadSession(currentProjectId);
   notify("VERSIÓN RESTAURADA · "+version);
