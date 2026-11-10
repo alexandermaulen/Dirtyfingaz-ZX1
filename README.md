@@ -16,6 +16,7 @@ Mobile-first sampler workstation for Safari on iPhone. This branch ports the act
 - Pattern IDs (`PATTERN_01`, etc.) are stored independently from sample banks A–E. The pattern manager supports create, select, loop, duplicate, MIDI copy/paste and delete; clone remains disabled until its semantics are defined.
 - Creator starts with a fresh empty project. Existing saved projects are opened explicitly from Project Manager.
 - UTILITY opens a searchable utility center with independently collapsible groups, multiple groups open at once, and a persistent reorderable layout. Includes PAD controls, metronome, BPM/tap, key/scale, tuner, quantization, audio status, master meter, Panic, shortcuts, BPM detection and scale/chord guide.
+- Transport: PLAY/CONTINUE, dedicated STOP actions, REC arming with MIDI/AUDIO modes, count-in and overdub, loop boundaries and loop recording, BPM tap and presets. Audio REC captures microphone input into the active PAD sample slot.
 - Transport, recording controls, BPM adjustment, pad settings, effects controls and project manager are retained from the source Creator.
 - Local project/sample storage uses ZX1-specific IndexedDB and localStorage keys.
 - Project import/export and local persistence are handled by the copied Creator engine.
