@@ -479,6 +479,47 @@ function toggleRecord(){
 function releaseAllNotes(){const count=activeVoiceNodes.size;for(const node of [...activeVoiceNodes]){try{node.stop()}catch(error){}activeVoiceNodes.delete(node);activeVoicePad.delete(node)}return {released:count}}
 function hitPad(n){audio();setActivePad(n);playPad(n);if(recording&&playing&&recordMode==="MIDI"){const beat=60/bpm/4,span=loopEnd-loopStart+1,elapsed=Math.round((ctx.currentTime-sequenceStartTime)/beat),step=loopStart+(((elapsed%span)+span)%span);currentPattern(n)[step]=true;refreshSteps();publishRadioState()}}
 function projectSnapshot(){return {version:13,bpm,masterLevel,activePad,activeBank,activePatternId,patterns:patternData,pianoNotes:pianoData,patternMeta,songOrder:songOrder.slice(),keyRoot,scaleName,quantizeEnabled,quantizeDivision,metronomeAccent,timeSignature,recordMode,countInEnabled,overdubEnabled,loopStart,loopEnd,loopRecordEnabled,bpmSyncEnabled,padLevels,padPitch,padFilter,padPan,padTime,padChoke,padRouting,padFx,sampleEditMode,envelopes,envelopeMode,muted,soloed,fxState,fxParams,fxBypass,fxScope,fxChain:fxChain.slice(),fxAmount,looping,songMode}}
+const HISTORY_MODULE_FIELDS={
+  PROJECT:["bpm","masterLevel","activePad","activeBank","activePatternId","patterns","pianoNotes","patternMeta","songOrder","keyRoot","scaleName","quantizeEnabled","quantizeDivision","metronomeAccent","timeSignature","recordMode","countInEnabled","overdubEnabled","loopStart","loopEnd","loopRecordEnabled","bpmSyncEnabled","padLevels","padPitch","padFilter","padPan","padTime","padChoke","padRouting","padFx","sampleEditMode","envelopes","envelopeMode","muted","soloed","fxState","fxParams","fxBypass","fxScope","fxChain","fxAmount","looping","songMode"],
+  PADS:["activePad","activeBank","padLevels","padPitch","padFilter","padPan","padTime","padChoke","padRouting","padFx","envelopes","envelopeMode","muted","soloed"],
+  SEQUENCER:["activePatternId","patterns","pianoNotes","patternMeta","songOrder","looping","songMode","loopStart","loopEnd"],
+  MIXER_FX:["masterLevel","fxState","fxParams","fxBypass","fxScope","fxChain","fxAmount"],
+  TRANSPORT:["bpm","recordMode","countInEnabled","overdubEnabled","loopStart","loopEnd","loopRecordEnabled","bpmSyncEnabled","looping","songMode","metronomeAccent","timeSignature"],
+  TONAL:["keyRoot","scaleName","quantizeEnabled","quantizeDivision"],
+  SAMPLE_EDITOR:["activePad","activeBank","sampleEditMode"]
+};
+function historyClone(value){return JSON.parse(JSON.stringify(value));}
+async function createHistorySnapshot(payload={}){
+  const scope=payload.scope==="MODULE"?"MODULE":"PROJECT";
+  const module=scope==="MODULE"?String(payload.module||"").toUpperCase():"PROJECT";
+  if(scope==="MODULE"&&!HISTORY_MODULE_FIELDS[module])throw Object.assign(new Error("Módulo de historial no válido"),{code:"INVALID_INPUT"});
+  await saveSession(true);
+  const full=projectSnapshot(),samplesForHistory=await assetStorage.getProjectSamples(currentProjectId);
+  const data=scope==="PROJECT"?historyClone(full):Object.fromEntries(HISTORY_MODULE_FIELDS[module].map(key=>[key,historyClone(full[key])]));
+  const record=await assetStorage.saveHistorySnapshot(currentProjectId,{scope,module:scope==="MODULE"?module:null,label:String(payload.label|| (scope==="PROJECT"?"Snapshot de proyecto":"Snapshot "+module)).slice(0,80),data,samples:scope==="PROJECT"||module==="SAMPLE_EDITOR"||module==="PADS"?samplesForHistory:[]});
+  notify("HISTORIAL GUARDADO · "+record.version);
+  return record;
+}
+async function listHistorySnapshots(){return assetStorage.listHistory(currentProjectId);}
+async function restoreHistorySnapshot(payload={}){
+  const version=String(payload.version||"");
+  if(!/^V\\d{3,}$/.test(version))throw Object.assign(new Error("Selecciona una versión válida"),{code:"INVALID_INPUT"});
+  const snapshot=await assetStorage.getHistorySnapshot(currentProjectId,version);
+  if(!snapshot)throw Object.assign(new Error("La versión solicitada no existe"),{code:"NOT_FOUND"});
+  await saveSession(true);
+  let restored;
+  if(snapshot.scope==="PROJECT")restored=historyClone(snapshot.data);
+  else{
+    restored=projectSnapshot();
+    Object.assign(restored,historyClone(snapshot.data));
+  }
+  await assetStorage.saveProject(restored,currentProjectId,currentProjectName);
+  if(Array.isArray(snapshot.samples)&&snapshot.samples.length)await assetStorage.replaceProjectSamples(currentProjectId,snapshot.samples);
+  if(snapshot.scope==="PROJECT"||snapshot.module==="SAMPLE_EDITOR"||snapshot.module==="PADS")await assetStorage.replaceProjectSamples(currentProjectId,snapshot.samples||[]);
+  await loadSession(currentProjectId);
+  notify("VERSIÓN RESTAURADA · "+version);
+  return {version,scope:snapshot.scope,module:snapshot.module||null,id:currentProjectId,name:currentProjectName};
+}
 function publishPianoState(){parent.postMessage({type:"zp-engine-piano-state",protocolVersion:1,source:"creator.engine",bank:activeBank,patternId:activePatternId,activePad,notes:(pianoData[activePatternId]?.[activePad]||[]).map(n=>({...n}))},location.origin)}
 let radioStatePublishQueued=false;function publishRadioState(){if(radioStatePublishQueued)return;radioStatePublishQueued=true;setTimeout(()=>{radioStatePublishQueued=false;const state={...projectSnapshot(),playing,recording,recordArmed,stepIndex,selectedStepIndex};parent.postMessage({type:"zp-engine-radio-state",protocolVersion:1,source:"creator.engine",state,project:{id:currentProjectId,name:currentProjectName}},location.origin)},80)}
 async function saveSession(silent=false){const data=projectSnapshot();try{await assetStorage.saveProject(data,currentProjectId,currentProjectName);if(currentProjectId==="current"){try{localStorage.setItem("dirtyfingaz-zx1-session",JSON.stringify(data))}catch(legacyError){console.warn("Copia localStorage omitida",legacyError)}}if(!silent)notify("GUARDADO · "+currentProjectName);return {id:currentProjectId,name:currentProjectName}}catch(e){console.error(e);if(!silent)notify("ERROR AL GUARDAR PROYECTO");throw e}}
@@ -687,6 +728,9 @@ runtime.register("creator.fx.sample.delay.toggle",()=>{audio();fxState.delay=del
 runtime.register("creator.fx.sample.drive.toggle",()=>{audio();sampleDriveOn=!sampleDriveOn;fxState.drive=sampleDriveOn;driveAmount(sampleDriveOn?fxAmount*35:0);if(sampleDriveButton)sampleDriveButton.classList.toggle("on",sampleDriveOn);publishRadioState();return {drive:sampleDriveOn}});
 runtime.register("creator.fx.sample.reverb.toggle",()=>{const result=toggleMasterFx("reverb",sampleReverbButton);publishRadioState();return result});
 runtime.register("creator.project.save",()=>saveSession());
+runtime.register("creator.history.create",p=>createHistorySnapshot(p||{}));
+runtime.register("creator.history.list",()=>listHistorySnapshots());
+runtime.register("creator.history.restore",p=>restoreHistorySnapshot(p||{}));
 runtime.register("creator.envelope.mode.toggle",async()=>{envelopeMode=envelopeMode==="ADSR"?"ADR":"ADSR";await saveSession(true);notify("ENVELOPE · "+envelopeMode);publishRadioState();return {mode:envelopeMode,persisted:true}});
 runtime.register("creator.envelope.get",p=>{const pad=Math.max(1,Math.min(9,Math.round(Number(p.pad)||activePad)));return {pad,envelope:envelopeFor(pad)}});
 runtime.register("creator.envelope.set",async p=>{const pad=Math.max(1,Math.min(9,Math.round(Number(p.pad)||activePad))),current=envelopeFor(pad),next={...current};for(const key of ["attack","decay","sustain","release"]){if(p[key]!==undefined){const value=Number(p[key]);if(!Number.isFinite(value))throw Object.assign(new Error("Valor ADSR no válido"),{code:"INVALID_INPUT"});next[key]=key==="attack"?Math.max(.001,Math.min(2,value)):key==="decay"?Math.max(.005,Math.min(3,value)):key==="sustain"?Math.max(0,Math.min(1,value)):Math.max(.005,Math.min(4,value))}}envelopes[pad]=next;if(p.commit===true)await saveSession(true);publishRadioState();return {pad,envelope:next,persisted:p.commit===true}});
