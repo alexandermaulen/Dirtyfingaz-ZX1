@@ -19,6 +19,7 @@ const selectedGroup=side=>{const state=profileState(),id=state[sideName(side)]||
 const button=(label,cls="")=>{const element=document.createElement("button");element.type="button";element.textContent=label;if(cls)element.className=cls;return element};
 const dock=document.createElement("section");dock.id="zp-panel-dock";dock.hidden=true;dock.setAttribute("aria-label","Panel de controles contextuales");mid.append(dock);
 function closeDock(){dock.hidden=true;expanded=false}
+window.addEventListener("zp-context-exit",closeDock);
 function renderDock(){
  const side=activeSide,groups=groupsFor(side),current=selectedGroup(side);
  dock.dataset.side=side;dock.replaceChildren();
