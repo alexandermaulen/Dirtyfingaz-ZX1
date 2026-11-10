@@ -43,6 +43,26 @@ for (const id of ["zp-project-history", "zp-history-project-snapshot", "zp-histo
   check(gui.includes(id), "History GUI control missing: " + id);
 }
 check(storage.includes('const version = "V" + String(sequence).padStart(3, "0")'), "Sequential V001 history IDs missing");
+const historySaveStart = storage.indexOf("function saveHistorySnapshot(");
+const historySaveEnd = storage.indexOf("function getHistorySnapshot(", historySaveStart);
+check(historySaveStart >= 0 && historySaveEnd > historySaveStart, "History snapshot sequence function not found");
+if (historySaveStart >= 0 && historySaveEnd > historySaveStart) {
+  const records = [];
+  const listHistoryMock = async () => records.map(item => ({ sequence: item.sequence, version: item.version }));
+  const transactMock = async (_store, _mode, action) => {
+    let saved;
+    action({ put(item) { saved = item; records.push(item); return { result: item.version }; } });
+    return saved;
+  };
+  const makeSave = new Function("listHistory", "transact", "HISTORY_STORE",
+    storage.slice(historySaveStart, historySaveEnd) + "; return saveHistorySnapshot;");
+  const save = makeSave(listHistoryMock, transactMock, "projectHistory");
+  const first = await save("project-a", { scope: "PROJECT", data: { marker: 1 } });
+  const second = await save("project-a", { scope: "PROJECT", data: { marker: 2 } });
+  check(first.version === "V001" && second.version === "V002", "History versions must advance V001, V002");
+  check(records.every(item => item.projectId === "project-a"), "History snapshots must remain scoped to their project");
+}
+
 check(engine.includes("HISTORY_MODULE_FIELDS") && engine.includes("SAMPLE_EDITOR") && engine.includes("MIXER_FX"),
   "Module snapshot contract missing");
 
