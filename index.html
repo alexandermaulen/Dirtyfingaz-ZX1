@@ -1149,5 +1149,54 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
 })();
 </script>
 <script src="./zp-agent.js" defer></script>
-<script src="./zp-layout.js"></script></body>
+<script src="./zp-layout.js"></script>
+<script id="zx1-iphone11-viewport-fit">
+(()=>{
+ const unit=document.getElementById("unit");
+ if(!unit)return;
+ const probe=document.createElement("div");
+ probe.setAttribute("aria-hidden","true");
+ probe.style.cssText="position:fixed;visibility:hidden;pointer-events:none;inset:0;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px)";
+ document.body.appendChild(probe);
+ const safe=()=>{
+  const s=getComputedStyle(probe);
+  return {top:parseFloat(s.paddingTop)||0,right:parseFloat(s.paddingRight)||0,bottom:parseFloat(s.paddingBottom)||0,left:parseFloat(s.paddingLeft)||0};
+ };
+ let frame=0,lastScale=0;
+ const fitViewport=()=>{
+  cancelAnimationFrame(frame);
+  frame=requestAnimationFrame(()=>{
+   unit.style.transform="none";
+   unit.style.transformOrigin="center center";
+   const vv=window.visualViewport;
+   const width=vv?vv.width:document.documentElement.clientWidth;
+   const height=vv?vv.height:window.innerHeight;
+   const inset=safe();
+   const availableWidth=Math.max(1,width-inset.left-inset.right-16);
+   const availableHeight=Math.max(1,height-inset.top-inset.bottom-16);
+   const naturalWidth=unit.offsetWidth||430;
+   const naturalHeight=unit.offsetHeight||1;
+   const scale=Math.max(.2,Math.min(1,availableWidth/naturalWidth,availableHeight/naturalHeight));
+   if(Math.abs(scale-lastScale)>.001){
+    lastScale=scale;
+    unit.style.transform="scale("+scale.toFixed(4)+")";
+    unit.dataset.viewportScale=scale.toFixed(4);
+   }
+  });
+ };
+ const observer=new ResizeObserver(fitViewport);
+ observer.observe(unit);
+ window.addEventListener("resize",fitViewport,{passive:true});
+ window.addEventListener("orientationchange",()=>requestAnimationFrame(fitViewport),{passive:true});
+ window.addEventListener("pageshow",fitViewport,{passive:true});
+ if(window.visualViewport){
+  window.visualViewport.addEventListener("resize",fitViewport,{passive:true});
+  window.visualViewport.addEventListener("scroll",fitViewport,{passive:true});
+ }
+ if(document.fonts?.ready)document.fonts.ready.then(fitViewport);
+ requestAnimationFrame(()=>requestAnimationFrame(fitViewport));
+ window.__zx1FitViewport=fitViewport;
+})();
+</script>
+</body>
 </html>
