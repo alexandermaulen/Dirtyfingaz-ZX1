@@ -4,11 +4,12 @@
 (function (root) {
   "use strict";
   const DB_NAME = "dirtyfingaz-zx1-assets";
-  const DB_VERSION = 3;
+  const DB_VERSION = 4;
   const SAMPLE_STORE = "samples";
   const PROJECT_STORE = "projects";
   const LEGACY_PROJECT_SAMPLE_STORE = "projectSamples";
   const PROJECT_SAMPLE_STORE = "projectSamplesV3";
+  const HISTORY_STORE = "projectHistory";
   let dbPromise;
 
   function open() {
@@ -20,6 +21,7 @@
         const db = request.result, tx = request.transaction;
         if (!db.objectStoreNames.contains(SAMPLE_STORE)) db.createObjectStore(SAMPLE_STORE, { keyPath: "pad" });
         if (!db.objectStoreNames.contains(PROJECT_STORE)) db.createObjectStore(PROJECT_STORE, { keyPath: "id" });
+        if (!db.objectStoreNames.contains(HISTORY_STORE)) db.createObjectStore(HISTORY_STORE, { keyPath: ["projectId", "version"] });
         if (!db.objectStoreNames.contains(PROJECT_SAMPLE_STORE)) {
           const bankedSamples = db.createObjectStore(PROJECT_SAMPLE_STORE, { keyPath: ["projectId", "bank", "pad"] });
           const sourceName = event.oldVersion < 2 ? SAMPLE_STORE : LEGACY_PROJECT_SAMPLE_STORE;
@@ -105,6 +107,24 @@
       });
     });
   }
+  function listHistory(projectId) {
+    const id = String(projectId || "current");
+    return transact(HISTORY_STORE, "readonly", function (store) { return store.getAll(); }).then(function (items) {
+      return items.filter(function (item) { return item.projectId === id; }).sort(function (a, b) { return a.sequence - b.sequence; }).map(function (item) { return { projectId: item.projectId, version: item.version, sequence: item.sequence, scope: item.scope, module: item.module || null, label: item.label, createdAt: item.createdAt }; });
+    });
+  }
+  function saveHistorySnapshot(projectId, snapshot) {
+    const id = String(projectId || "current");
+    return listHistory(id).then(function (items) {
+      const sequence = items.reduce(function (max, item) { return Math.max(max, Number(item.sequence) || 0); }, 0) + 1;
+      const version = "V" + String(sequence).padStart(3, "0");
+      const record = Object.assign({}, snapshot, { projectId: id, version: version, sequence: sequence, createdAt: Date.now() });
+      return transact(HISTORY_STORE, "readwrite", function (store) { return store.put(record); }).then(function () { return { projectId: id, version: version, sequence: sequence, scope: record.scope, module: record.module || null, label: record.label, createdAt: record.createdAt }; });
+    });
+  }
+  function getHistorySnapshot(projectId, version) {
+    return transact(HISTORY_STORE, "readonly", function (store) { return store.get([String(projectId || "current"), String(version || "")]); });
+  }
   function deleteProject(projectId) {
     const id = String(projectId || "");
     if (!id || id === "current") return Promise.reject(new Error("No se puede eliminar el proyecto de recuperación"));
@@ -128,7 +148,10 @@
     loadProject: loadProject,
     listProjects: listProjects,
     deleteProject: deleteProject,
+    listHistory: listHistory,
+    saveHistorySnapshot: saveHistorySnapshot,
+    getHistorySnapshot: getHistorySnapshot,
     decodeBuffer: decodeBuffer,
-    version: "3.0.0"
+    version: "4.0.0"
   });
 })(window);
