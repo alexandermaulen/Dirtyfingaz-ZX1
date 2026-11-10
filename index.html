@@ -534,7 +534,7 @@ row('repeat(5,1fr)',[['PATTERN SEQUENCER',2],['SAMPLE EDIT',3]],
 const trimPhaseButton=[...document.querySelectorAll("#rows .b")].find(b=>b.textContent.replace(/\s/g,"")==="START/END");
 if(trimPhaseButton){trimPhaseButton.classList.add("trim-phase-button");trimPhaseButton.innerHTML='<span>START/END</span><i class="trim-phase-led" aria-hidden="true"></i>';trimPhaseButton.setAttribute("aria-live","polite");}
 /* Lx y Rx son controles maestros: Lx navega el contexto de edición; Rx controla OUT en Sample y parámetros contextuales en otros modos. */
-(()=>{let angle=null,remainder=0,index=-1,active=null;const selector='.b,.piano-tools button,.trim-marker,[data-midi-target],.lcd-action,#play,#stop,#bpmWheel';
+(()=>{let angle=null,remainder=0,index=-1,active=null;const selector='.b,.piano-tools button,.trim-marker,[data-midi-target],.lcd-action,.lcd-menu button,#play,#stop,#bpmWheel';
  const targets=()=>[...document.querySelectorAll(selector)].filter(el=>!el.closest('#zp-agent-window')&&!el.disabled&&el.getAttribute('aria-hidden')!=='true'&&el.getClientRects().length);
  const choose=direction=>{const sampleContext=document.querySelector('.mid')?.classList.contains('sample-context')&&!document.querySelector('.mid')?.classList.contains('piano-open');if(sampleContext||window.__zpPianoEncoderMode||window.__zpTrimPhase===3)return;const list=targets();if(!list.length)return;index=(index+direction+list.length)%list.length;const el=list[index];if(active)active.classList.remove('lx-active');active=el;active.classList.add('lx-active');if(!el.hasAttribute('tabindex'))el.tabIndex=-1;el.focus({preventScroll:true});el.scrollIntoView({block:'nearest',inline:'nearest',behavior:'smooth'});window.__zpLxTarget=el;window.dispatchEvent(new CustomEvent('zp-panel-context-change'));window.__zpLx={index,total:list.length,direction,target:el.dataset.agentContext||el.dataset.trimTarget||el.dataset.midiTarget||el.textContent.trim().replace(/\s+/g,' ').slice(0,48)};};
  lx.addEventListener('pointerdown',()=>{angle=parseFloat(getComputedStyle(lx).getPropertyValue('--r'))||0;remainder=0});
@@ -711,7 +711,7 @@ window.addEventListener("zp-engine-timeout",ev=>console.error("Creator engine ti
  bind("DEL",()=>zpBridgeSend("creator.sample.clear"));
  bind("PROJECT",()=>{utilityPanel.hidden=true;patternMenu.hidden=true;transportMenu.hidden=true;zpBridgeSend("creator.system.menu.open",{})});
  bind("UTILITY",toggleUtilityPanel);
- bind("PUSHENTER",()=>{if(window.__zpSystemMenuOpen)zpBridgeSend("creator.system.menu.select")});
+ bind("PUSHENTER",()=>{if(window.__zpSystemMenuOpen){zpBridgeSend("creator.system.menu.select");return}const active=document.activeElement;if(active?.closest?.(".lcd-menu")&&typeof active.click==="function"){active.click();return}const menu=transportMenu.hidden?(patternMenu.hidden?(utilityPanel.hidden?null:utilityPanel):patternMenu):transportMenu;const target=menu?.querySelector(".menu-list button:not(:disabled),.utility-group-head button:not(:disabled)");if(target){target.focus({preventScroll:true});target.click();return}if(window.__zpLxTarget?.click){window.__zpLxTarget.click();return}document.activeElement?.click?.()});
  bind("IMPORT/EXPORT",()=>{refreshProjects();projectDialog.showModal()});
  bind("PADSETTING",()=>zpBridgeSend("creator.pad.mute.toggle"));
  bind("EFXSETTING",()=>zpBridgeSend("creator.fx.master.toggle",{name:"reverb"}));
@@ -797,10 +797,11 @@ window.addEventListener("zp-engine-timeout",ev=>console.error("Creator engine ti
  bindTrimEncoder(lx,"start");
  bindTrimEncoder(valueEncoder,"end");
  
- /* Salida al hub ZP */
- const goHome=()=>zpBridgeSend("creator.system.menu.open",{});
- document.getElementById("creator-home")?.addEventListener("click",goHome);
- bind("EXIT",goHome);
+ /* HOME solicita volver al host; EXIT solo cierra el contexto actual. */
+ const homeToHost=()=>{if(window.parent!==window){parent.postMessage({type:"zp-host-home-request",protocolVersion:1,source:"dirtyfingaz.zx1"},location.origin);return true}window.__zpLastStatus="MAIN HOST NO DISPONIBLE";console.info("BTN_HOME: Creator permanece abierto porque no hay host integrado.");return false};
+ const exitContext=()=>{if(!transportMenu.hidden){transportMenu.hidden=true;return}if(!utilityPanel.hidden){utilityPanel.hidden=true;return}if(!patternMenu.hidden){patternMenu.hidden=true;return}if(!projectMenu.hidden){zpBridgeSend("creator.system.menu.close",{});return}if(!padConfig.hidden){padConfig.hidden=true;return}if(configurationDialog?.open){configurationDialog.close();return}if(projectDialog?.open){projectDialog.close();return}if(scr.classList.contains("pr")){scr.classList.remove("pr");document.querySelector("#rows .b")?.classList.remove("lit");return}window.dispatchEvent(new CustomEvent("zp-context-exit"));zpBridgeSend("creator.system.menu.close",{})};
+ document.getElementById("creator-home")?.addEventListener("click",homeToHost);
+ bind("EXIT",exitContext);
 })();
 </script>
 
