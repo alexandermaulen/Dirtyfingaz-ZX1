@@ -464,12 +464,17 @@ function utilityGroupContent(id,body){
   const row=utilityRow(),toggle=utilityButton(st.tunerActive?"STOP TUNER":"START TUNER",()=>utilitySend(st.tunerActive?"creator.tuner.stop":"creator.tuner.start",{}),true);toggle.classList.add("utility-tuner-toggle");row.append(toggle);body.append(row);
   const status=utilityText(window.__zpTunerText||"NOTE -- · WAITING FOR INPUT");status.id="utility-tuner-status";body.append(status);
  }else if(id==="quantize"){
-  const row=utilityRow();const check=document.createElement("input");check.type="checkbox";check.checked=!!st.quantizeEnabled;check.addEventListener("change",()=>utilitySend("creator.quantize.set",{enabled:check.checked,division:division.value}));row.append(check,utilityText("QUANTIZE ON / OFF"));body.append(row);
-  const division=utilitySelect(["1/4","1/8","1/16","1/32"].map(x=>({value:x,label:x})),st.quantizeDivision||"1/16",v=>utilitySend("creator.quantize.set",{enabled:check.checked,division:v}));const r=utilityRow();r.append(utilityText("GRID"),division);body.append(r);
+  const row=utilityRow();const check=document.createElement("input");check.type="checkbox";check.checked=!!st.quantizeEnabled;check.addEventListener("change",()=>{if(!check.checked)division.value="OFF";else if(division.value==="OFF")division.value="1/16";utilitySend("creator.quantize.set",{enabled:check.checked,division:division.value})});row.append(check,utilityText("QUANTIZE ON / OFF"));body.append(row);
+  const division=utilitySelect(["OFF","1/4","1/8","1/16","1/32","1/4T","1/8T","1/16T"].map(x=>({value:x,label:x})),st.quantizeDivision||"1/16",v=>{check.checked=v!=="OFF";utilitySend("creator.quantize.set",{enabled:check.checked,division:v})});const r=utilityRow();r.append(utilityText("GRID"),division);body.append(r);
  }else if(id==="audio"){
   body.append(utilityText("AUDIO CONTEXT · "+String(st.audio?.state||"NOT CREATED").toUpperCase()));
   body.append(utilityText(st.audio?.sampleRate?"SAMPLE RATE · "+st.audio.sampleRate+" HZ":"SAMPLE RATE · NOT INITIALIZED"));
   body.append(utilityText(st.audio?.baseLatency?"BASE LATENCY · "+Math.round(st.audio.baseLatency*1000)+" MS":"LATENCY · NOT AVAILABLE"));
+ }else if(id==="metrics"){
+  const cores=Number(navigator.hardwareConcurrency)||0,heap=performance?.memory?.usedJSHeapSize;
+  body.append(utilityText(cores?"LOGICAL CPU CORES · "+cores:"CPU CORE COUNT · NOT EXPOSED"));
+  body.append(utilityText(Number.isFinite(heap)?"JS HEAP · "+(heap/1048576).toFixed(1)+" MB":"MEMORY USAGE · NOT EXPOSED BY THIS BROWSER"));
+  body.append(utilityText("CPU LOAD · NOT EXPOSED BY SAFARI WEB API"));
  }else if(id==="master"){
   body.append(utilityText("MASTER OUTPUT PEAK"));
   const meter=document.createElement("div");meter.className="utility-meter";const bar=document.createElement("i");bar.id="utility-master-meter-bar";meter.append(bar);body.append(meter);
