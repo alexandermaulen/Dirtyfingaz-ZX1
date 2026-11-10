@@ -798,7 +798,7 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
    else if(note&&axis==='y'&&!fine){state.remainder+=delta;const units=Math.trunc(state.remainder/18);if(units){state.remainder-=units*18;changed=moveSelectedMidi(axis,units*18,false,state)}}
    else if(note){changed=moveSelectedMidi(axis,delta,fine,state);if(fine)state.remainder=0}
    else changed=moveSelectedSample(trimTarget,delta,fine);
-   if(changed)state.dirty=true;
+   if(changed&&!note)state.dirty=true;
    encoder.dataset.editTarget=note?("MIDI "+selectedTarget.toUpperCase()):(trimTarget==='start'?'SAMPLE IN':'SAMPLE OUT');
   });
   const finish=()=>{
