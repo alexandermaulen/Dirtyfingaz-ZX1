@@ -125,6 +125,28 @@
   function getHistorySnapshot(projectId, version) {
     return transact(HISTORY_STORE, "readonly", function (store) { return store.get([String(projectId || "current"), String(version || "")]); });
   }
+  function replaceProjectSamples(projectId, records) {
+    const id = String(projectId || "current");
+    const items = Array.isArray(records) ? records : [];
+    return transact(PROJECT_SAMPLE_STORE, "readwrite", function (store) {
+      const request = store.openCursor();
+      request.onsuccess = function () {
+        const cursor = request.result;
+        if (!cursor) {
+          items.forEach(function (item) {
+            if (item && Number.isFinite(Number(item.pad)) && Array.isArray(item.channels)) {
+              store.put(Object.assign({}, item, { projectId: id, bank: String(item.bank || "A"), pad: Number(item.pad) }));
+            }
+          });
+          return;
+        }
+        if (cursor.value.projectId === id) cursor.delete();
+        cursor.continue();
+      };
+      return request;
+    });
+  }
+
   function deleteProject(projectId) {
     const id = String(projectId || "");
     if (!id || id === "current") return Promise.reject(new Error("No se puede eliminar el proyecto de recuperación"));
@@ -151,6 +173,7 @@
     listHistory: listHistory,
     saveHistorySnapshot: saveHistorySnapshot,
     getHistorySnapshot: getHistorySnapshot,
+    replaceProjectSamples: replaceProjectSamples,
     decodeBuffer: decodeBuffer,
     version: "4.0.0"
   });
