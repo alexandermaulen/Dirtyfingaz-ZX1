@@ -1,23 +1,35 @@
-# DIRTYFINGAZ ZX1 2.0
+# DIRTYFINGAZ ZX1
 
-Mobile-first sampler prototype for Safari and modern browsers. No external dependencies.
+Mobile-first sampler workstation for Safari on iPhone. This branch ports the actual DIRTYFINGAZ ZP Creator hardware GUI and its Creator audio engine into ZX1.
 
-## Current functional scope
-- 16 visible pads per bank, with independent Bank A and Bank B sample slots (32 total).
-- Tap an empty pad to assign one audio file.
-- SAMPLES opens the multi-file picker and fills available slots in the active bank without overwriting occupied pads.
-- Audio files are read as ArrayBuffers during import. AudioContext and decoding are deferred until the first playback gesture.
-- Web Audio API playback with per-voice tracking; STOP stops every active voice, including overlapping triggers.
-- NEW PROJECT aborts pending file reads, clears both banks and stops active voices.
-- BPM display control (40–300), VALUE counter and UTILITY toggle.
-- Responsive LCD/neon interface with EDIT LAYOUT IDs.
+## Creator interface
+- ZP Creator hardware shell, LCD display, control layout, button styling, interaction states and mobile scaling.
+- Nine touch pads in a 3 × 3 matrix, with stable IDs `PAD_01` through `PAD_09`.
+- Hardware controls, rotary encoders, sample display, waveform view, trim markers, transport, pattern controls and project menu.
+- Original Creator GUI-to-engine message bridge retained.
 
-## Current limitations
-- No sequencer, recording, mixer, project persistence, sample slicing, effects or MIDI.
-- BPM is a display/control value and is not yet connected to a sequencer clock.
-- Bank data and imported samples exist only in memory and are cleared on reload.
-- Actual playback format support depends on the browser's Web Audio decoder. WAV/PCM is the safest interchange format.
-- Validate on physical iPhone/Safari for device-specific audio and file-picker behavior.
+## Audio engine and actions
+- Independent ZX1 copy of the Creator engine, isolated from ZP project storage.
+- Nine sample slots; tap a pad to trigger its sample.
+- Sample browsing/import, preview, waveform display and IN/OUT trimming.
+- Pattern sequencer and pattern editing controls, with pattern banks A–D. These are pattern banks, not additional sample-pad banks.
+- Transport, recording controls, BPM adjustment, pad settings, effects controls and project manager are retained from the source Creator.
+- Local project/sample storage uses ZX1-specific IndexedDB and localStorage keys.
+- Project import/export and local persistence are handled by the copied Creator engine.
 
-## Development
-Work on `auxiliary`, validate there, then integrate through `test`. Keep `main` stable.
+## Files
+- `index.html`: Creator interface adapted and branded as ZX1.
+- `creator-engine.html`: isolated Creator audio engine.
+- `zp-storage.js`, `zp-core.js`, `zp-ui-system.css`, `vendor/lame.min.js`: engine dependencies.
+- `zp-agent.js`, `zp-agent.css`, `zp-agent-registry.json`: contextual agent UI and registry.
+- `zp-layout.js`, `zp-layout.css`: Creator layout controls and panel docking.
+
+The previous standalone sampler files `app.js` and `style.css` are removed because the Creator now owns the interface and engine integration.
+
+## Validation
+- Static integration and JavaScript syntax checks are performed before commit.
+- Physical Safari/iPhone validation remains a separate device test.
+- GitHub Pages deployment must be checked after the commit.
+
+## Development flow
+Work on `auxiliary`, validate, then promote through `test` and `main` only with explicit approval.
