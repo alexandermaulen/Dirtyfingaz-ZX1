@@ -1108,6 +1108,9 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  window.addEventListener('zp-agent-runtime-context',event=>{const state=event.detail||{};if(Number.isFinite(Number(state.bpm)))syncBpmDisplay(state.bpm)});
  window.addEventListener('zp-engine-result',event=>{const packet=event.detail||{};if(!['creator.bpm.state','creator.bpm.adjust','creator.bpm.set','creator.bpm.tap','creator.bpm.preset.set'].includes(packet.command))return;const data=packet.result?.data||packet.result;if(Number.isFinite(Number(data?.bpm)))syncBpmDisplay(data.bpm)});
 
+ bpm.addEventListener('keydown',event=>{if(['ArrowUp','ArrowRight'].includes(event.key)){event.preventDefault();adjustTempo(1)}else if(['ArrowDown','ArrowLeft'].includes(event.key)){event.preventDefault();adjustTempo(-1)}else if(event.key==='Home'||event.key==='End'){event.preventDefault();const value=event.key==='Home'?40:240;syncBpmDisplay(value);window.zpBridgeSend?.('creator.bpm.set',{bpm:value})}});
+ window.addEventListener('zp-engine-error',event=>{const packet=event.detail||{};if(['creator.bpm.adjust','creator.bpm.set','creator.bpm.tap','creator.bpm.preset.set'].includes(packet.command))window.zpBridgeSend?.('creator.bpm.state',{})});
+ window.addEventListener('zp-engine-timeout',event=>{const packet=event.detail||{};if(['creator.bpm.adjust','creator.bpm.set','creator.bpm.tap','creator.bpm.preset.set'].includes(packet.command))window.zpBridgeSend?.('creator.bpm.state',{})});
  bpm.addEventListener('pointerdown',e=>{lastY=e.clientY;remainder=0;bpm.setPointerCapture(e.pointerId)});
  bpm.addEventListener('pointermove',e=>{if(lastY===null)return;remainder+=lastY-e.clientY;lastY=e.clientY;const delta=Math.trunc(remainder/5);if(delta){remainder-=delta*5;adjustTempo(delta)}});
  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>bpm.addEventListener(t,()=>lastY=null));
