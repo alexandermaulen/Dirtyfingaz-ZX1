@@ -496,7 +496,7 @@ async function createHistorySnapshot(payload={}){
   await saveSession(true);
   const full=projectSnapshot(),samplesForHistory=await assetStorage.getProjectSamples(currentProjectId);
   const data=scope==="PROJECT"?historyClone(full):Object.fromEntries(HISTORY_MODULE_FIELDS[module].map(key=>[key,historyClone(full[key])]));
-  const record=await assetStorage.saveHistorySnapshot(currentProjectId,{scope,module:scope==="MODULE"?module:null,label:String(payload.label|| (scope==="PROJECT"?"Snapshot de proyecto":"Snapshot "+module)).slice(0,80),data,samples:scope==="PROJECT"||module==="SAMPLE_EDITOR"||module==="PADS"?samplesForHistory:[]});
+  const record=await assetStorage.saveHistorySnapshot(currentProjectId,{scope,module:scope==="MODULE"?module:null,projectName:currentProjectName,label:String(payload.label|| (scope==="PROJECT"?"Snapshot de proyecto":"Snapshot "+module)).slice(0,80),data,samples:scope==="PROJECT"||module==="SAMPLE_EDITOR"||module==="PADS"?samplesForHistory:[]});
   notify("HISTORIAL GUARDADO · "+record.version);
   return record;
 }
@@ -508,7 +508,7 @@ async function restoreHistorySnapshot(payload={}){
   if(!snapshot)throw Object.assign(new Error("La versión solicitada no existe"),{code:"NOT_FOUND"});
   await saveSession(true);
   let restored;
-  if(snapshot.scope==="PROJECT")restored=historyClone(snapshot.data);
+  if(snapshot.scope==="PROJECT"){restored=historyClone(snapshot.data);currentProjectName=String(snapshot.projectName||currentProjectName).slice(0,80);}
   else{
     restored=projectSnapshot();
     Object.assign(restored,historyClone(snapshot.data));
