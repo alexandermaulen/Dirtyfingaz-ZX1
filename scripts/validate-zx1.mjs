@@ -28,6 +28,24 @@ const registry = JSON.parse(read("zp-agent-registry.json"));
 const engine = read("creator-engine.html");
 const gui = read("index.html");
 const survey = read("CM-ZX1-SURVEY.md");
+const storage = read("zp-storage.js");
+try { new vm.Script(storage, { filename: "zp-storage.js" }); console.log("JS syntax OK: zp-storage.js"); }
+catch (error) { errors.push("zp-storage.js: " + error.message); }
+check(storage.includes("const DB_VERSION = 4;") && storage.includes("const HISTORY_STORE = \"projectHistory\";"),
+  "History IndexedDB v4 store missing");
+for (const method of ["listHistory", "saveHistorySnapshot", "getHistorySnapshot", "replaceProjectSamples"]) {
+  check(storage.includes("function " + method + "("), "History storage method missing: " + method);
+}
+for (const command of ["creator.history.create", "creator.history.list", "creator.history.restore"]) {
+  check(engine.includes('runtime.register("' + command + '"'), "History engine command missing: " + command);
+}
+for (const id of ["zp-project-history", "zp-history-project-snapshot", "zp-history-module-snapshot", "zp-history-list", "zp-history-prev", "zp-history-next", "zp-history-restore"]) {
+  check(gui.includes(id), "History GUI control missing: " + id);
+}
+check(engine.includes('V" + String(sequence).padStart(3, "0")'), "Sequential V001 history IDs missing");
+check(engine.includes("HISTORY_MODULE_FIELDS") && engine.includes("SAMPLE_EDITOR") && engine.includes("MIXER_FX"),
+  "Module snapshot contract missing");
+
 
 const padBootstrap = gui.split('<script id="zp-pad-bootstrap">')[1]?.split('</script>')[0];
 check(!!padBootstrap, "PAD bootstrap script missing");
