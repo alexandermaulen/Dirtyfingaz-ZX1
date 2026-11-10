@@ -472,7 +472,7 @@
       "agent": "zp-agent.js",
       "engine": "creator-engine.html"
     },
-    "executionPolicy": "Panel option selection emits zp-panel-option-select for contextual agent/UI handling only. It does not send engine commands unless an option is explicitly mapped to an existing allowlisted command and approved by the engine contract.",
+    "executionPolicy": "Selecting a secondary option arms a contextual encoder target. Only optionActions entries are executable. Sample trim and pad pitch use existing creator.sample.trim.set and creator.control.set commands; Piano Roll edits selected notes through creator.piano.note.upsert on encoder release. Unmapped options remain informational and must not be presented as executed.",
     "contexts": [
       "sample",
       "piano",
@@ -667,6 +667,39 @@
           }
         }
       ]
+    },
+    "optionActions": {
+      "sample": {
+        "L": {
+          "START": "trim.start",
+          "IN": "trim.start",
+          "PITCH": "pad-pitch",
+          "TRANSPOSE": "pad-pitch"
+        },
+        "R": {
+          "END": "trim.end",
+          "OUT": "trim.end",
+          "PITCH": "pad-pitch",
+          "TRANSPOSE": "pad-pitch"
+        }
+      },
+      "piano": {
+        "L": {
+          "NOTE": "step",
+          "STEP": "step",
+          "QUANTIZE": "step"
+        },
+        "R": {
+          "PITCH": "pitch",
+          "VELOCITY": "velocity",
+          "NOTE DYNAMICS": "velocity",
+          "ACCENT": "velocity",
+          "LENGTH": "length",
+          "GATE": "length",
+          "QUANTIZE": "step",
+          "STEP": "step"
+        }
+      }
     }
   },
   "layoutPolicy": {
