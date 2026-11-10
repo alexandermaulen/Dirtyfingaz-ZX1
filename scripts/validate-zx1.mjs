@@ -99,6 +99,20 @@ check(gui.includes("const scr=$('#scr'),v2=document.querySelector('.v2'),grid=$(
   !gui.includes("menu=$('#menu')") &&
   !gui.includes("!menu||!browse"),
   "PATTERN EDIT initializer must not depend on the nonexistent #menu element");
+check(!gui.includes('id="len"') && !gui.includes("$('#len')") && !gui.includes("const lens="),
+  "Legacy LEN transport control/listener must be removed");
+check(gui.includes('id="zpLen" aria-label="NOTE LENGTH 1">NOTE LEN 1') &&
+  gui.includes('id="zpSnap" aria-label="SNAP GRID 1/16">SNAP 1/16'),
+  "Piano controls must use explicit NOTE LEN and SNAP labels");
+check(gui.includes("const syncPianoControls=()=>") &&
+  gui.includes("lengthButton.textContent='NOTE LEN '+length") &&
+  gui.includes("snapButton.textContent='SNAP 1/'+division") &&
+  gui.includes("syncPianoControls()"),
+  "NOTE LEN and SNAP must render from the single Piano Roll state");
+check(gui.includes("defaultLength=selected.length") &&
+  gui.includes("if(n)upsertNote({...n,length:defaultLength})"),
+  "Selected-note length must synchronize with NOTE LEN and persist through the engine upsert command");
+
 check(gui.includes("1/16T"), "Triplet quantization UI missing");
 check(engine.includes('"1/16T":2/3'), "Triplet quantization engine mapping missing");
 check(engine.includes('runtime.register("creator.metronome.accent.set"'), "Metronome accent command missing");
