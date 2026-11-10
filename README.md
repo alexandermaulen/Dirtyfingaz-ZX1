@@ -45,3 +45,13 @@ Work directly on `main` as the single development line. Keep the repository refe
 - The canonical editable decision record remains [Notion · CM-ZX1](https://app.notion.com/p/41348df94c488065b575ed6c0fafb024?pvs=204).
 - `zp-agent-registry.json` records the GUI/engine contract and the survey traceability policy. A checked survey item means the decision is approved, not that its code is complete.
 - Unresolved decisions must remain unresolved: CM-ZX1-04, the detailed RESONATOR function in CM-ZX1-45, and CM-ZX1-58 BTN_LIMITER.
+
+## Utility Center update
+- Eight survey-defined groups: Quick Edit, Metronome & Tempo, Quantization, Audio, Performance, Key & Tuning, Master & Safety, Analysis & Control.
+- Independent multi-open groups, saved order, per-tool favorites, favorites-only filtering and highlighted search.
+- Metronome controls: level, accent, REC count-in and time signature. Quantization includes OFF, straight divisions and triplets.
+- Browser-exposed performance information is reported honestly; Safari does not expose CPU load or general memory usage through a standard web API. The master meter remains peak-only until true LUFS metering is implemented.
+
+## Validation
+- `scripts/validate-zx1.mjs` parses inline JavaScript, validates the JSON registry, checks the complete survey snapshot and verifies registered Utility commands.
+- GitHub Pages workflow runs this validator before uploading the site artifact.
