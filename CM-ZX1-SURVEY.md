@@ -1095,3 +1095,18 @@ Commits verificados:
 **Estado de CI:** el primer run con el validador falló por escape incorrecto de la expresión regular del script de validación. Se corrigió en `scripts/validate-zx1.mjs` (commit `6cc800e4befb0022006ab658c2150825424eb1c4`). El rerun posterior todavía debe verificarse. El fallo fue del validador recién añadido, no evidencia de un error funcional de la app.
 
 **Reglas de cierre:** no marcar CM-ZX1-17 ni los requisitos nuevos como implementados/verificados hasta que el run de validación termine en success y se ejecuten pruebas funcionales. No avanzar a CM-ZX1-58 ni abrir nuevas preguntas hasta agotar los requisitos ya contestados. Mantener CM-ZX1-04, CM-ZX1-45 detallado y CM-ZX1-58 como decisiones pendientes, no inventadas.
+
+### Cierre de tanda de implementación UTILITY · 2026-11-10
+
+**HEAD GitHub:** `bdae8f73160ea09e69dc34eddc12f5a31696ba4c`.
+
+- `main` y `auxiliary` verificadas idénticas en el mismo SHA; 0 commits de diferencia.
+- `CM-ZX1-SURVEY.md` actualizado después de incorporar este feedback de Notion.
+- `zp-agent-registry.json` incluye los ocho grupos UTILITY, contratos de acento/compás/cuenta previa, cuantización triplet y lista de requisitos aún abiertos.
+- `index.html` y `creator-engine.html` conectan controles de metrónomo: nivel, acento en primer pulso, cuenta previa y compás; compases admitidos 2/4, 3/4, 4/4, 5/4, 6/8 y 7/8.
+- Cuantización incluye OFF, 1/4, 1/8, 1/16, 1/32 y triplets 1/4T, 1/8T, 1/16T; el motor guarda división y estado en snapshot del proyecto.
+- UTILITY mantiene múltiples grupos abiertos, orden persistente, favoritos por herramienta, filtro FAVORITES ONLY y resaltado de coincidencias de búsqueda.
+- Validador corregido y ejecutado en GitHub Actions: run `42759671730`, job `deploy`, paso `Validate source and survey contracts` = success; deploy del mismo SHA `6cc800e4` = success. La versión más reciente del snapshot/registry tiene otro run `42759714830` en cola al momento de esta anotación; verificar su resultado antes de marcar el estado final de esa revisión.
+- La validación automatizada cubre sintaxis de scripts inline, JSON del registro, grupos UTILITY, comandos declarados y presencia de CM-ZX1-01/58 en el snapshot. No reemplaza pruebas de interacción en navegador.
+
+**No cerrar todavía:** selección/ruteo de entrada y salida, métricas reales CPU/memoria (no expuestas por Safari), LUFS real, copiar PAD/valor/pegar, y pruebas físicas en Safari/iPhone. El master meter sigue siendo peak-only. El resto de las fichas confirmadas de HISTORIAL, editor, mixer/efectos y controles debe seguir ejecutándose por orden y validarse individualmente. No iniciar preguntas nuevas hasta ejecutar ese backlog.
