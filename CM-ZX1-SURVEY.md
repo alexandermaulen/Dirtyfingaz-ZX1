@@ -1156,3 +1156,9 @@ Commits verificados:
 **Estado de validación:** cambios confirmados en `main` y `auxiliary`, idénticas. La prueba automatizada de GitHub Actions para el HEAD actual aún no está confirmada; tampoco se ha probado IndexedDB real, restauración de buffers en Safari ni el despliegue público. Por tanto HISTORIAL queda **implementado en fuente, pendiente de validación runtime**. No marcar terminado todavía.
 
 **Siguiente paso técnico:** conseguir una ejecución nueva del workflow Pages sobre el HEAD actual; inspeccionar logs/artefacto; realizar prueba de navegador para crear V001, V002 de proyecto, snapshots de módulo, navegación, restauración completa/parcial y persistencia después de recargar. Después continuar con las fichas CM-ZX1 confirmadas en orden.
+**Prueba de lógica ejecutada en esta sesión (aislada sobre el código recuperado de GitHub):**
+- Los cuatro artefactos JS (scripts inline de `index.html`, `creator-engine.html`, `zp-storage.js` y cuerpo del validador `.mjs`) compilan sin error de sintaxis.
+- Bootstrap PAD: primera ejecución crea nueve nodos; segunda ejecución mantiene nueve; IDs PAD_01–PAD_09 correctos.
+- Función real `saveHistorySnapshot` extraída de `zp-storage.js`, ejecutada con transacción simulada: produce V001 y V002 y mantiene el `projectId`.
+- Contrato de módulos extraído del motor: PROJECT, PADS, SEQUENCER, MIXER_FX, TRANSPORT, TONAL y SAMPLE_EDITOR.
+- Esto prueba sintaxis y lógica aislada. No prueba la implementación real de IndexedDB, la transacción/cursor del navegador, el audio, Safari ni el deploy.
