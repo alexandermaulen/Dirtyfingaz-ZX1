@@ -50,7 +50,7 @@ h1 b{font-size:46px}
 .tg{margin-top:8px;font-size:15px;line-height:17px;height:17px}
 .tg span{background:#0004;border-radius:8px 8px 0 0;text-align:center;white-space:nowrap}
 .tg span:empty{background:none}
-.big .b{min-height:42px}
+.big .b{min-height:42px}.bank-spacer{min-height:42px;pointer-events:none}
 .pe{width:80px;height:80px;margin:-20px 0;justify-self:center;z-index:3}
 .pe i::after{display:none}
 .pe i{background:radial-gradient(circle,#0e0e0e 0 42%,#2d2d2d 78%,#161616)}
@@ -381,6 +381,7 @@ const $=s=>document.querySelector(s),unit=$('#unit'),scr=$('#scr');
 const mk=(t,c,h)=>{const e=document.createElement(t);if(c)e.className=c;if(h!=null)e.innerHTML=h;return e};
 const projectMenu=mk("div","lcd-menu");projectMenu.hidden=true;projectMenu.innerHTML="<header><b>DIRTYFINGAZ ZX1</b><span>PROJECT / MENU</span></header><div class=\"menu-list\"></div><small>RX: NAVEGAR · PUSH ENTER: SELECCIONAR</small>";scr.append(projectMenu);
 const projectDialog=mk("dialog","zp-project-dialog");projectDialog.innerHTML="<form method=\"dialog\" class=\"zp-project-panel\"><header><strong>PROJECT MANAGER</strong><button class=\"zp-project-close\" value=\"cancel\">×</button></header><label>PROYECTOS GUARDADOS</label><select id=\"zp-project-select\" size=\"5\"></select><label>NOMBRE DEL PROYECTO</label><input id=\"zp-project-name\" maxlength=\"80\" value=\"Proyecto nuevo\"><div class=\"zp-project-actions\"><button type=\"button\" id=\"zp-project-new\">NEW PROJECT</button><button type=\"button\" id=\"zp-project-save\">SAVE</button><button type=\"button\" id=\"zp-project-load\">LOAD</button><button type=\"button\" id=\"zp-project-delete\">DELETE</button><button type=\"button\" id=\"zp-project-export\">EXPORT JSON</button><button type=\"button\" id=\"zp-project-import\">IMPORT JSON</button></div><input id=\"zp-project-file\" type=\"file\" accept=\"application/json,.json\" hidden><small id=\"zp-project-status\">INDEXEDDB · PROJECTS / SAMPLES</small></form>";document.body.append(projectDialog);
+const configurationDialog=mk("dialog","zp-project-dialog");configurationDialog.innerHTML="<form method=\"dialog\" class=\"zp-project-panel\"><header><strong>CONFIGURACIÓN</strong><button class=\"zp-project-close\" value=\"cancel\">×</button></header><p>Panel general de configuración.</p><small>Contenido y controles pendientes de definición en el Cuestionario Maestro.</small></form>";document.body.append(configurationDialog);
 let projectCurrentId="current";
 const projectSelect=projectDialog.querySelector("#zp-project-select"),projectName=projectDialog.querySelector("#zp-project-name"),projectStatus=projectDialog.querySelector("#zp-project-status");
 const renderProjectList=(items,currentId,name)=>{projectCurrentId=currentId||"current";projectSelect.replaceChildren();(Array.isArray(items)?items:[]).forEach(item=>{const option=document.createElement("option");option.value=item.id;option.textContent=item.name+(item.id===projectCurrentId?" · ACTUAL":"");projectSelect.append(option)});if(![...projectSelect.options].some(option=>option.value===projectCurrentId)){const option=document.createElement("option");option.value=projectCurrentId;option.textContent=(name||"Proyecto actual")+" · ACTUAL";projectSelect.prepend(option)}projectSelect.value=projectCurrentId;projectName.value=name||"";projectDialog.querySelector("#zp-project-delete").disabled=projectSelect.value===projectCurrentId||projectSelect.value==="current";};
@@ -395,7 +396,7 @@ function applySkin(skin,save=true){
 try{const savedSkin=localStorage.getItem("dirtyfingaz-zx1-theme");if(savedSkin&&skins.includes(savedSkin))applySkin(savedSkin,false)}catch(error){console.warn("No se pudo leer el tema guardado:",error)}
 
 window.addEventListener("zp-system-menu-state",event=>{const d=event.detail||{};window.__zpSystemMenuOpen=!!d.open;projectMenu.hidden=!d.open;if(!d.open)return;const list=projectMenu.querySelector(".menu-list");list.replaceChildren();(Array.isArray(d.items)?d.items:[]).forEach((item,index)=>{const row=mk("div","menu-item"+(index===d.index?" selected":""));row.textContent=String(item);list.append(row)});});
-window.addEventListener("zp-engine-result",event=>{const d=event.detail||{},data=d.result?.data;if(d.command==="creator.system.menu.select"&&data?.theme){applySkin(data.theme);return;}if(d.command==="creator.system.menu.select"&&data?.projectManager){renderProjectList(data.projects,data.currentProjectId,data.currentProjectName);projectDialog.showModal();}else if(d.command==="creator.project.list"){renderProjectList(data,projectCurrentId,projectName.value);projectStatus.textContent="INDEXEDDB · "+(Array.isArray(data)?data.length:0)+" PROYECTOS";}else if(["creator.project.create","creator.project.load","creator.project.delete","creator.project.save","creator.project.rename","creator.project.import"].includes(d.command)){refreshProjects();if(data?.name)projectName.value=data.name;}});
+window.addEventListener("zp-engine-result",event=>{const d=event.detail||{},data=d.result?.data;if(d.command==="creator.system.menu.select"&&data?.theme){applySkin(data.theme);return;}if(d.command==="creator.system.menu.select"&&data?.configuration){configurationDialog.showModal();return;}if(d.command==="creator.system.menu.select"&&data?.projectManager){renderProjectList(data.projects,data.currentProjectId,data.currentProjectName);projectDialog.showModal();}else if(d.command==="creator.project.list"){renderProjectList(data,projectCurrentId,projectName.value);projectStatus.textContent="INDEXEDDB · "+(Array.isArray(data)?data.length:0)+" PROYECTOS";}else if(["creator.project.create","creator.project.load","creator.project.delete","creator.project.save","creator.project.rename","creator.project.import"].includes(d.command)){refreshProjects();if(data?.name)projectName.value=data.name;}});
 projectSelect.addEventListener("change",()=>{projectDialog.querySelector("#zp-project-delete").disabled=projectSelect.value===projectCurrentId||projectSelect.value==="current";});
 projectDialog.querySelector("#zp-project-new").onclick=()=>zpBridgeSend("creator.project.create",{name:projectName.value});
 projectDialog.querySelector("#zp-project-save").onclick=()=>{zpBridgeSend("creator.project.rename",{name:projectName.value});zpBridgeSend("creator.project.save",{});};
@@ -420,7 +421,7 @@ const B=(t,cls)=>{const b=mk('div','b '+(cls||''),t);return b};
 function row(cols,tags,btns,cls){const w=mk('div');const tg=mk('div','row tg');tg.style.gridTemplateColumns=cols;
  tags.forEach(([t,n])=>{const s=mk('span','',t);s.style.gridColumn='span '+n;tg.append(s)});
  const r=mk('div','row '+(cls||''));r.style.gridTemplateColumns=cols;
- btns.forEach(b=>{if(typeof b==='string'){const x=B(b);r.append(x)}else r.append(b)});w.append(tg,r);$('#rows').append(w);return r}
+ btns.forEach(b=>{if(b===null){r.append(mk('div','bank-spacer'));return}if(typeof b==='string'){const x=B(b);r.append(x)}else r.append(b)});w.append(tg,r);$('#rows').append(w);return r}
 const lx=mk('div','knob lx','<i></i>');lx.dataset.rotor='Lx';lx.setAttribute('role','button');lx.setAttribute('aria-label','Lx: navegación de controles del GUI');lx.tabIndex=0;bindKnob(lx,1);$('.mid').append(lx);
 const pe=mk('div','knob pe rx','<i></i>');pe.dataset.rotor='Rx';pe.setAttribute('role','button');pe.setAttribute('aria-label','Rx: OUT del sample y control maestro derecho');pe.tabIndex=0;bindKnob(pe,1);$('.mid').append(pe);
 
@@ -447,7 +448,7 @@ if(trimPhaseButton){trimPhaseButton.classList.add("trim-phase-button");trimPhase
 row('repeat(8,1fr)',[['UNDO',1],['SAMPLING',2],['CHOP',1],['ENVELOPE',2],['SAMPLE MODE',2]],
  ['DEL','REC','RESAMPLE','BPM<br>SYNC','GATE','LOOP','REVERSE','ROLL'],'big');
 row('repeat(9,1fr)',[['',6],['BANK',2],['ROLL SET',1]],
- ['EXIT','COPY','REMAIN','A','B','C','D','E','SHIFT'],'big');
+ ['EXIT','COPY',null,'A','B','C','D','E','SHIFT'],'big');
 /* estados fijos como en la imagen */
 const all=[...document.querySelectorAll('#rows .b')];const by=t=>all.find(b=>b.textContent.replace(/\s/g,'')===t.replace(/\s/g,''));
 by('REC').classList.add('lit');by('A').classList.add('lit');
