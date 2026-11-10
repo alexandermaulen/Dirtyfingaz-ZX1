@@ -169,6 +169,33 @@ for (const command of registry.utilitySystem?.engineCommands || []) {
   check(engine.includes('runtime.register("' + command + '"'), "Registry command not registered in engine: " + command);
 }
 
+
+/* AUD-003 · transport integration contracts */
+check(gui.includes('const oldPlay=document.getElementById("play")') &&
+  gui.includes('const play=oldPlay.cloneNode(true);oldPlay.replaceWith(play);play.addEventListener("click",()=>zpBridgeSend("creator.transport.toggle"))'),
+  "PLAY must replace the detached demo node and dispatch exactly the engine transport toggle");
+check(gui.includes('const oldStop=document.getElementById("stop")') &&
+  gui.includes('const stop=oldStop.cloneNode(true);oldStop.replaceWith(stop);bindLongPress(stop,()=>zpBridgeSend("creator.transport.stop"),()=>openTransportMenu("stop"))'),
+  "STOP must dispatch engine stop on tap and open its action menu on long press");
+check(gui.includes('function bindLongPress(el,shortAction,longAction,delay=480)') &&
+  gui.includes('if(!fired)shortAction()') && gui.includes('fired=true;longAction()'),
+  "Transport long-press handler must distinguish short and long gestures");
+check(engine.includes('runtime.register("creator.transport.toggle",()=>togglePlay())') &&
+  engine.includes('runtime.register("creator.transport.stop",()=>stopTransport())') &&
+  engine.includes('runtime.register("creator.transport.continue",()=>startTransport(true))') &&
+  engine.includes('runtime.register("creator.transport.reset",()=>stopTransport(true))') &&
+  engine.includes('runtime.register("creator.transport.state"'),
+  "Transport toggle, stop, continue, reset and state commands must be registered");
+check(engine.includes('function togglePlay(){if(playing)return stopTransport(false);return startTransport(stepIndex>loopStart)}') &&
+  engine.includes('function stopTransport(resetPosition=false)'),
+  "Transport toggle must preserve continuation position and stop must expose reset semantics");
+check(engine.includes('const state={...projectSnapshot(),playing,recording,recordArmed,stepIndex,selectedStepIndex}') &&
+  engine.includes('type:"zp-engine-radio-state"'),
+  "Engine must publish authoritative transport state to the GUI");
+check(!gui.includes("tm=setInterval(()=>{cells().forEach(c=>c.classList.toggle('hd2'") &&
+  !gui.includes("let tm=null,st=0;const cells="),
+  "Detached local visual transport timer must not remain in the GUI source");
+
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
