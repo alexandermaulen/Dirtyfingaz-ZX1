@@ -769,7 +769,7 @@
     "separation": "BANK_ID and PATTERN_ID are independent. Selecting a bank never changes the active pattern. Selecting a pattern never changes the active bank.",
     "storage": {
       "engine": "creator-engine.html",
-      "projectSnapshotVersion": 11,
+      "projectSnapshotVersion": 12,
       "legacyMigration": "Legacy bank-keyed step/MIDI data A-E migrates to independent PATTERN_01-PATTERN_05 records."
     },
     "menu": [
@@ -882,7 +882,7 @@
     ]
   },
   "transportSystem": {
-    "snapshotVersion": 11,
+    "snapshotVersion": 12,
     "play": "BTN_PLAY toggles PLAY/PAUSE and resumes from the current step as CONTINUE.",
     "stop": "Dedicated BTN_STOP short press stops without resetting position; long press exposes RESET POSITION, STOP RECORDING and RELEASE NOTES.",
     "record": {
@@ -1079,5 +1079,68 @@
     "home": "BTN_HOME sends zp-host-home-request only when embedded in a host; it never navigates away from standalone Creator.",
     "exit": "BTN_EXIT closes the active panel/menu/tool/mode and remains inside Creator.",
     "pushEnter": "BTN_PUSHENTER confirms the focused contextual action; project menu uses the engine selection command."
+  },
+  "sampleEditSystem": {
+    "commands": [
+      "creator.sample.edit.state",
+      "creator.sample.edit.mode.set",
+      "creator.sample.load.request",
+      "creator.sample.reverse",
+      "creator.sample.normalize",
+      "creator.sample.fade",
+      "creator.sample.pitch.set",
+      "creator.sample.time.set",
+      "creator.sample.chop.manual.start",
+      "creator.sample.chop.manual.add",
+      "creator.sample.chop.manual.remove",
+      "creator.sample.chop.manual.commit",
+      "creator.sample.chop.manual.cancel"
+    ],
+    "modes": [
+      "DESTRUCTIVE",
+      "NONDESTRUCTIVE"
+    ],
+    "operations": [
+      "trim",
+      "reverse",
+      "normalize",
+      "fade in",
+      "fade out",
+      "pitch",
+      "time rate",
+      "manual chop"
+    ],
+    "destructive": "Reverse, normalize and fade modify the active sample. Pitch/time in DESTRUCTIVE mode resample through OfflineAudioContext.",
+    "nondestructive": "Pitch and playback-rate controls remain per-PAD and do not rewrite the sample buffer.",
+    "manualChop": "Waveform taps add normalized markers. Commit writes slices to the next available PAD slots in the same bank and preserves the source PAD.",
+    "limitation": "TIME currently uses playback-rate resampling and changes pitch with duration; pitch-preserving time-stretch is not implemented."
+  },
+  "clipboardSystem": {
+    "commands": [
+      "creator.clipboard.state",
+      "creator.clipboard.copy",
+      "creator.clipboard.paste"
+    ],
+    "types": [
+      "pad",
+      "sample-range",
+      "adsr",
+      "fx",
+      "pattern-midi",
+      "midi-note",
+      "sequencer-step",
+      "value"
+    ],
+    "interaction": "BTN_COPY short press copies the selected context. Long press opens a typed PASTE menu.",
+    "persistence": "Clipboard is session-memory only; project content and pasted data are persisted normally."
+  },
+  "deleteSystem": {
+    "interaction": "BTN_DEL deletes only the current selection: manual chop marker, selected MIDI note, selected sequencer step, or active PAD sample.",
+    "restrictions": [
+      "never deletes a complete PAD",
+      "never deletes a complete pattern",
+      "never deletes steps outside the selected step",
+      "never affects other PADs or banks"
+    ]
   }
 }
