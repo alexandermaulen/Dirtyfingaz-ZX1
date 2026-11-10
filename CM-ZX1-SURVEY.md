@@ -1214,3 +1214,14 @@ Commits verificados:
 **Acción aplicada:** se añadieron comprobaciones estáticas al validador para la existencia del control, resolución de etiqueta, toggle, sincronización del estado expandido, modo Piano Roll y cierre por evento. No se altera todavía el comportamiento de runtime porque falta reproducir el fallo en el dispositivo y no corresponde introducir un cambio especulativo.
 
 **Estado AUD-004:** contrato de código presente; QA táctil iPhone 11 y causa raíz: PENDIENTES. Próximo paso: probar el botón en Safari con inspector/telemetría de eventos y registrar si el click llega al control y si cambian `.scr.pr`, `aria-expanded` y `pianoViewport.hidden`.
+
+
+## AUD-005 · PADs y bancos A-E · hallazgo y corrección · 2026-11-10
+
+**Hallazgo confirmado:** los botones de banco A-E en la GUI solo cambiaban la clase visual `lit`; no enviaban el comando de selección al motor. El motor ya tenía registrado `creator.bank.select`, que actualiza `activeBank`, refresca PADs/estado y publica el estado autoritativo. La interfaz podía mostrar un banco distinto del banco real.
+
+**Corrección aplicada:** cada botón A-E ahora envía `creator.bank.select` con su identificador. La iluminación queda reconciliada desde `zp-engine-radio-state`, no desde una selección local sin autoridad. No se modifica la independencia entre BANK_ID y PATTERN_ID.
+
+**Pruebas añadidas:** el validador verifica que A-E envíe el comando, que el motor registre y actualice el banco, y que la GUI sincronice el highlight desde el estado del motor.
+
+**QA pendiente:** probar los cinco bancos en Safari/iPhone 11; confirmar que el banco activo cambia, los samples permanecen por PAD/banco, el patrón seleccionado no cambia y los disparos suenan desde el banco esperado. No se declara respuesta audible probada.
