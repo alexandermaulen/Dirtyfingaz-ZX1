@@ -1110,3 +1110,11 @@ Commits verificados:
 - La validación automatizada cubre sintaxis de scripts inline, JSON del registro, grupos UTILITY, comandos declarados y presencia de CM-ZX1-01/58 en el snapshot. No reemplaza pruebas de interacción en navegador.
 
 **No cerrar todavía:** selección/ruteo de entrada y salida, métricas reales CPU/memoria (no expuestas por Safari), LUFS real, copiar PAD/valor/pegar, y pruebas físicas en Safari/iPhone. El master meter sigue siendo peak-only. El resto de las fichas confirmadas de HISTORIAL, editor, mixer/efectos y controles debe seguir ejecutándose por orden y validarse individualmente. No iniciar preguntas nuevas hasta ejecutar ese backlog.
+
+### Verificación externa de publicación · 2026-11-10
+
+- La URL pública `https://alexandermaulen.github.io/Dirtyfingaz-ZX1/` se volvió a inspeccionar después de la tanda UTILITY. Continúa sirviendo `DIRTYFINGAZCREATOR · 2.0`, matriz de 16 slots y menú SYSTEM heredado. No corresponde al `index.html` de `main`, que es Creator ZX1 con matriz de 9 PADs y los módulos actuales.
+- Run `42759714830` para HEAD `bdae8f73160ea09e69dc34eddc12f5a31696ba4c`: `success`, incluido el paso de validación y el deploy. Esto valida el workflow/artefacto, pero no resuelve la discrepancia de contenido que devuelve la URL pública.
+- Run `42759761373` asociado al snapshot actualizado `bce884088a6d8fb5769b4275b3f9ec4ac79578f1` estaba en cola al momento de esta anotación.
+- Mantener PUBLICACIÓN PÚBLICA como bloqueada/no verificada hasta resolver por qué Pages sirve la versión de 16 PADs. No marcar publicación final como correcta basándose únicamente en el éxito de Actions.
+- Siguiente ejecución del backlog ya respondido: HISTORIAL CM-ZX1-10 a CM-ZX1-14 (versiones manuales de proyecto/módulo, secuencia V001..., navegación y restauración), seguida por el inventario control-por-control y las familias de Sample Editor/Mixer/FX. No avanzar la encuesta a CM-ZX1-58 ni abrir nuevas preguntas mientras haya decisiones respondidas sin ejecutar.
