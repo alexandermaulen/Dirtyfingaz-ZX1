@@ -42,7 +42,7 @@ for (const command of ["creator.history.create", "creator.history.list", "creato
 for (const id of ["zp-project-history", "zp-history-project-snapshot", "zp-history-module-snapshot", "zp-history-list", "zp-history-prev", "zp-history-next", "zp-history-restore"]) {
   check(gui.includes(id), "History GUI control missing: " + id);
 }
-check(engine.includes('V" + String(sequence).padStart(3, "0")'), "Sequential V001 history IDs missing");
+check(storage.includes('const version = "V" + String(sequence).padStart(3, "0")'), "Sequential V001 history IDs missing");
 check(engine.includes("HISTORY_MODULE_FIELDS") && engine.includes("SAMPLE_EDITOR") && engine.includes("MIXER_FX"),
   "Module snapshot contract missing");
 
