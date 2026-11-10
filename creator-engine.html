@@ -453,7 +453,7 @@ function startTransport(continuePosition=false,countInComplete=false){
  if(recordArmed&&countInEnabled&&!countInComplete){beginCountIn(continuePosition);return {state:"count-in"}}
  transportGeneration++;playing=true;
  if(!continuePosition)stepIndex=loopStart;else stepIndex=Math.max(loopStart,Math.min(loopEnd,stepIndex));
- playheadStep=-1;const beat=60/bpm/4;sequenceStartTime=c.currentTime+.06-(stepIndex-loopStart)*beat;nextStepTime=c.currentTime+.06;scheduler=setInterval(scheduleStep,20);transport.textContent="REPRODUCIENDO";playButton.textContent="PAUSE";
+ playheadStep=-1;const beat=60/bpm/4;sequenceStartTime=c.currentTime+.06-(stepIndex-loopStart)*beat;nextStepTime=c.currentTime+.06;scheduler=setInterval(scheduleStep,20);transport.textContent="REPRODUCIENDO";playButton.textContent="STOP";
  if(recordArmed){recordArmed=false;recording=true;beginRecording()}
  refreshSteps();publishRadioState();return {state:"playing",stepIndex}
 }
