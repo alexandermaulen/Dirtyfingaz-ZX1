@@ -136,6 +136,14 @@ check(gui.includes("window.addEventListener('zp-engine-result'") &&
   "BPM optimistic display must reconcile with acknowledged engine command results");
 check(gui.includes("if(d.type==='zp-engine-bpm-state'&&d.protocolVersion===1&&d.source==='creator.engine'){syncBpmDisplay(d.bpm)}"),
   "BPM wheel must reconcile with authoritative engine BPM state messages");
+check(gui.includes("bpm.addEventListener('keydown'") &&
+  gui.includes("event.key==='Home'||event.key==='End'"),
+  "BPM slider must support keyboard adjustment and min/max shortcuts");
+check(gui.includes("window.addEventListener('zp-engine-error'") &&
+  gui.includes("window.addEventListener('zp-engine-timeout'") &&
+  gui.includes("window.zpBridgeSend?.('creator.bpm.state',{})"),
+  "BPM wheel must recover authoritative state after rejected or timed-out commands");
+
 
 check(gui.includes("1/16T"), "Triplet quantization UI missing");
 check(engine.includes('"1/16T":2/3'), "Triplet quantization engine mapping missing");
