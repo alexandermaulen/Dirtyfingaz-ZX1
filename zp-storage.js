@@ -4,10 +4,11 @@
 (function (root) {
   "use strict";
   const DB_NAME = "dirtyfingaz-zx1-assets";
-  const DB_VERSION = 2;
+  const DB_VERSION = 3;
   const SAMPLE_STORE = "samples";
   const PROJECT_STORE = "projects";
-  const PROJECT_SAMPLE_STORE = "projectSamples";
+  const LEGACY_PROJECT_SAMPLE_STORE = "projectSamples";
+  const PROJECT_SAMPLE_STORE = "projectSamplesV3";
   let dbPromise;
 
   function open() {
@@ -20,14 +21,15 @@
         if (!db.objectStoreNames.contains(SAMPLE_STORE)) db.createObjectStore(SAMPLE_STORE, { keyPath: "pad" });
         if (!db.objectStoreNames.contains(PROJECT_STORE)) db.createObjectStore(PROJECT_STORE, { keyPath: "id" });
         if (!db.objectStoreNames.contains(PROJECT_SAMPLE_STORE)) {
-          const projectSamples = db.createObjectStore(PROJECT_SAMPLE_STORE, { keyPath: ["projectId", "pad"] });
-          if (event.oldVersion < 2 && db.objectStoreNames.contains(SAMPLE_STORE)) {
-            const cursor = tx.objectStore(SAMPLE_STORE).openCursor();
+          const bankedSamples = db.createObjectStore(PROJECT_SAMPLE_STORE, { keyPath: ["projectId", "bank", "pad"] });
+          const sourceName = event.oldVersion < 2 ? SAMPLE_STORE : LEGACY_PROJECT_SAMPLE_STORE;
+          if (db.objectStoreNames.contains(sourceName)) {
+            const cursor = tx.objectStore(sourceName).openCursor();
             cursor.onsuccess = function () {
               const item = cursor.result;
               if (!item) return;
               const legacy = item.value;
-              projectSamples.put(Object.assign({}, legacy, { projectId: "current" }));
+              bankedSamples.put(Object.assign({}, legacy, { projectId: String(legacy.projectId || "current"), bank: "A" }));
               item.continue();
             };
           }
@@ -54,10 +56,10 @@
     });
   }
 
-  function encodeBuffer(buffer, pad, name, range) {
+  function encodeBuffer(buffer, pad, name, range, bank) {
     const channels = [];
     for (let ch = 0; ch < buffer.numberOfChannels; ch++) channels.push(new Float32Array(buffer.getChannelData(ch)));
-    return { pad: Number(pad), name: String(name || "SAMPLE").slice(0, 80), sampleRate: buffer.sampleRate, length: buffer.length, channels: channels, range: range || { start: 0, end: 1 }, updatedAt: Date.now() };
+    return { bank: String(bank || "A"), pad: Number(pad), name: String(name || "SAMPLE").slice(0, 80), sampleRate: buffer.sampleRate, length: buffer.length, channels: channels, range: range || { start: 0, end: 1 }, updatedAt: Date.now() };
   }
 
   function decodeBuffer(record, audioContext) {
@@ -67,8 +69,8 @@
     return buffer;
   }
 
-  function saveProjectSample(projectId, pad, buffer, name, range) {
-    const record = Object.assign({}, encodeBuffer(buffer, pad, name, range), { projectId: String(projectId || "current") });
+  function saveProjectSample(projectId, pad, buffer, name, range, bank) {
+    const record = Object.assign({}, encodeBuffer(buffer, pad, name, range, bank), { projectId: String(projectId || "current") });
     return transact(PROJECT_SAMPLE_STORE, "readwrite", function (store) { return store.put(record); });
   }
   function getProjectSamples(projectId) {
@@ -76,8 +78,8 @@
     return transact(PROJECT_SAMPLE_STORE, "readonly", function (store) { return store.getAll(); })
       .then(function (records) { return records.filter(function (item) { return item.projectId === id; }); });
   }
-  function deleteProjectSample(projectId, pad) {
-    return transact(PROJECT_SAMPLE_STORE, "readwrite", function (store) { return store.delete([String(projectId || "current"), Number(pad)]); });
+  function deleteProjectSample(projectId, pad, bank) {
+    return transact(PROJECT_SAMPLE_STORE, "readwrite", function (store) { return store.delete([String(projectId || "current"), String(bank || "A"), Number(pad)]); });
   }
   function saveSample(pad, buffer, name, range) { return saveProjectSample("current", pad, buffer, name, range); }
   function getSamples() { return getProjectSamples("current"); }
@@ -109,7 +111,7 @@
     return Promise.all([
       transact(PROJECT_STORE, "readwrite", function (store) { return store.delete(id); }),
       getProjectSamples(id).then(function (items) {
-        return Promise.all(items.map(function (item) { return deleteProjectSample(id, item.pad); }));
+        return Promise.all(items.map(function (item) { return deleteProjectSample(id, item.pad, item.bank); }));
       })
     ]);
   }
@@ -127,6 +129,6 @@
     listProjects: listProjects,
     deleteProject: deleteProject,
     decodeBuffer: decodeBuffer,
-    version: "2.0.0"
+    version: "3.0.0"
   });
 })(window);
