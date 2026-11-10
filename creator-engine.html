@@ -427,9 +427,9 @@ function beginRecording(){
  else notify(overdubEnabled?"MIDI OVERDUB · REC":"MIDI REC · REC");
 }
 function beginCountIn(continuePosition){
- if(countInTimer)clearInterval(countInTimer);
+ if(countInTimer)return;
  let beat=1;transport.textContent="COUNT IN · 1/4";metronomeTick(true);
- countInTimer=setInterval(()=>{beat++;if(beat>4){clearInterval(countInTimer);countInTimer=null;recordArmed=false;recording=true;beginRecording();startTransport(continuePosition,true)}else{transport.textContent="COUNT IN · "+beat+"/4";metronomeTick(true)}},60000/bpm);
+ countInTimer=setInterval(()=>{if(!recordArmed){clearInterval(countInTimer);countInTimer=null;transport.textContent="DETENIDO";return}beat++;if(beat>4){clearInterval(countInTimer);countInTimer=null;recordArmed=false;recording=true;beginRecording();startTransport(continuePosition,true)}else{transport.textContent="COUNT IN · "+beat+"/4";metronomeTick(true)}},60000/bpm);
 }
 function scheduleStep(){
  if(!playing||!ctx)return;
@@ -462,7 +462,7 @@ function stopTransport(resetPosition=false){
  recording=false;recordArmed=false;if(resetPosition)stepIndex=loopStart;playheadStep=-1;
  if(scheduler)clearInterval(scheduler);scheduler=null;transport.textContent="DETENIDO";playButton.textContent=stepIndex>loopStart?"CONTINUE":"PLAY";recordButton.classList.remove("on");refreshSteps();publishRadioState();return {state:"stopped",stepIndex}
 }
-function stopRecordingOnly(){recording=false;recordArmed=false;if(audioRecorder||audioRecordStream)stopAudioRecording();recordButton.classList.remove("on");notify("REC FINALIZADO");publishRadioState();return {recording:false}}
+function stopRecordingOnly(){recording=false;recordArmed=false;if(countInTimer){clearInterval(countInTimer);countInTimer=null;transport.textContent="DETENIDO"}if(audioRecorder||audioRecordStream)stopAudioRecording();recordButton.classList.remove("on");notify("REC FINALIZADO");publishRadioState();return {recording:false}}
 function togglePlay(){if(playing)return stopTransport(false);return startTransport(stepIndex>loopStart)}
 function toggleRecord(){
  if(recordArmed||recording){stopRecordingOnly();return {armed:false,recording:false}}
