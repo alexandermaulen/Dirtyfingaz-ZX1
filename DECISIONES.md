@@ -80,6 +80,8 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 
 - INC-005 · ABIERTA, REQUIERE QA MANUAL. La extracción web pública consultada el 2026-11-10 mostró una interfaz de 16 pads y controles antiguos. Sin embargo, el último despliegue Pages exitoso identificado es el run `42770853965` (SHA `46f17094`), cuyo `index.html` contiene el bootstrap de 9 pads y no contiene `EDIT LAYOUT` ni `PAD_16`. La discrepancia puede deberse a caché/indexación o a la configuración real de Pages; no se afirma todavía cuál es la causa. Confirmar en navegador real y revisar la fuente de Pages antes de publicar.
 
+- INC-006 · CANDIDATA, REQUIERE CONFIRMACIÓN. El botón Copilot en `zp-agent.js` abre `https://github.com/alexandermaulen/Dirtyfingaz-ZP/agents`, que apunta al repositorio anterior `Dirtyfingaz-ZP`, no al repositorio actual `Dirtyfingaz-ZX1`. Puede ser intencional; se conserva sin cambio hasta confirmar el destino esperado.
+
 ### AUD-DEC-003 · CI de auditoría separado del despliegue
 
 - Fecha: 2026-11-10
@@ -112,6 +114,14 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 - Alternativas descartadas: eliminar las comprobaciones nuevas o ocultar el fallo del test.
 - Impacto: se conserva la cobertura de rutas y comandos, corrigiendo únicamente el test.
 
+### AUD-DEC-007 · Sintaxis de todos los módulos JavaScript
+
+- Fecha: 2026-11-10
+- Decisión: validar sintaxis Node de los módulos JavaScript propios y del recurso LAME local, además de los scripts inline HTML.
+- Motivo: la validación anterior solo analizaba scripts inline y `zp-storage.js`; módulos cargados por la aplicación podían quedar fuera del gate.
+- Alternativas descartadas: instalar un bundler o un linter externo solo para parsing.
+- Impacto: el workflow ejecuta parsing con `node:vm`, sin instalar dependencias ni ejecutar código de navegador.
+
 ## Registro de cambios
 
 | Fecha | Cambio | Evidencia / verificación |
@@ -123,3 +133,4 @@ Registro de decisiones técnicas detectadas y adoptadas durante la auditoría. L
 | 2026-11-10 | Protección del job Pages | Se añade condición de rama main al job de despliegue para bloquear publicaciones manuales desde mejoras/auditoria |
 | 2026-11-10 | Corrección del test de integridad | Se corrige el escape de las expresiones regulares que causó SyntaxError en la primera ejecución ampliada; CI posterior PASS en run 42775826234 |
 | 2026-11-10 | Estado de incongruencias | INC-001, INC-003 e INC-004 resueltas en la rama; INC-005 queda abierta por discrepancia entre extracción web y fuente desplegada |
+| 2026-11-10 | Cobertura de sintaxis ampliada | Se añaden los módulos zp-core, zp-layout, zp-agent y LAME al parsing Node del workflow |

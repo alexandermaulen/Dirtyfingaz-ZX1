@@ -30,8 +30,11 @@ const engine = read("creator-engine.html");
 const gui = read("index.html");
 const survey = read("CM-ZX1-SURVEY.md");
 const storage = read("zp-storage.js");
-try { new vm.Script(storage, { filename: "zp-storage.js" }); console.log("JS syntax OK: zp-storage.js"); }
-catch (error) { errors.push("zp-storage.js: " + error.message); }
+for (const file of ["zp-storage.js", "zp-core.js", "zp-layout.js", "zp-agent.js", "vendor/lame.min.js"]) {
+  const source = file === "zp-storage.js" ? storage : read(file);
+  try { new vm.Script(source, { filename: file }); console.log("JS syntax OK:", file); }
+  catch (error) { errors.push(file + ": " + error.message); }
+}
 check(storage.includes("const DB_VERSION = 4;") && storage.includes("const HISTORY_STORE = \"projectHistory\";"),
   "History IndexedDB v4 store missing");
 for (const method of ["listHistory", "saveHistorySnapshot", "getHistorySnapshot", "replaceProjectSamples"]) {
