@@ -3,7 +3,7 @@
   "app": "DIRTYFINGAZ ZX1",
   "architecture": {
     "gui": {
-      "file": "creator.html",
+      "file": "index.html",
       "owner": "Interacción, controles, feedback visual, navegación, contexto seleccionado."
     },
     "engine": {
@@ -19,12 +19,12 @@
       "owner": "IndexedDB y aislamiento por proyecto."
     },
     "worker": {
-      "file": "radio-worker.mjs",
-      "owner": "API contextual del agente y servicios Radio Grid."
+      "status": "not present in the current repository; excluded from this implementation phase",
+      "owner": "No worker module is assumed or invoked."
     },
     "serviceWorker": {
-      "file": "sw.js",
-      "owner": "Caché offline y actualización de assets."
+      "status": "not present in the current repository; excluded from this implementation phase",
+      "owner": "No service worker or offline cache is assumed."
     },
     "rules": [
       "No duplicar estado autoritativo del motor en GUI.",
@@ -467,7 +467,7 @@
       "optionTap": "select-option-only"
     },
     "ownership": {
-      "gui": "creator.html",
+      "gui": "index.html",
       "registry": "zp-agent-registry.json",
       "agent": "zp-agent.js",
       "engine": "creator-engine.html"
@@ -749,5 +749,56 @@
       "bounds-clamping"
     ],
     "reason": "No activar geometría editable hasta registrar las cuatro decisiones del Cuestionario Maestro 20."
+  },
+  "patternSystem": {
+    "schemaVersion": 1,
+    "bankId": {
+      "values": [
+        "A",
+        "B",
+        "C",
+        "D",
+        "E"
+      ],
+      "owns": "Sample assignments per PAD"
+    },
+    "patternId": {
+      "format": "PATTERN_XX",
+      "owns": "Sequencer steps and Piano Roll MIDI notes per PAD"
+    },
+    "separation": "BANK_ID and PATTERN_ID are independent. Selecting a bank never changes the active pattern. Selecting a pattern never changes the active bank.",
+    "storage": {
+      "engine": "creator-engine.html",
+      "projectSnapshotVersion": 8,
+      "legacyMigration": "Legacy bank-keyed step/MIDI data A-E migrates to independent PATTERN_01-PATTERN_05 records."
+    },
+    "menu": [
+      "CREATE PATTERN",
+      "PATTERN SELECT",
+      "LOOP PATTERN SELECTED",
+      "DUPLICATE PATTERN",
+      "CLONE PATTERN",
+      "COPY MIDI PATTERN",
+      "PASTE MIDI PATTERN",
+      "DELETE PATTERN"
+    ],
+    "actions": {
+      "create": "Creates a new empty pattern and selects it.",
+      "duplicate": "Deep-copies steps and MIDI notes into an independent pattern.",
+      "clone": "Pending user-defined semantics; not executable.",
+      "copyMidi": "Copies MIDI notes from all nine PAD lanes in the active pattern.",
+      "pasteMidi": "Pastes the copied MIDI notes into the active pattern without copying step triggers."
+    },
+    "commands": [
+      "creator.bank.select",
+      "creator.pattern.select",
+      "creator.pattern.create",
+      "creator.pattern.duplicate",
+      "creator.pattern.delete",
+      "creator.pattern.loop.selected",
+      "creator.pattern.copy.midi",
+      "creator.pattern.paste.midi",
+      "creator.pattern.step.toggle"
+    ]
   }
 }
