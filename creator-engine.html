@@ -382,7 +382,7 @@ function updatePadLabels(){padButtons.forEach((b,i)=>{let n=i+1;b.querySelector(
 function setActivePad(n){activePad=n;notice="";if(systemMenu)systemMenu=false;updatePadLabels();updateScreen();refreshSteps();publishPianoState();setKnobValues();publishTrimState();muteButton?.classList.toggle("on",!!muted[n]);soloButton?.classList.toggle("on",!!soloed[n])}
 function notify(t){notice=t;screenName.textContent=t;setTimeout(()=>{if(notice===t){notice="";updateScreen()}},1800)}
 function updateScreen(){
- screenName.textContent=systemMenu?"SYSTEM MENU · "+menuPage:(notice||("PAD "+String(activePad).padStart(2,"0")+" · "+(sampleNames[sampleSlot(activePad)]||"SINTETIZADOR")));
+ screenName.textContent=systemMenu?"PROJECT MENU · "+menuPage:(notice||("PAD "+String(activePad).padStart(2,"0")+" · "+(sampleNames[sampleSlot(activePad)]||"SINTETIZADOR")));
  display.classList.toggle("system-menu",systemMenu);
  screenTabs.replaceChildren();["MUESTRA","RECORTE","EFECTOS"].forEach(tab=>{let b=button(tab);if(tab===activeTab)b.classList.add("active");b.onclick=()=>{activeTab=tab;updateScreen()};screenTabs.append(b)});
  screenActions.replaceChildren();screenActions.classList.remove("wave-editor");
@@ -699,5 +699,6 @@ window.addEventListener("message",async function(ev){
   reply("zp-engine-ack",{result:result});
  }catch(error){reply("zp-engine-error",{error:{code:error.code||"ENGINE_ERROR",message:String(error&&error.message||error),source:"creator.engine"}});}
 });
+window.addEventListener("pagehide",()=>{stopMetronomeTimer();stopTuner()});
 parent.postMessage({type:"zp-engine-ready",protocolVersion:1,source:"creator.engine"},location.origin);
 </script></body></html>
