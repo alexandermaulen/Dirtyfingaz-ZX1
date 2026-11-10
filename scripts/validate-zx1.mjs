@@ -120,6 +120,23 @@ check(gui.includes("creator.quantize.set") &&
 check(gui.includes("order=['OFF','1/16','1/8','1/4']") &&
   gui.includes("enabled:next!=='OFF'"),
   "Piano SNAP cycle must explicitly enable/disable engine quantization");
+check(gui.includes('id="bpmWheel" class="bpm-wheel" role="slider"') &&
+  gui.includes('aria-valuemin="40" aria-valuemax="240" aria-valuenow="96">BPM:96'),
+  "BPM wheel must initialize from the engine default and expose its accessible value/range");
+check(gui.includes("let bpmValue=96,lastY=null,remainder=0") &&
+  gui.includes("const syncBpmDisplay=value=>") &&
+  gui.includes("bpm.setAttribute('aria-valuenow',String(bpmValue))"),
+  "BPM UI must use a single bounded display synchronization function");
+check(gui.includes("window.addEventListener('zp-agent-runtime-context'") &&
+  gui.includes("if(Number.isFinite(Number(state.bpm)))syncBpmDisplay(state.bpm)"),
+  "BPM wheel must synchronize with project and restored engine radio state");
+check(gui.includes("window.addEventListener('zp-engine-result'") &&
+  gui.includes("creator.bpm.adjust','creator.bpm.set','creator.bpm.tap'") &&
+  gui.includes("if(Number.isFinite(Number(data?.bpm)))syncBpmDisplay(data.bpm)"),
+  "BPM optimistic display must reconcile with acknowledged engine command results");
+check(gui.includes("if(d.type==='zp-engine-bpm-state'&&d.protocolVersion===1&&d.source==='creator.engine'){syncBpmDisplay(d.bpm)}"),
+  "BPM wheel must reconcile with authoritative engine BPM state messages");
+
 check(gui.includes("1/16T"), "Triplet quantization UI missing");
 check(engine.includes('"1/16T":2/3'), "Triplet quantization engine mapping missing");
 check(engine.includes('runtime.register("creator.metronome.accent.set"'), "Metronome accent command missing");
