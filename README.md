@@ -37,3 +37,9 @@ The previous standalone sampler files `app.js` and `style.css` are removed becau
 
 ## Development flow
 Work directly on `main` as the single development line. Keep the repository references synchronized; do not create feature or test branches.
+
+## Master survey and implementation traceability
+- `CM-ZX1-SURVEY.md` is the versioned snapshot of the complete CM-ZX1 master survey, inventory, implementation checklist and feedback log.
+- The canonical editable decision record remains [Notion · CM-ZX1](https://app.notion.com/p/41348df94c488065b575ed6c0fafb024?pvs=204).
+- `zp-agent-registry.json` records the GUI/engine contract and the survey traceability policy. A checked survey item means the decision is approved, not that its code is complete.
+- Unresolved decisions must remain unresolved: CM-ZX1-04, the detailed RESONATOR function in CM-ZX1-45, and CM-ZX1-58 BTN_LIMITER.
