@@ -354,7 +354,13 @@ body{background:#041a06;touch-action:none}html,body{overscroll-behavior:none;ove
  .mid.piano-open .piano-encoder-dock{height:48px;bottom:2px}
 }
 </style>
-<link rel="stylesheet" href="./zp-layout.css"></head>
+<link rel="stylesheet" href="./zp-layout.css">
+<style id="zx1-pad-visibility-guard">
+/* PAD surface guard: keep the nine playable cells visible even if an earlier UI initializer aborts. */
+#pads.pads{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;visibility:visible!important;opacity:1!important;position:relative;z-index:4}
+#pads.pads>.p{display:block!important;visibility:visible!important;opacity:1!important;pointer-events:auto!important}
+</style>
+</head>
 <body>
 
 <div class="unit" id="unit" data-skin="verde">
@@ -665,6 +671,23 @@ const lens=['1/16','1/8','1/4'];$('#len').addEventListener('click',e=>{const t=e
 document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UNDO','CHOP','ENVELOPE','PUSH ENTER'].includes(t))s.classList.add('pl');else if(['PATTERN SEQUENCER','SAMPLING'].includes(t))s.classList.add('tr');else if(t)s.classList.add('tl')});
 /* shader: toca el título para alternar 8-bit / TV / apagado */
 
+</script>
+
+<script id="zp-pad-bootstrap">
+(()=>{
+ const host=document.getElementById("pads");
+ if(!host)return;
+ for(let i=1;i<=9;i++){
+  const id="PAD_"+String(i).padStart(2,"0");
+  if(document.getElementById(id))continue;
+  const pad=document.createElement("div");
+  pad.className="p";pad.id=id;pad.dataset.pad=String(i);pad.dataset.padId=String(i);
+  pad.setAttribute("data-pad-id",String(i));pad.setAttribute("aria-label","Pad "+i);
+  host.append(pad);
+ }
+ host.dataset.padCount=String(host.querySelectorAll(".p").length);
+ if(host.querySelectorAll(".p").length!==9)console.error("ZX1 PAD bootstrap: expected 9 pads");
+})();
 </script>
 
 <iframe id="zp-engine" src="./creator-engine.html" title="DIRTYFINGAZ ZX1 audio engine" aria-hidden="true"></iframe>
