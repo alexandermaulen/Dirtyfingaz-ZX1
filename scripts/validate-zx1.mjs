@@ -113,7 +113,7 @@ check(gui.includes("defaultLength=selected.length") &&
   gui.includes("if(n)upsertNote({...n,length:defaultLength})"),
   "Selected-note length must synchronize with NOTE LEN and persist through the engine upsert command");
 
-check(html.includes("creator.quantize.set") &&
+check(gui.includes("creator.quantize.set") &&
   html.includes("latestEngineState.quantizeEnabled?latestEngineState.quantizeDivision:'OFF'") &&
   html.includes("zp-agent-runtime-context"),
   "Piano SNAP must send quantization commands and resync from engine radio state");
