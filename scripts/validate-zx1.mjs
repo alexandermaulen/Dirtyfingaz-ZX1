@@ -58,20 +58,28 @@ const historySaveStart = storage.indexOf("function saveHistorySnapshot(");
 const historySaveEnd = storage.indexOf("function getHistorySnapshot(", historySaveStart);
 check(historySaveStart >= 0 && historySaveEnd > historySaveStart, "History snapshot sequence function not found");
 if (historySaveStart >= 0 && historySaveEnd > historySaveStart) {
-  const records = [];
-  const listHistoryMock = async () => records.map(item => ({ sequence: item.sequence, version: item.version }));
-  const transactMock = async (_store, _mode, action) => {
-    let saved;
-    action({ put(item) { saved = item; records.push(item); return { result: item.version }; } });
-    return saved;
+  const records = [],transactions=[];
+  const transactMock = async (storeName,mode,action) => {
+    const txn={storeName,mode};transactions.push(txn);
+    let historyRequest;
+    const store={
+      getAll(){historyRequest={result:records.slice(),onsuccess:null};txn.read=true;return historyRequest;},
+      put(item){txn.write=true;records.push(item);return {result:item.version};}
+    };
+    const output=action(store);
+    if(historyRequest?.onsuccess)historyRequest.onsuccess();
+    return output&&output.result!==undefined?output.result:output;
   };
-  const makeSave = new Function("listHistory", "transact", "HISTORY_STORE",
+  const makeSave = new Function("transact", "HISTORY_STORE",
     storage.slice(historySaveStart, historySaveEnd) + "; return saveHistorySnapshot;");
-  const save = makeSave(listHistoryMock, transactMock, "projectHistory");
+  const save = makeSave(transactMock, "projectHistory");
   const first = await save("project-a", { scope: "PROJECT", data: { marker: 1 } });
   const second = await save("project-a", { scope: "PROJECT", data: { marker: 2 } });
   check(first.version === "V001" && second.version === "V002", "History versions must advance V001, V002");
   check(records.every(item => item.projectId === "project-a"), "History snapshots must remain scoped to their project");
+  check(transactions.every(txn=>txn.storeName==="projectHistory"&&txn.mode==="readwrite"&&txn.read&&txn.write)&&
+    !storage.slice(historySaveStart,historySaveEnd).includes("listHistory(id)"),
+    "History sequence allocation and record write must share one readwrite transaction");
 }
 
 check(engine.includes("HISTORY_MODULE_FIELDS") && engine.includes("SAMPLE_EDITOR") && engine.includes("MIXER_FX"),
