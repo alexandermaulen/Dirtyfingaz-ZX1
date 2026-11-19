@@ -442,7 +442,7 @@ if(importHelperStart>=0&&importHelperEnd>importHelperStart){
   catch(error){invalidRangeRejected=error.code==="INVALID_INPUT"}
   check(invalidRangeRejected,"Import must reject invalid IN/OUT ranges");
 }
-check(engine.includes("let importedId=null;")&&
+check(engine.includes("let importedId=null,previousProjectId=currentProjectId,loadAttempted=false;")&&
   engine.includes("await assetStorage.deleteProject(importedId)"),
   "A failed project import must remove the partially written project and its banked samples");
 check(engine.includes("let importedId=null,previousProjectId=currentProjectId,loadAttempted=false;")&&
