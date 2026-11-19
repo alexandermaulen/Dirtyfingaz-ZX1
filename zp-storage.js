@@ -159,18 +159,19 @@
     if (!id || id === "current") return Promise.reject(new Error("No se puede eliminar el proyecto de recuperación"));
     return open().then(function (db) {
       return new Promise(function (resolve, reject) {
-        const tx = db.transaction([PROJECT_STORE, PROJECT_SAMPLE_STORE], "readwrite");
+        const tx = db.transaction([PROJECT_STORE, PROJECT_SAMPLE_STORE, HISTORY_STORE], "readwrite");
         tx.objectStore(PROJECT_STORE).delete(id);
-        const samples = tx.objectStore(PROJECT_SAMPLE_STORE);
-        const cursorRequest = samples.openCursor();
-        cursorRequest.onsuccess = function () {
-          const cursor = cursorRequest.result;
-          if (!cursor) return;
-          if (cursor.value.projectId === id) cursor.delete();
-          cursor.continue();
-        };
+        [PROJECT_SAMPLE_STORE, HISTORY_STORE].forEach(function (storeName) {
+          const cursorRequest = tx.objectStore(storeName).openCursor();
+          cursorRequest.onsuccess = function () {
+            const cursor = cursorRequest.result;
+            if (!cursor) return;
+            if (cursor.value.projectId === id) cursor.delete();
+            cursor.continue();
+          };
+        });
         tx.oncomplete = function () { resolve({ deleted: id }); };
-        tx.onerror = function () { reject(tx.error || new Error("No se pudo eliminar el proyecto y sus muestras")); };
+        tx.onerror = function () { reject(tx.error || new Error("No se pudo eliminar el proyecto y sus datos asociados")); };
         tx.onabort = function () { reject(tx.error || new Error("Eliminación de proyecto cancelada")); };
       });
     });
