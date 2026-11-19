@@ -409,29 +409,7 @@ body{background:#041a06;touch-action:none}html,body{overscroll-behavior:none;ove
  .p{height:52px}
 }
 </style>
-<style id="zp-piano-encoder-dock">
-/* Pattern Edit: LCD despejada y rail inferior compacto para Lx / SHIFT / Rx. */
-.piano-encoder-dock{display:none}
-.mid.piano-open .scr.pr{top:5px;left:7px;right:7px;bottom:59px;width:auto;height:auto;margin:0;transform:none;border-radius:14px}
-.mid.piano-open .scr.pr .v2{position:absolute;inset:0;display:flex;flex-direction:column;align-items:stretch;justify-content:space-between;gap:3px;padding:6px 5px}
-.mid.piano-open .scr.pr .piano-viewport{width:100%;margin:0;min-height:0;flex:1;align-self:center;overflow:auto;border-radius:5px}
-.mid.piano-open .piano-encoder-dock{position:absolute;left:7px;right:7px;top:auto;bottom:3px;height:51px;display:flex;align-items:center;justify-content:space-evenly;gap:8px;pointer-events:none;margin:0;padding:0;border:0;background:none;box-shadow:none}
-.mid.piano-open .piano-encoder-dock>.lx,.mid.piano-open .piano-encoder-dock>.rx{position:relative;inset:auto;z-index:6;display:block;pointer-events:auto;flex:0 0 44px;width:44px;height:44px;min-width:44px;min-height:44px;margin:0;touch-action:none}
-.mid.piano-open .piano-encoder-dock>.lx i,.mid.piano-open .piano-encoder-dock>.rx i{inset:6px}
-.mid.piano-open .piano-encoder-dock>.lx::before,.mid.piano-open .piano-encoder-dock>.rx::before{top:-8px;font-size:9px}
-.mid.piano-open .piano-encoder-dock>.rx i::after{display:block}
-.mid.piano-open .piano-encoder-dock>#zpShiftDock{display:block;position:relative;inset:auto;z-index:7;flex:0 0 54px;width:54px;min-width:54px;height:28px;min-height:28px;margin:0;padding:0 5px;font-size:10px;line-height:1;pointer-events:auto;touch-action:manipulation}
-@media(max-width:380px){
- .mid.piano-open .scr.pr{left:5px;right:5px;bottom:56px}
- .mid.piano-open .piano-encoder-dock{left:4px;right:4px;gap:5px;height:49px}
- .mid.piano-open .piano-encoder-dock>.lx,.mid.piano-open .piano-encoder-dock>.rx{flex-basis:40px;width:40px;height:40px;min-width:40px;min-height:40px}
- .mid.piano-open .piano-encoder-dock>#zpShiftDock{flex-basis:50px;width:50px;min-width:50px}
-}
-@media(max-height:700px){
- .mid.piano-open .scr.pr{bottom:55px}
- .mid.piano-open .piano-encoder-dock{height:48px;bottom:2px}
-}
-</style>
+
 <link rel="stylesheet" href="./zp-layout.css">
 <style id="zx1-pad-visibility-guard">
 /* PAD surface guard: keep the nine playable cells visible even if an earlier UI initializer aborts. */
@@ -654,10 +632,11 @@ const lx=mk('div','knob lx','<i></i>');lx.dataset.rotor='Lx';lx.setAttribute('ro
 const pe=mk('div','knob pe rx','<i></i>');pe.dataset.rotor='Rx';pe.setAttribute('role','button');pe.setAttribute('aria-label','Rx: OUT del sample y control maestro derecho');pe.tabIndex=0;bindKnob(pe,1);$('.mid').append(pe);
 
 const setLxContext=active=>{lx.classList.toggle('context-active',!!active);lx.setAttribute('aria-hidden',active?'false':'true');lx.tabIndex=active?0:-1;};setLxContext(true);$('.mid').classList.add('sample-context');
-row('repeat(5,1fr)',[['PATTERN SEQUENCER',2],['SAMPLE EDIT',3]],
- ['PATTERN<br>SELECT','PATTERN<br>EDIT','START/<br>END','PITCH<br>SPEED','MARK'],'big ra');
+row('repeat(6,1fr)',[['PATTERN SEQUENCER',3],['SAMPLE EDIT',3]],
+ ['PATTERN<br>SELECT','PATTERN<br>EDIT','RECORD<br>SETTING','START/<br>END','PITCH<br>SPEED','MARK'],'big ra');
 const trimPhaseButton=[...document.querySelectorAll("#rows .b")].find(b=>b.textContent.replace(/\s/g,"")==="START/END");
 if(trimPhaseButton){trimPhaseButton.classList.add("trim-phase-button");trimPhaseButton.innerHTML='<span>START/END</span><i class="trim-phase-led" aria-hidden="true"></i>';trimPhaseButton.setAttribute("aria-live","polite");}
+const recordSettingButton=[...document.querySelectorAll("#rows .b")].find(b=>b.textContent.replace(/\s/g,"")==="RECORDSETTING");recordSettingButton?.addEventListener("click",()=>openTransportMenu("record"));
 /* Lx y Rx son controles maestros: Lx navega el contexto de edición; Rx controla OUT en Sample y parámetros contextuales en otros modos. */
 (()=>{let angle=null,remainder=0,index=-1,active=null;const selector='.b,.piano-tools button,.trim-marker,[data-midi-target],.lcd-action,.lcd-menu button,#play,#stop,#bpmWheel';
  const targets=()=>[...document.querySelectorAll(selector)].filter(el=>!el.closest('#zp-agent-window')&&!el.disabled&&el.getAttribute('aria-hidden')!=='true'&&el.getClientRects().length);
@@ -692,10 +671,8 @@ if(patternEditControl&&patternEditControl.tagName!=="BUTTON"){
  nativePatternEdit.style.cursor="pointer";
  nativePatternEdit.style.width="100%";
  nativePatternEdit.style.margin="0";
- nativePatternEdit.style.padding="0";
- nativePatternEdit.style.border="0";
- nativePatternEdit.style.background="transparent";
  nativePatternEdit.style.touchAction="manipulation";
+ nativePatternEdit.setAttribute("aria-pressed","false");
  patternEditControl.replaceWith(nativePatternEdit);
 }
 /* estados fijos como en la imagen */
@@ -1011,7 +988,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  const tools=mk('div','piano-tools','<div class="piano-zoom"><button type="button" id="zpZoomOut" aria-label="Alejar">−</button><button type="button" id="zpZoomIn" aria-label="Acercar">+</button></div><button type="button" id="zpOctDown">OCT−</button><button type="button" id="zpDraw" class="selected">DRAW</button><button type="button" id="zpSnap" aria-label="SNAP GRID 1/16">SNAP 1/16</button><button type="button" id="zpLen" aria-label="NOTE LENGTH 1">NOTE LEN 1</button><label class="piano-vel">VEL<input id="zpVelocity" type="range" min="1" max="127" value="100"></label><button type="button" id="zpDelete">DEL</button><button type="button" id="zpOctUp">OCT+</button><button type="button" id="zpClear">CLR</button><button type="button" id="zpStepMode">STEP</button><button type="button" id="zpNudge" title="Rotor MIDI continuo">↕</button>');
  const viewport=mk('div','grid-viewport');grid.parentNode.insertBefore(viewport,grid);viewport.append(grid);
  const pianoViewport=mk('div','piano-viewport'),pianoGrid=mk('div','piano-grid');pianoViewport.id='zpPianoViewport';pianoViewport.append(pianoGrid);pianoViewport.hidden=true;
-  const midContainer=document.querySelector('.mid'),encoderDock=mk('div','piano-encoder-dock'),leftEncoder=midContainer.querySelector(':scope>.lx'),rightEncoder=midContainer.querySelector(':scope>.rx'),shiftButton=[...document.querySelectorAll('#rows .b')].find(b=>b.textContent.replace(/\s/g,'')==='SHIFT');if(shiftButton){shiftButton.id='zpShiftDock';shiftButton.setAttribute('aria-label','SHIFT · ajuste fino');}const shiftHome=shiftButton?{parent:shiftButton.parentNode,next:shiftButton.nextSibling}:null;midContainer.append(encoderDock);
+  const midContainer=document.querySelector('.mid'),shiftButton=[...document.querySelectorAll('#rows .b')].find(b=>b.textContent.replace(/\s/g,'')==='SHIFT');if(shiftButton)shiftButton.setAttribute('aria-label','SHIFT · ajuste fino');
  const ph=v2.querySelector('.ph');v2.insertBefore(line,grid.parentNode);v2.insertBefore(tools,viewport);v2.insertBefore(pianoViewport,viewport.nextSibling);
  let zoom=1;const applyZoom=()=>{grid.style.width=(zoom*100)+'%';grid.style.minWidth=(zoom*100)+'%';pianoGrid.style.minWidth=(360*zoom)+'px';$('#zpZoomOut').disabled=zoom<=1;$('#zpZoomIn').disabled=zoom>=2.5};
  $('#zpZoomOut').onclick=()=>{zoom=Math.max(1,+(zoom-.25).toFixed(2));applyZoom()};
@@ -1129,7 +1106,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  const stepAt=x=>{const cells=[...pianoGrid.querySelectorAll('.piano-cell[data-pitch="'+topMidi+'"]')],r=cells[0]?.getBoundingClientRect(),w=r?.width||18;return clamp(Math.floor((x-(r?.left||0))/w),0,15)};
  const paintPadMidi=()=>{pianoGrid.querySelectorAll('.pad-midi-origin').forEach(el=>el.classList.remove('pad-midi-origin'));activeNotes.forEach(note=>{pianoGrid.querySelector('.piano-cell[data-step="'+note.step+'"][data-pitch="'+note.pitch+'"]')?.classList.add('pad-midi-origin');pianoGrid.querySelector('.piano-note[data-id="'+note.id+'"]')?.classList.add('pad-midi-origin')})};
  
- const setPianoMode=on=>{setLxContext(!!(on&&scr.classList.contains('pr')));pianoMode=on;pianoViewport.hidden=!on;viewport.hidden=on;stepModeButton.textContent=on?'STEP':'PIANO';$('#zpClear').textContent=on?'CLR':'CLR';window.__zpPianoEncoderMode=!!(on&&scr.classList.contains('pr'));midContainer.classList.toggle('piano-open',window.__zpPianoEncoderMode);midContainer.classList.toggle('sample-context',!scr.classList.contains('pr'));setLxContext(!!window.__zpPianoEncoderMode);if(window.__zpPianoEncoderMode){encoderDock.append(leftEncoder,shiftButton,rightEncoder)}else{midContainer.append(leftEncoder,rightEncoder);if(shiftButton&&shiftHome?.parent){if(shiftHome.next&&shiftHome.next.parentNode===shiftHome.parent)shiftHome.parent.insertBefore(shiftButton,shiftHome.next);else shiftHome.parent.append(shiftButton)}}};
+ const setPianoMode=on=>{pianoMode=!!on;pianoViewport.hidden=!pianoMode;viewport.hidden=pianoMode;stepModeButton.textContent=pianoMode?'STEP':'PIANO';$('#zpClear').textContent='CLR';window.__zpPianoEncoderMode=!!(pianoMode&&scr.classList.contains('pr'));const patternOpen=scr.classList.contains('pr');midContainer.classList.toggle('piano-open',patternOpen);midContainer.classList.toggle('step-sequencer-mode',patternOpen&&!pianoMode);midContainer.classList.toggle('piano-roll-mode',patternOpen&&pianoMode);midContainer.classList.toggle('sample-context',!patternOpen);setLxContext(!!window.__zpPianoEncoderMode);};
  const buildPiano=()=>{pianoGrid.replaceChildren();topMidi=71+octaveShift*12;const corner=mk('div','piano-ruler-key','♪');corner.style.gridColumn='1';corner.style.gridRow='1';pianoGrid.append(corner);for(let step=0;step<16;step++){const tick=mk('div','piano-ruler',String(step+1));tick.style.gridColumn=String(step+2);tick.style.gridRow='1';pianoGrid.append(tick)}for(let row=0;row<24;row++){const midi=topMidi-row,label=mk('div','piano-key '+([1,3,6,8,10].includes(midi%12)?'black':'white'),noteName(midi));label.style.gridColumn='1';label.style.gridRow=String(row+2);pianoGrid.append(label);for(let step=0;step<16;step++){const cell=mk('div','piano-cell '+([1,3,6,8,10].includes(midi%12)?'black-key':'white-key'));cell.dataset.step=String(step);cell.dataset.pitch=String(midi);cell.style.gridColumn=String(step+2);cell.style.gridRow=String(row+2);pianoGrid.append(cell)}}const play=mk('div','piano-playhead');play.id='zpPianoPlayhead';play.style.gridColumn='2';play.style.gridRow='2 / 26';pianoGrid.append(play);renderNotes()};
  const syncPianoControls=()=>{const selected=activeNotes.find(n=>n.id===selectedNoteId),length=selected?.length??defaultLength,engineDivision=latestEngineState?.quantizeEnabled?latestEngineState.quantizeDivision:'OFF',stepByDivision={'1/16':1,'1/8':2,'1/4':4};if(engineDivision in stepByDivision)snapSize=stepByDivision[engineDivision];lengthButton.textContent='NOTE LEN '+length;lengthButton.setAttribute('aria-label','NOTE LENGTH '+length);snapButton.textContent='SNAP '+engineDivision;snapButton.setAttribute('aria-label','PIANO SNAP '+engineDivision)};
  const renderNotes=()=>{pianoGrid.querySelectorAll('.piano-note').forEach(n=>n.remove());activeNotes.forEach(note=>{const row=topMidi-note.pitch;if(row<0||row>=24)return;const el=mk('div','piano-note'+(note.id===selectedNoteId?' selected':''),'<span>'+noteName(note.pitch)+'</span><i></i>');el.dataset.id=note.id;el.style.gridColumn=(note.step+2)+' / span '+note.length;el.style.gridRow=String(row+2);el.style.transform=note.micro?'translateX('+(note.micro*100)+'%)':'none';el.style.opacity=String(.35+.65*note.velocity/127);pianoGrid.append(el)});const selected=activeNotes.find(n=>n.id===selectedNoteId);if(selected){velocityInput.value=String(selected.velocity);defaultLength=selected.length}syncPianoControls()};
@@ -1148,8 +1125,8 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  const animatePianoPlayhead=()=>{const state=window.__zpPlayheadState,head=$('#zpPianoPlayhead');if(state&&head&&!pianoViewport.hidden){const stepDuration=60000/Math.max(40,Math.min(240,state.bpm||120))/4,progress=Math.min(.999,Math.max(0,(performance.now()-state.at)/stepDuration));head.style.gridColumn=String(state.step+2);head.style.transform='translateX('+(progress*100)+'%)';}requestAnimationFrame(animatePianoPlayhead)};requestAnimationFrame(animatePianoPlayhead);
  pianoGrid.addEventListener('click',e=>{const cell=e.target.closest('.piano-cell');if(!cell||!drawMode)return;const step=clamp(Math.round(Number(cell.dataset.step)/snapSize)*snapSize,0,16-snapSize),pitch=Number(cell.dataset.pitch),existing=activeNotes.find(n=>n.step===step&&n.pitch===pitch);if(existing){setSelected(existing);return}upsertNote({id:'ui-midi-'+Date.now()+'-'+(++noteSequence),step,pitch,length:Math.min(defaultLength,16-step),velocity:Number(velocityInput.value)||100})});
  const swipePattern={active:false,last:-1,pad:1};
- gr.addEventListener('pointerdown',e=>{const cell=e.target.closest('.c');if(!cell)return;swipePattern.active=true;swipePattern.last=-1;swipePattern.pad=Number(cell.parentElement?.dataset.padId||1);gr.setPointerCapture?.(e.pointerId);const step=Number(cell.dataset.s);if(step%2===0){cell.classList.add('pattern-swipe-active');noteCommand('creator.pattern.step.toggle',{step});swipePattern.last=step}});
- gr.addEventListener('pointermove',e=>{if(!swipePattern.active)return;const cell=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('#gr .c');if(!cell)return;const step=Number(cell.dataset.s);if(step%2===0&&step!==swipePattern.last){cell.classList.add('pattern-swipe-active');noteCommand('creator.pattern.step.toggle',{step});swipePattern.last=step}});
+ gr.addEventListener('pointerdown',e=>{const cell=e.target.closest('.c');if(!cell)return;swipePattern.active=true;swipePattern.last=-1;swipePattern.pad=Number(cell.parentElement?.dataset.padId||1);gr.setPointerCapture?.(e.pointerId);const step=Number(cell.dataset.s);{cell.classList.add('pattern-swipe-active');noteCommand('creator.pattern.step.toggle',{step});swipePattern.last=step}});
+ gr.addEventListener('pointermove',e=>{if(!swipePattern.active)return;const cell=document.elementFromPoint(e.clientX,e.clientY)?.closest?.('#gr .c');if(!cell)return;const step=Number(cell.dataset.s);if(step!==swipePattern.last){cell.classList.add('pattern-swipe-active');noteCommand('creator.pattern.step.toggle',{step});swipePattern.last=step}});
  ['pointerup','pointercancel','lostpointercapture'].forEach(t=>gr.addEventListener(t,()=>{swipePattern.active=false;gr.querySelectorAll('.pattern-swipe-active').forEach(el=>el.classList.remove('pattern-swipe-active'))}));
  nudgeButton.addEventListener('click',()=>{freeMove=!freeMove;nudgeButton.classList.toggle('selected',freeMove);nudgeButton.textContent=freeMove?'✥':'↕';pianoGrid.classList.toggle('free-drag',freeMove)});
  let rotorAngle=null,rotorRemainder=0,rotorTarget="pitch";
@@ -1189,7 +1166,9 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
    scr.classList.toggle('pr',active);
    patternButton?.classList.toggle('lit',active);
    patternButton?.setAttribute('aria-expanded',String(active));
-   setPianoMode(active);
+   patternButton?.setAttribute('aria-pressed',String(active));
+   midContainer.classList.toggle('piano-open',active);
+   setPianoMode(false);
   };
   patternButton?.setAttribute('aria-expanded','false');
   patternButton?.setAttribute('aria-controls','zpPianoViewport');
@@ -1313,5 +1292,63 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  window.__zx1FitViewport=fitViewport;
 })();
 </script>
+
+<style id="zx1-zp-step-sequencer-match">
+/* ZP → ZX1: PATTERN EDIT ocupa la zona central completa y conserva el dock inferior. */
+.mid.piano-open .scr.pr{
+ top:5px!important;left:7px!important;right:7px!important;bottom:59px!important;
+ width:auto!important;height:auto!important;margin:0!important;transform:none!important;
+ border-radius:14px!important;overflow:hidden!important;z-index:8!important;
+}
+.mid.piano-open .scr.pr .v2{
+ position:absolute!important;inset:0!important;display:flex!important;
+ flex-direction:column!important;align-items:stretch!important;
+ justify-content:space-between!important;gap:3px!important;padding:6px 5px!important;
+}
+.mid.piano-open .scr.pr .piano-viewport{
+ width:100%!important;height:auto!important;min-height:0!important;
+ max-height:none!important;flex:1 1 auto!important;align-self:center!important;
+ overflow:auto!important;touch-action:pan-x pan-y;
+}
+.mid.piano-open .scr.pr .piano-grid{
+ min-width:360px;width:100%;touch-action:pan-x pan-y;
+}
+.mid.piano-open .piano-note{
+ touch-action:none!important;user-select:none;-webkit-user-select:none;
+ cursor:grab;will-change:grid-column,grid-row,transform;
+}
+.mid.piano-open .piano-note:active{cursor:grabbing}
+.mid.piano-open .piano-grid.free-drag .piano-note{cursor:crosshair}
+</style>
+
+<style id="zx1-zp-step-sequencer-physical-encoders">
+/* ZP Step Sequencer in ZX1: original centered panel; LX/RX stay in their existing housing. */
+.mid.piano-open .scr.pr{
+ top:50%!important;left:50%!important;right:auto!important;bottom:auto!important;
+ width:min(400px,calc(100% - 18px))!important;height:190px!important;
+ margin:-95px 0 0!important;transform:translateX(-50%)!important;
+ border-radius:18px!important;overflow:hidden!important;z-index:8!important;
+}
+.mid.piano-open .scr.pr .v2{
+ position:absolute!important;inset:0!important;display:flex!important;
+ flex-direction:column!important;align-items:stretch!important;
+ justify-content:space-between!important;gap:3px!important;padding:6px 10px!important;
+}
+.mid.step-sequencer-mode .transport-line,
+.mid.step-sequencer-mode .piano-tools{display:none!important}
+.mid.step-sequencer-mode .grid-viewport{
+ display:block!important;min-height:0!important;flex:1 1 auto!important;
+ width:100%!important;overflow:auto!important;touch-action:pan-x pan-y;
+}
+.mid.step-sequencer-mode .grid-viewport .gr{width:100%!important;min-width:100%!important}
+.mid.piano-roll-mode .grid-viewport{display:none!important}
+.mid.piano-roll-mode .piano-tools{display:flex!important}
+.mid.piano-roll-mode .piano-viewport{display:block!important;min-height:0!important;flex:1 1 auto!important}
+@media(max-width:430px){
+ .mid.piano-open .scr.pr{width:min(400px,96vw)!important;height:190px!important}
+ .mid.piano-open .scr.pr .v2{padding:5px 6px!important}
+}
+</style>
+
 </body>
 </html>
