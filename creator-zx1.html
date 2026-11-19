@@ -836,14 +836,32 @@ window.addEventListener("message",ev=>{
  const parameter=String(d.parameter||"VALUE").toUpperCase().replace(/[^A-Z0-9._ -]/g,"").slice(0,16);
  const value=String(d.value??"").replace(/[<>]/g,"").slice(0,18);
  const pad=Number(d.padId);
+ display.dataset.kind="value";
  display.textContent=(Number.isInteger(pad)&&pad>=1&&pad<=9?"PAD "+String(pad).padStart(2,"0")+" · ":"")+parameter+(value?" · "+value:"");
  display.hidden=false;
  if(zx1ValueFeedbackTimer)clearTimeout(zx1ValueFeedbackTimer);
  zx1ValueFeedbackTimer=setTimeout(()=>{display.hidden=true;zx1ValueFeedbackTimer=null},1300);
 });
-window.addEventListener("zp-engine-timeout",ev=>console.error("Creator engine timeout:",ev.detail.command));
- window.addEventListener("zp-engine-error",ev=>console.error("Creator engine error:",ev.detail.command,ev.detail.error||ev.detail.message));
- window.addEventListener("zp-engine-result",ev=>{if(ev.detail.result?.ok===false)console.error("Creator command failed:",ev.detail.command,ev.detail.result.error)});
+const zx1FailureText=detail=>{
+ const code=String(detail?.error?.code||detail?.result?.error?.code||"");
+ if(code==="INVALID_INPUT")return "ERROR · VALOR NO VÁLIDO";
+ if(["NOT_FOUND","SAMPLE_NOT_FOUND","NO_SAMPLE","BPM_NOT_FOUND"].includes(code))return "ERROR · ELEMENTO NO DISPONIBLE";
+ if(["MEDIA_RECORDER_UNAVAILABLE","MIC_UNAVAILABLE"].includes(code))return "ERROR · AUDIO NO DISPONIBLE";
+ if(["CLIPBOARD_EMPTY"].includes(code))return "ERROR · PORTAPAPELES VACÍO";
+ if(["NO_EMPTY_PADS"].includes(code))return "ERROR · NO HAY PADS LIBRES";
+ if(["UNSUPPORTED"].includes(code))return "ERROR · FUNCIÓN NO DISPONIBLE";
+ if(/Quota|Abort|Constraint|IndexedDB|STORAGE/i.test(code))return "ERROR · NO SE PUDO GUARDAR";
+ return "ERROR · ACCIÓN NO DISPONIBLE";
+};
+const showZX1Failure=message=>{
+ const display=document.getElementById("zx1-value-feedback");if(!display)return;
+ display.dataset.kind="error";display.textContent=message;display.hidden=false;
+ if(zx1ValueFeedbackTimer)clearTimeout(zx1ValueFeedbackTimer);
+ zx1ValueFeedbackTimer=setTimeout(()=>{display.hidden=true;delete display.dataset.kind;zx1ValueFeedbackTimer=null},2200);
+};
+window.addEventListener("zp-engine-timeout",ev=>{showZX1Failure("ERROR · MOTOR NO RESPONDE");console.error("Creator engine timeout:",ev.detail?.command)});
+window.addEventListener("zp-engine-error",ev=>{showZX1Failure(zx1FailureText(ev.detail));console.error("Creator engine error:",ev.detail?.command,ev.detail?.error||ev.detail?.message)});
+window.addEventListener("zp-engine-result",ev=>{if(ev.detail?.result?.ok===false){showZX1Failure(zx1FailureText(ev.detail));console.error("Creator command failed:",ev.detail.command,ev.detail.result.error)}});
  window.addEventListener("message",ev=>{const d=ev.data;if(ev.source===frame.contentWindow&&ev.origin===location.origin&&d?.type==="zp-engine-radio-state"&&d.protocolVersion===1&&d.source==="creator.engine"){const state=d.state||{};document.querySelectorAll("#rows .b[data-bank]").forEach(b=>b.classList.toggle("lit",b.dataset.bank===state.activeBank));if(state.patternMeta)latestPatternState={items:Object.values(state.patternMeta),activePatternId:state.activePatternId||latestPatternState.activePatternId};latestEngineState={...latestEngineState,...state};window.__zpSelectedStepIndex=Number.isInteger(state.selectedStepIndex)?state.selectedStepIndex:null;latestPadSetting.mute=!!state.muted?.[state.activePad];latestPadSetting.solo=!!state.soloed?.[state.activePad];if(!sampleEditPanel.hidden&&Number(state.activePad)!==Number(sampleEditState.pad)){if(sampleEditState.manualChopMode)zpBridgeSend("creator.sample.chop.manual.cancel",{});zpBridgeSend("creator.sample.edit.state",{})}if(!adsrPanel.hidden&&Number(state.activePad)!==adsrPad){adsrPad=Number(state.activePad)||1;adsrCurveOpen=false;adsrValues=state.envelopes?.[adsrPad]||{attack:.01,decay:.18,sustain:.72,release:.2};renderAdsrPanel();zpBridgeSend("creator.envelope.get",{pad:adsrPad})}if(!padConfig.hidden&&Number(state.activePad)!==configuredPad){configuredPad=Number(state.activePad)||1;$("#zp-pad-config-title").textContent="PAD "+String(configuredPad).padStart(2,"0")+" · SETTINGS";zpBridgeSend("creator.pad.setting.get",{pad:configuredPad})}latestRecordState={...latestRecordState,mode:state.recordMode||latestRecordState.mode,armed:!!state.recordArmed,recording:!!state.recording,countIn:!!state.countInEnabled,overdub:!!state.overdubEnabled};latestLoopState={...latestLoopState,looping:!!state.looping,loopStart:state.loopStart??latestLoopState.loopStart,loopEnd:state.loopEnd??latestLoopState.loopEnd,loopRecordEnabled:!!state.loopRecordEnabled,stepIndex:state.stepIndex??latestLoopState.stepIndex};latestBpmState={...latestBpmState,bpm:state.bpm||latestBpmState.bpm,bpmSyncEnabled:!!state.bpmSyncEnabled};const play=document.getElementById("play");if(play)play.textContent=state.playing?"STOP":(Number(state.stepIndex)>Number(state.loopStart)?"CONTINUE":"PLAY");by("REC")?.classList.toggle("on",!!(state.recording||state.recordArmed));by("LOOP")?.classList.toggle("on",!!state.looping);by("BPMSYNC")?.classList.toggle("on",!!state.bpmSyncEnabled);if(!patternMenu.hidden)renderPatternMenu();if(!utilityPanel.hidden)renderUtilityPanel();if(!transportMenu.hidden)renderTransportMenu();parent.postMessage({type:"zp-radio-publish-state",protocolVersion:1,source:"creator.ui",state},location.origin);return}if(ev.source===parent&&ev.origin===location.origin&&d?.type==="zp-radio-state"&&d.protocolVersion===1&&d.source==="radio.gateway"){zpBridgeSend("creator.radio.apply-state",{state:d.state})}});
 
  const norm=s=>(s||"").replace(/<[^>]*>/g,"").replace(/\s+/g,"").toUpperCase();
