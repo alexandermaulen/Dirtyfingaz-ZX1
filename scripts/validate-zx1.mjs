@@ -370,6 +370,8 @@ check(snapshotSource.includes("activeBank")&&snapshotSource.includes("activePatt
 check(gui.includes('#zp-engine{position:fixed!important;left:-10000px!important;top:0!important;width:1px!important;height:1px!important;border:0!important;opacity:0!important;pointer-events:none!important}')&&
   engine.includes('const frameElement=window.frameElement;if(frameElement){const bounds=frameElement.getBoundingClientRect();if(bounds.width<=1||bounds.height<=1)return}'),
   "AUD-010: the hidden 1x1 engine iframe must not run its canvas animation loop");
+check(engine.includes('navigator.wakeLock?.request("screen")?.catch(()=>{})'),
+  "AUD-011: Wake Lock permission rejection must be handled without an unhandled promise");
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
