@@ -433,6 +433,7 @@ body{background:#041a06;touch-action:none}html,body{overscroll-behavior:none;ove
     <div class="gr" id="gr"></div>
     <div class="pf">PATTERN EDIT</div>
    </div>
+   <div id="zx1-value-feedback" class="zx1-value-feedback" role="status" aria-live="polite" hidden></div>
   </div>
  </div>
  <div class="kn" id="kn"></div>
@@ -810,6 +811,19 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
  window.addEventListener("message",ev=>{const d=ev.data;if(ev.source!==frame.contentWindow||ev.origin!==location.origin||!d||d.type!=="zp-engine-pattern-state"||d.protocolVersion!==1||d.source!=="creator.engine")return;if(Array.isArray(d.patternList))latestPatternState={items:d.patternList,activePatternId:d.patternId||latestPatternState.activePatternId};if(!patternMenu.hidden)renderPatternMenu();document.querySelectorAll("#gr .c").forEach(cell=>{const gridElement=document.getElementById("gr");if(!gridElement)return;const index=[...gridElement.children].indexOf(cell),padId=Math.max(1,Math.min(9,Math.floor((index-17)/17)+1)),step=Number(cell.dataset.s)||0;cell.classList.toggle("on",!!d.patterns?.[padId]?.[step])})});
  window.addEventListener("message",ev=>{const d=ev.data;if(ev.source!==frame.contentWindow||ev.origin!==location.origin||d?.type!=="zp-engine-tuner-state"||d.protocolVersion!==1||d.source!=="creator.engine")return;window.__zpTunerText=d.active?(d.frequency?d.note+" · "+d.frequency.toFixed(1)+" HZ · "+(d.cents>0?"+":"")+d.cents+" CENTS":"LISTENING · NO PITCH"): "TUNER OFF";latestEngineState.tunerActive=!!d.active;const el=document.getElementById("utility-tuner-status");if(el)el.textContent=window.__zpTunerText;const toggle=document.querySelector(".utility-tuner-toggle");if(toggle)toggle.textContent=d.active?"STOP TUNER":"START TUNER"});
 window.addEventListener("message",ev=>{const d=ev.data;if(ev.source!==frame.contentWindow||ev.origin!==location.origin||d?.type!=="zp-engine-meter"||d.protocolVersion!==1||d.source!=="creator.engine")return;window.__zpMasterPeak=d.peak||0;const bar=document.getElementById("utility-master-meter-bar");if(bar)bar.style.width=Math.max(0,Math.min(1,d.peak||0))*100+"%";const label=document.getElementById("utility-master-peak");if(label)label.textContent="PEAK · "+Math.round((d.peak||0)*100)+"%"});
+let zx1ValueFeedbackTimer=null;
+window.addEventListener("message",ev=>{
+ const d=ev.data;
+ if(ev.source!==frame.contentWindow||ev.origin!==location.origin||d?.type!=="zp-engine-value-feedback"||d.protocolVersion!==1||d.source!=="creator.engine")return;
+ const display=document.getElementById("zx1-value-feedback");if(!display)return;
+ const parameter=String(d.parameter||"VALUE").toUpperCase().replace(/[^A-Z0-9._ -]/g,"").slice(0,16);
+ const value=String(d.value??"").replace(/[<>]/g,"").slice(0,18);
+ const pad=Number(d.padId);
+ display.textContent=(Number.isInteger(pad)&&pad>=1&&pad<=9?"PAD "+String(pad).padStart(2,"0")+" · ":"")+parameter+(value?" · "+value:"");
+ display.hidden=false;
+ if(zx1ValueFeedbackTimer)clearTimeout(zx1ValueFeedbackTimer);
+ zx1ValueFeedbackTimer=setTimeout(()=>{display.hidden=true;zx1ValueFeedbackTimer=null},1300);
+});
 window.addEventListener("zp-engine-timeout",ev=>console.error("Creator engine timeout:",ev.detail.command));
  window.addEventListener("zp-engine-error",ev=>console.error("Creator engine error:",ev.detail.command,ev.detail.error||ev.detail.message));
  window.addEventListener("zp-engine-result",ev=>{if(ev.detail.result?.ok===false)console.error("Creator command failed:",ev.detail.command,ev.detail.result.error)});
@@ -1502,5 +1516,17 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
 }
 </style>
 
+<style id="zx1-value-feedback-style">
+/* Transient value feedback stays inside the existing LCD box; it does not affect geometry. */
+.zx1-value-feedback{
+ position:absolute;z-index:20;left:50%;bottom:18px;transform:translateX(-50%);
+ max-width:calc(100% - 16px);padding:2px 6px;border:1px solid var(--lcd);border-radius:2px;
+ background:rgba(2,18,3,.94);color:var(--lcd);
+ font:14px/14px VT323,'Courier New',monospace;letter-spacing:.25px;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;
+ box-shadow:0 0 7px var(--glow);text-shadow:0 0 3px var(--lcd);
+}
+.zx1-value-feedback[hidden]{display:none!important}
+</style>
 </body>
 </html>
