@@ -357,9 +357,10 @@ check(storage.includes('const PROJECT_SAMPLE_STORE = "projectSamplesV3";')&&
   storage.includes('store.delete([String(projectId || "current"), String(bank || "A"), Number(pad)])'),
   "Project samples must remain isolated by project, bank and PAD in IndexedDB");
 check(engine.includes("assetStorage.getProjectSamples(currentProjectId)")&&
-  engine.includes("sampleSlot(item.pad,bank)")&&
+  engine.includes("validateStoredSampleRecord(item)")&&
+  engine.includes("sampleSlot(valid.pad,valid.bank)")&&
   engine.includes("assetStorage.saveProjectSample(currentProjectId"),
-  "Project load/save must persist samples separately using bank-aware sample identities");
+  "Project load/save must validate and persist samples separately using bank-aware sample identities");
 const snapshotStart=engine.indexOf("function projectSnapshot()");
 const snapshotEnd=engine.indexOf("\nconst HISTORY_MODULE_FIELDS",snapshotStart);
 const snapshotSource=snapshotStart>=0&&snapshotEnd>snapshotStart?engine.slice(snapshotStart,snapshotEnd):"";
