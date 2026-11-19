@@ -1292,3 +1292,33 @@ El usuario confirmó expresamente los seis puntos del protocolo CM-ZX1:
 - Mantener un único elemento activo y no avanzar mientras el anterior tenga validaciones requeridas pendientes.
 
 **Aplicación:** esta confirmación se vuelve parte del protocolo operativo para el trabajo futuro. No autoriza por sí sola a omitir la inspección previa ni los criterios de aceptación de cada cambio.
+
+
+## DIRECCIÓN DE PRODUCTO APROBADA · INTEGRACIÓN ZP + ZX1 · 2026-11-19
+
+<b>Aprobación expresa del usuario:</b> adoptar la experiencia visual y la organización de DIRTYFINGAZ ZP como referencia principal de ZX1, conservando y mejorando las capacidades musicales propias de ZX1. Los proyectos/repositorios ZP y ZX1 permanecen separados; ZP es referencia, ZX1 es el producto que se modifica.
+
+### Auditoría comparativa inicial · solo lectura
+
+- Repositorio de referencia: [Dirtyfingaz-ZP](https://github.com/alexandermaulen/Dirtyfingaz-ZP), rama <code>main</code> consultada en SHA <code>58599b8671eab8cbf18e5d15430a9bf7ec5b00b1</code>.
+- Repositorio objetivo: [Dirtyfingaz-ZX1](https://github.com/alexandermaulen/Dirtyfingaz-ZX1), <code>main</code> y <code>auxiliary</code> consultadas en SHA <code>7b225cb8b7b50574233d7af7488bfb9ec69a4bfd</code>.
+- ZP <code>index.html</code> contiene una shell/hub con navegación Inicio, Creator, Mezclador de 3 canales, Música, Estaciones y Comunidad. El módulo Creator se presenta dentro de un iframe que carga <code>creator.html</code>.
+- ZP separa recursos de Creator y servicios auxiliares en archivos como <code>creator.html</code>, <code>creator-engine.html</code>, <code>zp-core.js</code>, <code>zp-storage.js</code>, <code>zp-agent.js</code>, <code>zp-layout.js</code> y hojas de estilo.
+- ZX1 <code>index.html</code> contiene directamente la interfaz hardware del Creator y un iframe oculto <code>zp-engine</code> que carga <code>creator-engine.html</code>. Su <code>README.md</code> documenta funciones propias: nueve PADs, edición de patrones/Piano Roll, bancos A-E, transporte/REC, MIDI, BPM, UTILITY, ADSR, Sample Edit, almacenamiento local e importación/exportación.
+- Los archivos homónimos no deben asumirse intercambiables: hay diferencias de implementación, integración y almacenamiento. No se copiará encima el <code>index.html</code> de ZP ni se sustituirá el motor ZX1 por el motor de ZP.
+
+### Arquitectura objetivo propuesta
+
+1. Usar la shell de ZP como referencia para la navegación y los módulos generales.
+2. Integrar el Creator ZX1 como módulo principal dentro de esa experiencia, conservando su interfaz hardware aprobada y su motor aislado.
+3. Incorporar progresivamente los módulos de Inicio, Mezclador, Música, Radio/Estaciones y Comunidad, auditando cada uno antes de conectarlo.
+4. Mantener almacenamiento y claves locales ZX1 aislados; no mezclar datos, samples ni proyectos entre repositorios.
+5. Preservar los requisitos CM-ZX1 ya aprobados y validar continuidad en Safari/iPhone.
+
+### Límites y estado
+
+- Esta anotación es una decisión de producto y un diagnóstico estático inicial; no es implementación ni QA.
+- No se modificó ningún archivo funcional de la aplicación en esta fase.
+- No se ha probado todavía en dispositivo la integración visual o funcional.
+- Primer entregable técnico pendiente: mapa de integración archivo por archivo y contratos de navegación/estado entre shell y Creator, identificando conflictos antes de editar.
+- Mantener el protocolo vigente: cambios pequeños, uno por vez, pruebas y registro; <code>main</code> y <code>auxiliary</code> en el mismo SHA; <code>test</code> intacta.
