@@ -33,3 +33,30 @@
 
 ## Estado
 Auditoría estática inicial completada. Sin modificaciones en archivos de aplicación. Rama de trabajo: `feature/zp-step-sequencer-zx1`.
+
+
+## Etapa visual — implementación inicial (2026-11-19)
+- Añadida una capa CSS aislada `zx1-step-sequencer-pixel-lcd` al final de `creator-zx1.html`.
+- Recupera lenguaje LCD pixelado: tipografía VT323, scanlines horizontales/verticales, celdas cuadradas, pasos activos iluminados, playhead/selección con borde luminoso y feedback de arrastre.
+- El cambio se limita al modo `.step-sequencer-mode`; Piano Roll y SAMPLE EDIT no reciben estos estilos.
+- Se mantiene el viewport Pattern Edit establecido en 400×190 px (con el mismo ajuste de ancho responsive existente); no se redimensiona el LCD circular base.
+- No se añaden reglas que reubiquen LX/RX. Los encoders físicos permanecen en sus anclajes actuales.
+- No se modificó `creator-engine.html`; su blob SHA coincide con el de la rama de respaldo: `d14cd62fc2745b00e807d605940334e2dafd70f3`.
+
+## Verificación estática de la etapa visual
+- CSS nuevo presente en la rama de trabajo.
+- Estado JS `step-sequencer-mode` y toggle PATTERN EDIT presentes.
+- Handlers pointerdown/pointermove del step grid preservados.
+- Reglas de tamaño 400×190 presentes.
+- Sin selectores nuevos de posición para LX/RX.
+- Motor ZX1 idéntico al snapshot de respaldo.
+
+## Pendiente de prueba de aceptación en navegador/dispositivo
+No se ha ejecutado aún el sitio en un navegador real ni se ha verificado audio. Antes de avanzar a MIDI se debe probar:
+1. PATTERN EDIT abre y cierra alternadamente.
+2. El panel rectangular aparece con dimensiones y ubicación acordadas.
+3. LX/RX permanecen físicamente donde estaban.
+4. El estilo pixelado se aprecia en iPhone y escritorio.
+5. Tocar y arrastrar celdas activa pasos sin duplicar toggles ni saltar de PAD.
+6. Reproducción mueve el indicador de paso y no altera samples ni patrones ajenos.
+7. SAMPLE EDIT y Piano Roll siguen abriendo correctamente.
