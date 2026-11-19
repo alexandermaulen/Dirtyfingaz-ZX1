@@ -1188,6 +1188,8 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
    scr.classList.toggle('pr',active);
    patternButton?.classList.toggle('lit',active);
    patternButton?.setAttribute('aria-expanded',String(active));
+   patternButton?.setAttribute('aria-pressed',String(active));
+   midContainer.classList.toggle('piano-open',active);
    setPianoMode(active);
   };
   patternButton?.setAttribute('aria-expanded','false');
