@@ -1162,7 +1162,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  pianoGrid.addEventListener('pointermove',e=>{if(!noteDrag)return;const rawDx=(e.clientX-noteDrag.startX)/noteDrag.cellWidth,unsnapped=!!(e.shiftKey||freeMove),dx=unsnapped?rawDx:Math.round(Math.round(rawDx)/snapSize)*snapSize,dy=Math.round((e.clientY-noteDrag.startY)/noteDrag.rowHeight),n=activeNotes.find(x=>x.id===noteDrag.id);if(!n)return;noteDrag.moved=noteDrag.moved||Math.abs(dx)+Math.abs(dy)>0;if(noteDrag.resize){n.length=clamp(noteDrag.startLength+Math.round(dx),1,16-noteDrag.startStep)}else{const position=clamp(noteDrag.startStep+(noteDrag.startMicro||0)+dx,0,15.999),whole=Math.floor(position);n.step=clamp(whole,0,15);n.micro=unsnapped?clamp(position-whole,0,.999):0;n.pitch=clamp(noteDrag.startPitch-dy,36,96)}noteDrag.el.style.gridColumn=(n.step+2)+' / span '+n.length;noteDrag.el.style.transform=n.micro?'translateX('+(n.micro*100)+'%)':'none';const row=topMidi-n.pitch;if(row>=0&&row<24)noteDrag.el.style.gridRow=String(row+2)});
  const finishDrag=()=>{if(!noteDrag)return;const n=activeNotes.find(x=>x.id===noteDrag.id);if(n&&noteDrag.moved)upsertNote({...n});else renderNotes();noteDrag=null};
  pianoGrid.addEventListener('pointerup',finishDrag);pianoGrid.addEventListener('pointercancel',finishDrag);
- const patternButton=by('PATTERNEDIT');
+ const patternButton=document.querySelector('#rows .pattern-edit-trigger')||[...document.querySelectorAll('#rows .b')].find(el=>el.textContent.replace(/\s/g,'').toUpperCase()==='PATTERNEDIT');
   const setPatternEditOpen=open=>{
    const active=!!open;
    scr.classList.toggle('pr',active);
