@@ -37,10 +37,10 @@ The previous standalone sampler files `app.js` and `style.css` are removed becau
 ## Validation
 - Static integration and JavaScript syntax checks are performed before commit.
 - Physical Safari/iPhone validation remains a separate device test.
-- GitHub Pages deployment must be checked after the commit.
+- Production deployment is restricted to the Cloudflare Worker `dirtyfingaz-zx1`; GitHub Pages remains manual-only.
 
 ## Development flow
-Canonical flow for CM-ZX1: `main` is the only development line; do not create new branches. Keep `auxiliary` as an exact mirror of the verified `main` SHA after each accepted change. Leave `test` untouched. The pre-existing `mejoras/auditoria` branch is historical (its PR #3 was merged); do not use or delete it without a separate decision. Notion is the canonical decision/status record; `CM-ZX1-SURVEY.md` is the versioned implementation snapshot. Every change must update both, pass validation, and record the exact commit, CI/Pages result, and device-QA status.
+Canonical flow for CM-ZX1: `main` is the only development line; do not create new branches. Keep `auxiliary` as an exact mirror of the verified `main` SHA after each accepted change. Leave `test` untouched. The pre-existing `mejoras/auditoria` branch is historical (its PR #3 was merged); do not use or delete it without a separate decision. Notion is the canonical decision/status record; `CM-ZX1-SURVEY.md` is the versioned implementation snapshot. Every change must update both, pass validation, and record the exact commit, CI result, Worker deployment result, and device-QA status.
 
 ## Master survey and implementation traceability
 - `CM-ZX1-SURVEY.md` is the versioned snapshot of the complete CM-ZX1 master survey, inventory, implementation checklist and feedback log.
@@ -57,7 +57,7 @@ Canonical flow for CM-ZX1: `main` is the only development line; do not create ne
 
 ## Validation
 - `scripts/validate-zx1.mjs` parses inline JavaScript, validates the JSON registry, checks the complete survey snapshot and verifies registered Utility commands.
-- GitHub Pages workflow runs this validator before uploading the site artifact.
+- The manual-only GitHub Pages workflow runs this validator before uploading the site artifact.
 
 
 ## Control identity · CM-ZX1-04
