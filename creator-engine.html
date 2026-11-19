@@ -537,12 +537,15 @@ function validateStoredSampleRecord(item){
  return {bank,pad,range:{start,end},name:String(typeof item.name==="string"?item.name:"SAMPLE").slice(0,80)};
 }
 async function loadSession(projectId="current"){
- const previousProjectId=currentProjectId,previousProjectName=currentProjectName;
- try{currentProjectId=String(projectId||"current");const projects=await assetStorage.listProjects();const meta=projects.find(p=>p.id===currentProjectId);currentProjectName=meta?.name||(currentProjectId==="current"?"Proyecto recuperado":"Proyecto sin título");let d=await assetStorage.loadProject(currentProjectId);if(!d&&currentProjectId==="current")d=JSON.parse(localStorage.getItem("dirtyfingaz-zx1-session")||"null");
- let savedSamples;
- try{savedSamples=await assetStorage.getProjectSamples(currentProjectId)}
- catch(error){currentProjectId=previousProjectId;currentProjectName=previousProjectName;throw error}
- resetPatterns();
+ try{
+  const targetProjectId=String(projectId||"current");
+  const projects=await assetStorage.listProjects(),meta=projects.find(p=>p.id===targetProjectId);
+  const targetProjectName=meta?.name||(targetProjectId==="current"?"Proyecto recuperado":"Proyecto sin título");
+  let d=await assetStorage.loadProject(targetProjectId);
+  if(!d&&targetProjectId==="current")d=JSON.parse(localStorage.getItem("dirtyfingaz-zx1-session")||"null");
+  const savedSamples=await assetStorage.getProjectSamples(targetProjectId);
+  currentProjectId=targetProjectId;currentProjectName=targetProjectName;
+  resetPatterns();
  Object.keys(samples).forEach(k=>delete samples[k]);Object.keys(sampleNames).forEach(k=>delete sampleNames[k]);Object.keys(ranges).forEach(k=>delete ranges[k]);
  [padLevels,padPitch,padFilter,padPan,padTime,padChoke,padRouting,padFx,envelopes,muted,soloed].forEach(obj=>Object.keys(obj).forEach(k=>delete obj[k]));
  envelopeMode="ADSR";sampleEditMode="NONDESTRUCTIVE";manualChopMode=false;manualChopMarkers=[];bpm=96;masterLevel=.58;activePad=1;activeBank="A";resetPatterns();songMode=false;looping=true;loopStart=0;loopEnd=15;loopRecordEnabled=false;recordMode="MIDI";recordArmed=false;recording=false;countInEnabled=false;overdubEnabled=true;bpmSyncEnabled=false;metronomeEnabled=false;stopMetronomeTimer();keyRoot="C";scaleName="MAJOR";quantizeEnabled=false;quantizeDivision="1/16";fxAmount=.25;Object.keys(fxState).forEach(k=>fxState[k]=false);
