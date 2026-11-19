@@ -578,22 +578,17 @@ if(deleteStart>=0&&deleteEnd>deleteStart){
 
 /* AUD-020 · Do not switch active project until storage preflight succeeds */
 const sessionStart=engine.indexOf('async function loadSession(projectId="current"){');
-const sessionReset=engine.indexOf("resetPatterns();",sessionStart);
-check(sessionStart>=0&&sessionReset>sessionStart,
-  "Project session loader must expose a preflight boundary before mutating session state");
-if(sessionStart>=0&&sessionReset>sessionStart){
-  const preflight=engine.slice(sessionStart,sessionReset);
-  const reads=["await assetStorage.listProjects()","await assetStorage.loadProject(targetProjectId)","await assetStorage.getProjectSamples(targetProjectId)"];
-  check(reads.every(token=>preflight.includes(token)),
-    "Project metadata, project data and samples must all load before the active session changes");
-  const samplesRead=preflight.indexOf("await assetStorage.getProjectSamples(targetProjectId)");
-  const activeSwitch=preflight.indexOf("currentProjectId=targetProjectId");
-  const nameSwitch=preflight.indexOf("currentProjectName=targetProjectName");
-  check(samplesRead>=0&&activeSwitch>samplesRead&&nameSwitch>samplesRead,
-    "A failed storage preflight must not switch the active project identity");
-  check(preflight.indexOf("currentProjectId=targetProjectId")<preflight.indexOf("resetPatterns()"),
-    "Project state must not be cleared until all storage reads succeed");
-}
+const projectListAt=engine.indexOf("await assetStorage.listProjects()",sessionStart);
+const projectReadAt=engine.indexOf("await assetStorage.loadProject(targetProjectId)",sessionStart);
+const sampleReadAt=engine.indexOf("await assetStorage.getProjectSamples(targetProjectId)",sessionStart);
+const activeSwitchAt=engine.indexOf("currentProjectId=targetProjectId",sessionStart);
+const nameSwitchAt=engine.indexOf("currentProjectName=targetProjectName",sessionStart);
+const stateResetAt=engine.indexOf("resetPatterns();",sessionStart);
+check(sessionStart>=0&&projectListAt>sessionStart&&projectReadAt>projectListAt&&
+  sampleReadAt>projectReadAt&&activeSwitchAt>sampleReadAt&&nameSwitchAt>sampleReadAt&&
+  stateResetAt>activeSwitchAt&&stateResetAt>nameSwitchAt,
+  "Project metadata, data and samples must all load before switching identity or clearing active state");
+
 
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
