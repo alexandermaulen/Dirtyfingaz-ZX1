@@ -590,6 +590,15 @@ check(sessionStart>=0&&projectListAt>sessionStart&&projectReadAt>projectListAt&&
   "Project metadata, data and samples must all load before switching identity or clearing active state");
 
 
+
+/* AUD-021 · Production deployment target isolation */
+const pagesWorkflow=read(".github/workflows/pages.yml");
+check(pagesWorkflow.includes("workflow_dispatch:")&&!/^\s{2}push:\s*$/m.test(pagesWorkflow),
+  "GitHub Pages must remain manual-only; production auto-deploy is reserved for the configured Cloudflare Worker");
+const wranglerConfig=JSON.parse(read("wrangler.jsonc"));
+check(wranglerConfig.name==="dirtyfingaz-zx1",
+  "Cloudflare production worker name must remain dirtyfingaz-zx1");
+
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
