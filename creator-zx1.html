@@ -1381,13 +1381,104 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  display:block!important;min-height:0!important;flex:1 1 auto!important;
  width:100%!important;overflow:auto!important;touch-action:pan-x pan-y;
 }
-.mid.step-sequencer-mode .grid-viewport .gr{width:100%!important;min-width:100%!important}
+/* Grid zoom is driven by applyZoom() inline styles. */
 .mid.piano-roll-mode .grid-viewport{display:none!important}
 .mid.piano-roll-mode .piano-tools{display:flex!important}
 .mid.piano-roll-mode .piano-viewport{display:block!important;min-height:0!important;flex:1 1 auto!important}
 @media(max-width:430px){
  .mid.piano-open .scr.pr{width:min(400px,96vw)!important;height:190px!important}
  .mid.piano-open .scr.pr .v2{padding:5px 6px!important}
+}
+</style>
+
+
+<style id="zx1-step-sequencer-pixel-lcd">
+/* Step Sequencer ZP-inspired pixel LCD skin.
+   Keep the established 400x190 Pattern Edit viewport and the physical LX/RX positions. */
+.mid.step-sequencer-mode .scr.pr{
+  /* Preserve the established LCD geometry; base and mobile rules own its dimensions. */
+  image-rendering:pixelated;
+}
+.mid.step-sequencer-mode .scr.pr .v2{
+  position:absolute!important;inset:0!important;
+  display:flex!important;flex-direction:column!important;
+  align-items:stretch!important;justify-content:space-between!important;
+  gap:3px!important;padding:6px 9px!important;
+  font-family:VT323,'Courier New',monospace!important;
+  text-shadow:0 0 3px var(--lcd)!important;
+}
+.mid.step-sequencer-mode .scr.pr .ph{
+  flex:0 0 19px;min-height:19px;
+  display:flex;align-items:center;justify-content:space-between;
+  gap:4px;padding:0 2px;
+  border-bottom:1px solid color-mix(in srgb,var(--lcd) 65%,transparent);
+  font:19px/19px VT323,'Courier New',monospace!important;
+  letter-spacing:.35px;
+}
+.mid.step-sequencer-mode .grid-viewport{
+  display:block!important;flex:1 1 auto!important;min-height:0!important;
+  width:100%!important;overflow-x:auto!important;overflow-y:hidden!important;
+  overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch;
+  scrollbar-width:thin;scrollbar-color:var(--lcd) #031503;
+  touch-action:pan-x pan-y;
+  padding:2px 1px 3px;
+  background:linear-gradient(180deg,#020d02aa,#071d0788);
+  border:1px solid color-mix(in srgb,var(--lcd) 42%,transparent);
+  box-shadow:inset 0 0 8px #000;
+}
+.mid.step-sequencer-mode .grid-viewport .gr{
+  width:100%!important;min-width:100%!important;
+  gap:2px!important;
+  font:13px/13px VT323,'Courier New',monospace!important;
+  image-rendering:pixelated;
+}
+.mid.step-sequencer-mode .grid-viewport .gr em{
+  display:flex;align-items:center;justify-content:center;
+  min-width:0;color:#cfff69;
+  font:13px/13px VT323,'Courier New',monospace!important;
+  text-shadow:0 0 3px #9cff42;
+}
+.mid.step-sequencer-mode .grid-viewport .gr .c{
+  height:13px!important;min-height:13px;
+  border:1px solid color-mix(in srgb,var(--lcd) 58%,#071707)!important;
+  border-radius:0!important;
+  background:#061706!important;
+  box-shadow:inset 1px 1px 0 #b6ff3a18,inset -1px -1px 0 #0009;
+  image-rendering:pixelated;
+  transition:background-color .07s steps(1,end),box-shadow .07s steps(1,end);
+}
+.mid.step-sequencer-mode .grid-viewport .gr .c.on{
+  background:var(--lcd)!important;
+  border-color:#efffb0!important;
+  border-radius:0!important;
+  box-shadow:inset 1px 1px 0 #fff9,0 0 4px var(--lcd),0 0 8px #9aff4a88!important;
+}
+.mid.step-sequencer-mode .grid-viewport .gr .c.hd2{
+  outline:1px solid #f4ff91!important;outline-offset:-1px;
+  box-shadow:inset 0 0 0 1px #f4ff91,0 0 5px #dfff69!important;
+}
+.mid.step-sequencer-mode .grid-viewport .gr .c.pattern-swipe-active{
+  background:#f2ff9a!important;border-color:#fff!important;
+  box-shadow:0 0 7px #eaff73,inset 0 0 0 1px #fff!important;
+}
+.mid.step-sequencer-mode .scr.pr .pf{
+  flex:0 0 14px;min-height:14px;
+  color:var(--lcd);font:14px/14px VT323,'Courier New',monospace!important;
+  letter-spacing:1px;text-align:center;
+  text-shadow:0 0 4px var(--lcd);
+}
+.mid.step-sequencer-mode .scr.pr::after{
+  background:
+    repeating-linear-gradient(0deg,#0005 0 1px,transparent 1px 3px),
+    repeating-linear-gradient(90deg,#0004 0 1px,transparent 0 4px);
+  opacity:.62;pointer-events:none;
+}
+.mid.step-sequencer-mode .transport-line,
+.mid.step-sequencer-mode .piano-tools{display:none!important}
+.mid.piano-roll-mode .grid-viewport{display:none!important}
+.mid.piano-roll-mode .piano-tools{display:flex!important}
+@media(max-width:430px){
+  .mid.step-sequencer-mode .scr.pr .v2{padding:5px 6px!important}
 }
 </style>
 
