@@ -6,7 +6,7 @@ const read = (path) => fs.readFileSync(path, "utf8");
 const errors = [];
 const check = (condition, message) => { if (!condition) errors.push(message); };
 
-for (const file of ["index.html", "creator-engine.html"]) {
+for (const file of ["index.html", "creator-zx1.html", "creator-engine.html"]) {
   const html = read(file);
   const tags = [...html.matchAll(/<script\b([^>]*)>([\s\S]*?)<\/script>/gi)];
   let parsed = 0;
@@ -27,7 +27,14 @@ for (const file of ["index.html", "creator-engine.html"]) {
 
 const registry = JSON.parse(read("zp-agent-registry.json"));
 const engine = read("creator-engine.html");
-const gui = read("index.html");
+const shell = read("index.html");
+const gui = read("creator-zx1.html");
+for (const view of ["home", "creator", "mixer", "music", "radio", "community"]) {
+  check(shell.includes('data-view="' + view + '"'), "Host navigation view missing: " + view);
+}
+check(shell.includes('src="./creator-zx1.html"'), "Host shell must load the preserved ZX1 Creator module");
+check(shell.includes('id="creator-frame"') && shell.includes("zp-host-home-request"), "Host shell/Creator return bridge missing");
+check(fs.existsSync("creator-zx1.html"), "Preserved ZX1 Creator module missing");
 const survey = read("CM-ZX1-SURVEY.md");
 const storage = read("zp-storage.js");
 for (const file of ["zp-storage.js", "zp-core.js", "zp-layout.js", "zp-agent.js", "vendor/lame.min.js"]) {
@@ -230,7 +237,7 @@ check(gui.includes('document.querySelectorAll("#rows .b[data-bank]").forEach(b=>
 
 
 /* Repository integrity · local assets and GUI-to-engine command parity */
-for (const file of ["index.html", "creator-engine.html"]) {
+for (const file of ["index.html", "creator-zx1.html", "creator-engine.html"]) {
   const html = read(file);
   for (const [, reference] of html.matchAll(/<(?:script|link)\b[^>]*?\b(?:src|href)=["']([^"']+)["'][^>]*>/gi)) {
     if (/^(?:https?:|data:|#|\/\/)/i.test(reference)) continue;
