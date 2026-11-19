@@ -654,10 +654,11 @@ const lx=mk('div','knob lx','<i></i>');lx.dataset.rotor='Lx';lx.setAttribute('ro
 const pe=mk('div','knob pe rx','<i></i>');pe.dataset.rotor='Rx';pe.setAttribute('role','button');pe.setAttribute('aria-label','Rx: OUT del sample y control maestro derecho');pe.tabIndex=0;bindKnob(pe,1);$('.mid').append(pe);
 
 const setLxContext=active=>{lx.classList.toggle('context-active',!!active);lx.setAttribute('aria-hidden',active?'false':'true');lx.tabIndex=active?0:-1;};setLxContext(true);$('.mid').classList.add('sample-context');
-row('repeat(5,1fr)',[['PATTERN SEQUENCER',2],['SAMPLE EDIT',3]],
- ['PATTERN<br>SELECT','PATTERN<br>EDIT','START/<br>END','PITCH<br>SPEED','MARK'],'big ra');
+row('repeat(6,1fr)',[['PATTERN SEQUENCER',3],['SAMPLE EDIT',3]],
+ ['PATTERN<br>SELECT','PATTERN<br>EDIT','RECORD<br>SETTING','START/<br>END','PITCH<br>SPEED','MARK'],'big ra');
 const trimPhaseButton=[...document.querySelectorAll("#rows .b")].find(b=>b.textContent.replace(/\s/g,"")==="START/END");
 if(trimPhaseButton){trimPhaseButton.classList.add("trim-phase-button");trimPhaseButton.innerHTML='<span>START/END</span><i class="trim-phase-led" aria-hidden="true"></i>';trimPhaseButton.setAttribute("aria-live","polite");}
+const recordSettingButton=[...document.querySelectorAll("#rows .b")].find(b=>b.textContent.replace(/\s/g,"")==="RECORDSETTING");recordSettingButton?.addEventListener("click",()=>openTransportMenu("record"));
 /* Lx y Rx son controles maestros: Lx navega el contexto de edición; Rx controla OUT en Sample y parámetros contextuales en otros modos. */
 (()=>{let angle=null,remainder=0,index=-1,active=null;const selector='.b,.piano-tools button,.trim-marker,[data-midi-target],.lcd-action,.lcd-menu button,#play,#stop,#bpmWheel';
  const targets=()=>[...document.querySelectorAll(selector)].filter(el=>!el.closest('#zp-agent-window')&&!el.disabled&&el.getAttribute('aria-hidden')!=='true'&&el.getClientRects().length);
