@@ -451,7 +451,7 @@ check(engine.includes("let importedId=null,previousProjectId=currentProjectId,lo
 
 /* AUD-015 · Expired requests must not execute after engine readiness */
 const queueHelperStart=gui.indexOf("const removeQueuedRequest=requestId=>");
-const queueHelperEnd=gui.indexOf("\\n const sendPacket",queueHelperStart);
+const queueHelperEnd=gui.indexOf("const sendPacket=packet=>",queueHelperStart);
 check(queueHelperStart>=0&&queueHelperEnd>queueHelperStart,
   "GUI/engine bridge must expose queued-request removal");
 if(queueHelperStart>=0&&queueHelperEnd>queueHelperStart){
