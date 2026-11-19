@@ -785,12 +785,28 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
  const frame=document.getElementById("zp-engine");
  let ready=false,sequence=0;const queue=[],pending=new Map();
  const dispatch=(type,detail)=>window.dispatchEvent(new CustomEvent(type,{detail}));
- const sendPacket=packet=>{if(!frame.contentWindow){pending.delete(packet.requestId);return}frame.contentWindow.postMessage(packet,location.origin)};
+ const removeQueuedRequest=requestId=>{const index=queue.findIndex(packet=>packet.requestId===requestId);if(index>=0){queue.splice(index,1);return true}return false};
+ const sendPacket=packet=>{
+  const item=pending.get(packet.requestId);
+  if(!frame.contentWindow){
+   if(item)clearTimeout(item.timer);pending.delete(packet.requestId);removeQueuedRequest(packet.requestId);
+   dispatch("zp-engine-error",{requestId:packet.requestId,command:packet.command,error:{code:"FRAME_UNAVAILABLE",message:"Motor de audio no disponible"}});return;
+  }
+  try{frame.contentWindow.postMessage(packet,location.origin)}
+  catch(error){
+   if(item)clearTimeout(item.timer);pending.delete(packet.requestId);removeQueuedRequest(packet.requestId);
+   dispatch("zp-engine-error",{requestId:packet.requestId,command:packet.command,error:{code:"MESSAGE_SEND_FAILED",message:String(error?.message||error)}});
+  }
+ };
  window.zpBridgeSend=(command,payload={})=>{
   if(typeof command!=="string"||!command.startsWith("creator."))throw new TypeError("Comando Creator inválido");
   const requestId="creator-ui-"+(++sequence)+"-"+Date.now();
   const packet={type:"zp-engine-command",protocolVersion:1,source:"creator.ui",timestamp:Date.now(),requestId,command,payload:payload&&typeof payload==="object"?payload:{}};
-  const timer=setTimeout(()=>{if(pending.has(requestId)){pending.delete(requestId);dispatch("zp-engine-timeout",{requestId,command})}},8000);
+  const timer=setTimeout(()=>{
+   if(!pending.has(requestId))return;
+   pending.delete(requestId);removeQueuedRequest(requestId);
+   dispatch("zp-engine-timeout",{requestId,command});
+  },8000);
   pending.set(requestId,{command,timer});
   if(ready)sendPacket(packet);else queue.push(packet);
   return requestId;
@@ -802,7 +818,8 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
   if(data.type==="zp-engine-ready"&&data.protocolVersion===1){ready=true;while(queue.length)sendPacket(queue.shift());dispatch("zp-engine-ready",data);return}
   if(data.type==="zp-engine-ack"||data.type==="zp-engine-error"){
    const item=pending.get(data.requestId);
-   if(item){clearTimeout(item.timer);pending.delete(data.requestId)}
+   if(!item)return;
+   clearTimeout(item.timer);pending.delete(data.requestId);
    dispatch(data.type==="zp-engine-ack"?"zp-engine-result":"zp-engine-error",data);
    if(data.type==="zp-engine-error")console.error("Creator engine:",data.command,data.error||data.message);
   }
