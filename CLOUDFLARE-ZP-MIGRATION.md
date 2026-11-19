@@ -127,3 +127,19 @@ The current ZX1 tree also contains `zp-agent*.js/css/json`, `zp-core.js`, `zp-la
 ### Audit conclusion
 
 The current ZX1 shell has all six navigation destinations, but Mixer, Music, Stations and Community are placeholders. ZP's source provides the closest implementation reference for the shell and Radio UI, but its Mixer and Music are demonstrators and Community is a placeholder. The safest route is a high-fidelity shell first, ZX1 Creator preservation second, then real module implementations against ZX1-owned audio/storage/services. No functional code was changed as part of this audit.
+
+
+## First implementation slice · Cloudflare shell applied to ZX1
+
+Commit: `ff86f03c11d962f2f814a51893ca39cbc0fac46a` — `feat: align ZX1 shell with Cloudflare ZP reference`.
+
+- Replaced the earlier minimal shell presentation with the ZP reference shell styling and section composition in ZX1 `index.html`.
+- Kept all six destinations: Home, Creator, Mixer, Music, Stations/Radio, Community.
+- Creator iframe now explicitly loads `./creator-zx1.html`; ZX1 Creator and engine files were not replaced.
+- Preserved the host return contract: same-origin message, expected iframe source, protocol version 1 and source `dirtyfingaz.zx1`.
+- Mixer faders/test controls, catalog play actions and Radio room actions are visibly present as reference UI but disabled until real ZX1 audio/services are integrated. This is intentional; the slice is visual, not a claim that these modules are complete.
+- `auxiliary` was fast-forwarded to the same SHA; `test` remains unchanged at `a1286bed7487d78b01f8f32d756bb4963a9da6b1`.
+- Actions/Pages run `44502557385` for the implementation SHA was `in_progress` when recorded. Await result before acceptance.
+- iPhone/Safari visual and interaction QA remains pending.
+
+Next: confirm automated validation and deployment, then verify the published page and Creator continuity on iPhone before moving to a real ZX1 mixer integration.
