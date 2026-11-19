@@ -634,7 +634,7 @@ function prepareProjectImport(payload){
 }
 async function importProjectFile(file){
  if(!file)return;
- let importedId=null;
+ let importedId=null,previousProjectId=currentProjectId,loadAttempted=false;
  try{
   const payload=JSON.parse(await file.text()),prepared=prepareProjectImport(payload);
   await saveSession(true);
@@ -650,12 +650,15 @@ async function importProjectFile(file){
    }
   }
   await refreshProjectList();
+  loadAttempted=true;
   await loadSession(id);
   importedId=null;
   notify("PROYECTO IMPORTADO · "+name);
   return {id,name,samples:prepared.samples.length};
  }catch(error){
   if(importedId){try{await assetStorage.deleteProject(importedId)}catch(cleanupError){console.error("No se pudo revertir la importación incompleta",cleanupError)}}
+  if(loadAttempted&&previousProjectId){try{await loadSession(previousProjectId)}catch(restoreError){console.error("No se pudo restaurar el proyecto anterior",restoreError)}}
+  try{await refreshProjectList()}catch(refreshError){console.warn("No se pudo actualizar la lista tras el rollback",refreshError)}
   console.error(error);notify("ERROR AL IMPORTAR · "+error.message);throw error;
  }
 }
