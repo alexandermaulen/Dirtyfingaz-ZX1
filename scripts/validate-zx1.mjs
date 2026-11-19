@@ -58,20 +58,28 @@ const historySaveStart = storage.indexOf("function saveHistorySnapshot(");
 const historySaveEnd = storage.indexOf("function getHistorySnapshot(", historySaveStart);
 check(historySaveStart >= 0 && historySaveEnd > historySaveStart, "History snapshot sequence function not found");
 if (historySaveStart >= 0 && historySaveEnd > historySaveStart) {
-  const records = [];
-  const listHistoryMock = async () => records.map(item => ({ sequence: item.sequence, version: item.version }));
-  const transactMock = async (_store, _mode, action) => {
-    let saved;
-    action({ put(item) { saved = item; records.push(item); return { result: item.version }; } });
-    return saved;
+  const records = [],transactions=[];
+  const transactMock = async (storeName,mode,action) => {
+    const txn={storeName,mode};transactions.push(txn);
+    let historyRequest;
+    const store={
+      getAll(){historyRequest={result:records.slice(),onsuccess:null};txn.read=true;return historyRequest;},
+      put(item){txn.write=true;records.push(item);return {result:item.version};}
+    };
+    const output=action(store);
+    if(historyRequest?.onsuccess)historyRequest.onsuccess();
+    return output&&output.result!==undefined?output.result:output;
   };
-  const makeSave = new Function("listHistory", "transact", "HISTORY_STORE",
+  const makeSave = new Function("transact", "HISTORY_STORE",
     storage.slice(historySaveStart, historySaveEnd) + "; return saveHistorySnapshot;");
-  const save = makeSave(listHistoryMock, transactMock, "projectHistory");
+  const save = makeSave(transactMock, "projectHistory");
   const first = await save("project-a", { scope: "PROJECT", data: { marker: 1 } });
   const second = await save("project-a", { scope: "PROJECT", data: { marker: 2 } });
   check(first.version === "V001" && second.version === "V002", "History versions must advance V001, V002");
   check(records.every(item => item.projectId === "project-a"), "History snapshots must remain scoped to their project");
+  check(transactions.every(txn=>txn.storeName==="projectHistory"&&txn.mode==="readwrite"&&txn.read&&txn.write)&&
+    !storage.slice(historySaveStart,historySaveEnd).includes("listHistory(id)"),
+    "History sequence allocation and record write must share one readwrite transaction");
 }
 
 check(engine.includes("HISTORY_MODULE_FIELDS") && engine.includes("SAMPLE_EDITOR") && engine.includes("MIXER_FX"),
@@ -276,17 +284,22 @@ check(gui.includes("visited:new Set()") &&
 
 
 /* AUD-007 · Protected LCD geometry and finite numeric inputs */
-const importantPatternHeights=[...gui.matchAll(/\\.scr\\.pr\\s*\\{[^}]*?height\\s*:\\s*([^;]+?)\\s*!important[^}]*\\}/g)].map(match=>match[1].trim());
-check(importantPatternHeights[importantPatternHeights.length-1]==="190px",
-  "Pattern Edit LCD must retain the protected 190px baseline");
-check(!gui.includes(".scr.pr{height:260px!important"),
-  "Pattern Edit must not force the expanded LCD to 260px");
+const patternStyleBlocks=[...gui.matchAll(/\.scr\.pr\s*\{([^}]*)\}/g)].map(match=>match[1]);
+const importantPatternHeights=patternStyleBlocks.flatMap(block=>{
+  const height=block.match(/\bheight\s*:\s*([^;]+?)\s*!important\b/i);
+  return height?[height[1].trim()]:[];
+});
+check(importantPatternHeights[importantPatternHeights.length-1]==="260px",
+  "Pattern Edit LCD must preserve the pre-audit deployed 260px height until device measurement is approved");
+check(gui.includes(".scr.pr{height:260px!important"),
+  "Pattern Edit LCD must keep its verified pre-audit height override");
 const finiteHelperStart=engine.indexOf("function readFiniteNumber(");
-const finiteHelperEnd=engine.indexOf("\\n",finiteHelperStart);
-check(finiteHelperStart>=0&&finiteHelperEnd>finiteHelperStart,
+const finiteHelperLine=finiteHelperStart>=0?engine.slice(finiteHelperStart).split(/\r?\n/,1)[0]:"";
+const finiteHelperEnd=finiteHelperStart+finiteHelperLine.length;
+check(finiteHelperStart>=0&&finiteHelperLine.length>0&&finiteHelperEnd>finiteHelperStart,
   "Shared finite numeric input guard missing");
-if(finiteHelperStart>=0&&finiteHelperEnd>finiteHelperStart){
-  const readFiniteNumber=new Function(engine.slice(finiteHelperStart,finiteHelperEnd)+";return readFiniteNumber;")();
+if(finiteHelperStart>=0&&finiteHelperLine.length>0&&finiteHelperEnd>finiteHelperStart){
+  const readFiniteNumber=new Function(finiteHelperLine+";return readFiniteNumber;")();
   check(readFiniteNumber("123",0,"TEST")===123,"Finite numeric parser must accept numeric strings");
   let invalidRejected=false;
   try{readFiniteNumber("NaN",0,"TEST")}catch(error){invalidRejected=error.code==="INVALID_INPUT"}
@@ -306,8 +319,293 @@ check(engine.includes('readFiniteNumber(input.step,undefined,"Paso MIDI")')&&
 check(engine.includes("function startMeterTimer()")&&engine.includes("function stopMeterTimer()")&&
   !engine.includes("let lastMeterSent=0;setInterval("),
   "Audio meter must not run an unconditional idle interval");
+check(gui.includes('id="zx1-value-feedback"')&&gui.includes('aria-live="polite"')&&
+  gui.includes('d?.type!=="zp-engine-value-feedback"')&&
+  gui.includes("clearTimeout(zx1ValueFeedbackTimer)"),
+  "AUD-008: engine value feedback must reach the LCD without changing its geometry");
 check(engine.includes('window.addEventListener("pagehide",()=>{stopTransport(false);releaseAllNotes();stopMetronomeTimer();stopMeterTimer();stopTuner()});'),
   "Engine pagehide must stop transport, active voices, meter and tuner resources");
+
+/* AUD-009 · Independent pattern, bank and sample identities */
+const sampleSlotSource=engine.match(/const sampleSlot=\(pad,bank=activeBank\)=>[^;]+;/)?.[0]||"";
+check(!!sampleSlotSource,"Sample slot identity function missing");
+if(sampleSlotSource){
+  const sampleSlot=new Function("activeBank",sampleSlotSource+";return sampleSlot;")("B");
+  check(sampleSlot(4)==="B:4"&&sampleSlot(4,"C")==="C:4"&&sampleSlot(4,"A")==="A:4",
+    "Sample identity must include bank and PAD independently");
+}
+const ensurePatternStart=engine.indexOf("function ensurePattern(");
+const ensurePatternEnd=engine.indexOf("\nfunction resetPatterns",ensurePatternStart);
+check(ensurePatternStart>=0&&ensurePatternEnd>ensurePatternStart,
+  "Pattern initialization function missing");
+if(ensurePatternStart>=0&&ensurePatternEnd>ensurePatternStart){
+  const model=new Function("const patternData={},pianoData={},patternMeta={};"+
+    engine.slice(ensurePatternStart,ensurePatternEnd)+
+    ";return {ensurePattern,patternData,pianoData,patternMeta};")();
+  model.ensurePattern("AUDIT_TEST","AUDIT TEST");
+  check(Array.from({length:9},(_,i)=>i+1).every(pad=>
+    Array.isArray(model.patternData.AUDIT_TEST[pad])&&model.patternData.AUDIT_TEST[pad].length===16&&
+    model.patternData.AUDIT_TEST[pad].every(value=>value===false)&&
+    Array.isArray(model.pianoData.AUDIT_TEST[pad])&&model.pianoData.AUDIT_TEST[pad].length===0),
+    "Each pattern must initialize 9 independent PAD rows with 16 steps and separate MIDI notes");
+}
+const bankSelectStart=engine.indexOf('runtime.register("creator.bank.select",');
+const patternSelectStart=engine.indexOf('runtime.register("creator.pattern.select",',bankSelectStart);
+const patternListStart=engine.indexOf('runtime.register("creator.pattern.list",',patternSelectStart);
+const bankSelectHandler=bankSelectStart>=0&&patternSelectStart>bankSelectStart?engine.slice(bankSelectStart,patternSelectStart):"";
+const patternSelectHandler=patternSelectStart>=0&&patternListStart>patternSelectStart?engine.slice(patternSelectStart,patternListStart):"";
+check(bankSelectHandler.includes("activeBank=p.bank;")&&!bankSelectHandler.includes("activePatternId="),
+  "Changing bank must not implicitly change the active pattern");
+check(patternSelectHandler.includes("activePatternId=id;")&&!patternSelectHandler.includes("activeBank="),
+  "Changing pattern must not implicitly change the active sample bank");
+check(engine.includes('const BANKS=["A","B","C","D","E"];'),
+  "ZX1 must retain the five A–E sample banks");
+check(storage.includes('const PROJECT_SAMPLE_STORE = "projectSamplesV3";')&&
+  storage.includes('keyPath: ["projectId", "bank", "pad"]')&&
+  storage.includes('store.delete([String(projectId || "current"), String(bank || "A"), Number(pad)])'),
+  "Project samples must remain isolated by project, bank and PAD in IndexedDB");
+check(engine.includes("assetStorage.getProjectSamples(currentProjectId)")&&
+  engine.includes("validateStoredSampleRecord(item)")&&
+  engine.includes("sampleSlot(valid.pad,valid.bank)")&&
+  engine.includes("assetStorage.saveProjectSample(currentProjectId"),
+  "Project load/save must validate and persist samples separately using bank-aware sample identities");
+const snapshotStart=engine.indexOf("function projectSnapshot()");
+const snapshotEnd=engine.indexOf("\nconst HISTORY_MODULE_FIELDS",snapshotStart);
+const snapshotSource=snapshotStart>=0&&snapshotEnd>snapshotStart?engine.slice(snapshotStart,snapshotEnd):"";
+check(snapshotSource.includes("activeBank")&&snapshotSource.includes("activePatternId")&&
+  snapshotSource.includes("patterns")&&snapshotSource.includes("pianoNotes")&&!snapshotSource.includes("samples"),
+  "Project state must preserve pattern/bank metadata while sample buffers remain in separate storage");
+
+check(gui.includes('#zp-engine{position:fixed!important;left:-10000px!important;top:0!important;width:1px!important;height:1px!important;border:0!important;opacity:0!important;pointer-events:none!important}')&&
+  engine.includes('const frameElement=window.frameElement;if(frameElement){const bounds=frameElement.getBoundingClientRect();if(bounds.width<=1||bounds.height<=1)return}'),
+  "AUD-010: the hidden 1x1 engine iframe must not run its canvas animation loop");
+check(engine.includes('navigator.wakeLock?.request("screen")?.catch(()=>{})'),
+  "AUD-011: Wake Lock permission rejection must be handled without an unhandled promise");
+/* AUD-012 · Accessible labels and state on generated controls */
+check(gui.includes('projectLabels[0].htmlFor="zp-project-select"')&&
+  gui.includes('projectLabels[1].htmlFor="zp-project-name"')&&
+  gui.includes('historyModule?.setAttribute("aria-label","Módulo para crear snapshot")')&&
+  gui.includes('historyListLabel.htmlFor="zp-history-list"'),
+  "AUD-012: project and history fields must expose programmatic labels");
+check(gui.includes('pitchLabel.htmlFor="zp-sample-pitch"')&&
+  gui.includes('timeLabel.htmlFor="zp-sample-time"')&&
+  gui.includes('samplePitch?.setAttribute("aria-label","Pitch de la muestra en semitonos")')&&
+  gui.includes('sampleTime?.setAttribute("aria-label","Velocidad de reproducción de la muestra")'),
+  "AUD-012: Sample Edit range controls must expose accessible names");
+check(gui.includes('patternMenu.querySelector(".zp-pattern-close")?.setAttribute("aria-label"')&&
+  gui.includes('transportMenu.querySelector(".zp-transport-close")?.setAttribute("aria-label"')&&
+  gui.includes('utilityPanel.querySelector(".zp-utility-close")?.setAttribute("aria-label"')&&
+  gui.includes('document.querySelectorAll(".zp-project-close").forEach(button=>button.setAttribute("aria-label"')&&
+  gui.includes('noteTools.querySelector("#zpLongClose")?.setAttribute("aria-label"'),
+  "AUD-012: icon-only close controls must have accessible names");
+check(gui.includes("stepModeButton.setAttribute('aria-pressed',String(pianoMode))")&&
+  gui.includes("drawButton.setAttribute('aria-pressed',String(drawMode))")&&
+  gui.includes("nudgeButton.setAttribute('aria-pressed',String(freeMove))"),
+  "AUD-012: Piano/Step, Draw/Select and free-move toggles must expose pressed state");
+/* AUD-013 · Touch painting and horizontal grid navigation */
+check(gui.includes(".gr .c{touch-action:none;user-select:none}")&&
+  gui.includes(".mid.step-sequencer-mode .grid-viewport")&&
+  gui.includes("overflow-x:auto!important;overflow-y:hidden!important")&&
+  gui.includes("touch-action:pan-x pan-y"),
+  "AUD-013: step cells must preserve drag painting while the sequencer viewport retains horizontal pan");
+check(gui.includes("let zoom=1;const applyZoom=()=>{grid.style.width=(zoom*100)+'%';grid.style.minWidth=(zoom*100)+'%'")&&
+  gui.includes("zoom=Math.min(2.5")&&gui.includes("zoom=Math.max(1"),
+  "AUD-013: sequencer zoom must remain bounded and must drive the scrollable grid width");
+check(gui.includes("gr.setPointerCapture?.(e.pointerId)")&&
+  gui.includes("document.elementFromPoint(e.clientX,e.clientY)?.closest?.('#gr .c')"),
+  "AUD-013: pointer capture and hit testing must remain connected for touch painting");
+/* AUD-014 · Safe and atomic project import preflight */
+const importHelperStart=engine.indexOf("function sanitizeImportedProjectValue(");
+const importHelperEnd=engine.indexOf("async function importProjectFile(",importHelperStart);
+check(importHelperStart>=0&&importHelperEnd>importHelperStart,
+  "Project import sanitizer and preflight must exist");
+if(importHelperStart>=0&&importHelperEnd>importHelperStart){
+  const prepareImport=new Function("BANKS",engine.slice(importHelperStart,importHelperEnd)+
+    ";return prepareProjectImport;")(["A","B","C","D","E"]);
+  const validPayload={format:"dirtyfingaz-zx1-project",formatVersion:1,
+    data:{patterns:{PATTERN_01:{1:Array(16).fill(false)}},pianoNotes:{PATTERN_01:{1:[
+      {id:'bad"]selector',step:0,pitch:60},{id:"safe_id",step:1,pitch:62},{id:"safe_id",step:2,pitch:64}
+    ]}},activePatternId:"PATTERN_01",songOrder:["PATTERN_01","__proto__"]},
+    samples:[{bank:"B",pad:2,sampleRate:44100,length:3,channels:[[0,.25,-.25]],range:{start:0,end:1},name:"KICK"}]};
+  const prepared=prepareImport(validPayload);
+  check(prepared.data.songOrder.length===1&&prepared.samples.length===1&&
+    prepared.samples[0].bank==="B"&&prepared.samples[0].pad===2,
+    "Import preflight must preserve valid project data and banked samples while filtering unknown pattern order entries");
+  const importedIds=prepared.data.pianoNotes.PATTERN_01[1].map(note=>note.id);
+  check(importedIds.every(id=>/^[A-Za-z0-9_-]{1,120}$/.test(id))&&new Set(importedIds).size===importedIds.length,
+    "Imported MIDI note identifiers must be safe for CSS selectors and unique within each PAD");
+  let prototypeRejected=false;
+  try{prepareImport(JSON.parse('{"format":"dirtyfingaz-zx1-project","formatVersion":1,"data":{"patterns":{"PATTERN_01":{},"__proto__":{"x":1}}},"samples":[]}'))}
+  catch(error){prototypeRejected=error.code==="INVALID_INPUT"}
+  check(prototypeRejected,"Import must reject dangerous object keys before data reaches Object.assign maps");
+  let badChannelRejected=false;
+  try{prepareImport({...validPayload,samples:[{...validPayload.samples[0],channels:[[0,1]]}]})}
+  catch(error){badChannelRejected=error.code==="INVALID_INPUT"}
+  check(badChannelRejected,"Import must reject sample channel lengths that do not match sample metadata");
+  let duplicateRejected=false;
+  try{prepareImport({...validPayload,samples:[validPayload.samples[0],validPayload.samples[0]]})}
+  catch(error){duplicateRejected=error.code==="INVALID_INPUT"}
+  check(duplicateRejected,"Import must reject duplicate bank/PAD sample identities");
+  let invalidRangeRejected=false;
+  try{prepareImport({...validPayload,samples:[{...validPayload.samples[0],range:{start:.9,end:.1}}]})}
+  catch(error){invalidRangeRejected=error.code==="INVALID_INPUT"}
+  check(invalidRangeRejected,"Import must reject invalid IN/OUT ranges");
+}
+check(engine.includes("let importedId=null,previousProjectId=currentProjectId,loadAttempted=false;")&&
+  engine.includes("await assetStorage.deleteProject(importedId)"),
+  "A failed project import must remove the partially written project and its banked samples");
+check(engine.includes("let importedId=null,previousProjectId=currentProjectId,loadAttempted=false;")&&
+  engine.includes("if(loadAttempted&&previousProjectId){try{await loadSession(previousProjectId)}"),
+  "A failed project activation must restore the previously active project after rolling back the import");
+
+/* AUD-015 · Expired requests must not execute after engine readiness */
+const queueHelperStart=gui.indexOf("const removeQueuedRequest=requestId=>");
+const queueHelperEnd=gui.indexOf("const sendPacket=packet=>",queueHelperStart);
+check(queueHelperStart>=0&&queueHelperEnd>queueHelperStart,
+  "GUI/engine bridge must expose queued-request removal");
+if(queueHelperStart>=0&&queueHelperEnd>queueHelperStart){
+  const queue=[],removeQueuedRequest=new Function("queue",gui.slice(queueHelperStart,queueHelperEnd)+";return removeQueuedRequest;")(queue);
+  queue.push({requestId:"expired"},{requestId:"active"});
+  check(removeQueuedRequest("expired")===true&&queue.length===1&&queue[0].requestId==="active"&&
+    removeQueuedRequest("missing")===false,
+    "A timed-out queued packet must be removed without disturbing other pending commands");
+}
+check(gui.includes("pending.delete(requestId);removeQueuedRequest(requestId)")&&
+  gui.includes("dispatch(\"zp-engine-timeout\",{requestId,command})")&&
+  gui.includes("if(!item)return;"),
+  "Timed-out queued commands and late ACK/error responses must not dispatch stale results");
+/* AUD-016 · User-facing error feedback and technical detail isolation */
+const failureHelperStart=gui.indexOf("const zx1FailureText=detail=>");
+const failureHelperEnd=gui.indexOf("const showZX1Failure=",failureHelperStart);
+check(failureHelperStart>=0&&failureHelperEnd>failureHelperStart,
+  "GUI must translate engine errors into concise user-facing status");
+if(failureHelperStart>=0&&failureHelperEnd>failureHelperStart){
+  const failureText=new Function(gui.slice(failureHelperStart,failureHelperEnd)+";return zx1FailureText;")();
+  check(failureText({error:{code:"INVALID_INPUT",message:"internal detail"}})==="ERROR · VALOR NO VÁLIDO"&&
+    failureText({error:{code:"SAMPLE_NOT_FOUND"}})==="ERROR · ELEMENTO NO DISPONIBLE"&&
+    failureText({result:{error:{code:"MIC_UNAVAILABLE"}}})==="ERROR · AUDIO NO DISPONIBLE"&&
+    failureText({error:{code:"CLIPBOARD_EMPTY"}})==="ERROR · PORTAPAPELES VACÍO"&&
+    failureText({error:{code:"NO_EMPTY_PADS"}})==="ERROR · NO HAY PADS LIBRES"&&
+    failureText({error:{code:"UNSUPPORTED"}})==="ERROR · FUNCIÓN NO DISPONIBLE"&&
+    failureText({error:{code:"QuotaExceededError"}})==="ERROR · NO SE PUDO GUARDAR",
+    "Engine error codes must map to safe and understandable LCD messages");
+  check(failureText({error:{code:"SECRET_TOKEN",message:"private internal detail"}})==="ERROR · ACCIÓN NO DISPONIBLE",
+    "Unknown technical messages must not be exposed in the LCD status");
+}
+check(gui.includes('showZX1Failure("ERROR · MOTOR NO RESPONDE")')&&
+  gui.includes('showZX1Failure(zx1FailureText(ev.detail))')&&
+  gui.includes('showZX1Failure(zx1FailureText(ev.detail))'),
+  "Timeout and engine errors must reach the LCD status");
+check(gui.includes('.zx1-value-feedback[data-kind="error"]')&&
+  gui.includes('display.dataset.kind="error"')&&gui.includes('role="status" aria-live="polite"'),
+  "Error feedback must be announced accessibly and visually distinguished without changing LCD geometry");
+
+/* AUD-017 · Isolate corrupted stored samples during project recovery */
+const storedSampleStart=engine.indexOf("function validateStoredSampleRecord(item){");
+const storedSampleEnd=engine.indexOf('async function loadSession(projectId="current")',storedSampleStart);
+check(storedSampleStart>=0&&storedSampleEnd>storedSampleStart,
+  "Stored sample validation helper must exist before project restore");
+if(storedSampleStart>=0&&storedSampleEnd>storedSampleStart){
+  const validateStoredSample=new Function("BANKS",engine.slice(storedSampleStart,storedSampleEnd)+";return validateStoredSampleRecord;")(["A","B","C","D","E"]);
+  const valid=validateStoredSample({bank:"C",pad:3,sampleRate:44100,length:4,
+    channels:[new Float32Array(4),[0,.1,.2,.3]],range:{start:.1,end:.9},name:"SNARE"});
+  check(valid?.bank==="C"&&valid.pad===3&&valid.range.start===.1&&valid.range.end===.9&&valid.name==="SNARE",
+    "Valid banked sample records must remain restorable");
+  check(validateStoredSample({bank:"Z",pad:3,sampleRate:44100,length:4,channels:[[0,0,0,0]]})===null,
+    "Stored samples with an unknown bank must be isolated");
+  check(validateStoredSample({bank:"A",pad:10,sampleRate:44100,length:4,channels:[[0,0,0,0]]})===null,
+    "Stored samples outside PAD 1–9 must be isolated");
+  check(validateStoredSample({bank:"A",pad:1,sampleRate:44100,length:4,channels:[[0,0]]})===null,
+    "Stored sample channels with inconsistent lengths must be isolated");
+  check(validateStoredSample({bank:"A",pad:1,sampleRate:44100,length:4,channels:Array.from({length:9},()=>[0,0,0,0])})===null,
+    "Stored samples with unsupported channel counts must be isolated");
+  check(validateStoredSample({bank:"A",pad:1,sampleRate:44100,length:4,channels:[[0,0,0,0]],range:{start:.9,end:.1}})===null,
+    "Stored samples with invalid IN/OUT ranges must be isolated");
+}
+check(engine.includes("let skippedStoredSamples=0;")&&
+  engine.includes("if(!valid){skippedStoredSamples++;")&&
+  engine.includes("catch(error){skippedStoredSamples++;"),
+  "A single damaged sample must not abort restoration of the complete project");
+check(engine.includes('console.warn("Sample local omitido por metadata/canales inválidos"')&&
+  engine.includes('skippedSamples:skippedStoredSamples'),
+  "Skipped sample records must remain in storage and be reported in recovery diagnostics");
+/* AUD-019 · Atomic project and banked-sample deletion */
+const deleteStart=storage.indexOf("function deleteProject(projectId)");
+const deleteEnd=storage.indexOf("root.DirtyfingazStorage",deleteStart);
+check(deleteStart>=0&&deleteEnd>deleteStart,
+  "Project delete implementation must exist");
+if(deleteStart>=0&&deleteEnd>deleteStart){
+  const state={projects:[{id:"target"},{id:"other"}],samples:[
+    {projectId:"target",bank:"A",pad:1},{projectId:"target",bank:"E",pad:9},{projectId:"other",bank:"A",pad:1}
+  ]};
+  const transactions=[];
+  const open=()=>Promise.resolve({transaction(names,mode){
+    const tx={oncomplete:null,onerror:null,onabort:null};
+    transactions.push({names,mode});
+    tx.objectStore=name=>{
+      if(name==="projects")return {delete(id){state.projects=state.projects.filter(item=>item.id!==id)}};
+      if(name==="projectSamplesV3")return {openCursor(){
+        const ordered=state.samples.slice(),request={result:null,onsuccess:null};let index=0;
+        const advance=()=>{
+          const item=ordered[index++];
+          request.result=item?{
+            value:item,
+            delete(){state.samples=state.samples.filter(candidate=>candidate!==item)},
+            continue(){queueMicrotask(advance)}
+          }:null;
+          if(request.onsuccess)request.onsuccess();
+          if(!item)queueMicrotask(()=>tx.oncomplete?.());
+        };
+        queueMicrotask(advance);return request;
+      }};
+      throw new Error("Unexpected object store: "+name);
+    };
+    return tx;
+  }});
+  const removeProject=new Function("open","PROJECT_STORE","PROJECT_SAMPLE_STORE",
+    storage.slice(deleteStart,deleteEnd)+";return deleteProject;")(open,"projects","projectSamplesV3");
+  const removed=await removeProject("target");
+  check(removed.deleted==="target"&&state.projects.length===1&&state.projects[0].id==="other"&&
+    state.samples.length===1&&state.samples[0].projectId==="other",
+    "Deleting a project must remove only its own banked samples while preserving other projects");
+  check(transactions.length===1&&transactions[0].mode==="readwrite"&&
+    transactions[0].names.includes("projects")&&transactions[0].names.includes("projectSamplesV3"),
+    "Project metadata and its sample records must be deleted in one readwrite transaction");
+  let recoveryProtected=false;try{await removeProject("current")}catch(error){recoveryProtected=/recuperación/.test(error.message)}
+  check(recoveryProtected,"The current recovery project must remain protected from deletion");
+}
+
+
+/* AUD-020 · Do not switch active project until storage preflight succeeds */
+const sessionStart=engine.indexOf('async function loadSession(projectId="current"){');
+const projectListAt=engine.indexOf("await assetStorage.listProjects()",sessionStart);
+const projectReadAt=engine.indexOf("await assetStorage.loadProject(targetProjectId)",sessionStart);
+const sampleReadAt=engine.indexOf("await assetStorage.getProjectSamples(targetProjectId)",sessionStart);
+const activeSwitchAt=engine.indexOf("currentProjectId=targetProjectId",sessionStart);
+const nameSwitchAt=engine.indexOf("currentProjectName=targetProjectName",sessionStart);
+const stateResetAt=engine.indexOf("resetPatterns();",sessionStart);
+check(sessionStart>=0&&projectListAt>sessionStart&&projectReadAt>projectListAt&&
+  sampleReadAt>projectReadAt&&activeSwitchAt>sampleReadAt&&nameSwitchAt>sampleReadAt&&
+  stateResetAt>activeSwitchAt&&stateResetAt>nameSwitchAt,
+  "Project metadata, data and samples must all load before switching identity or clearing active state");
+
+
+
+/* AUD-021 · Production deployment target isolation */
+const pagesWorkflow=read(".github/workflows/pages.yml");
+check(pagesWorkflow.includes("workflow_dispatch:")&&!/^\s{2}push:\s*$/m.test(pagesWorkflow),
+  "GitHub Pages must remain manual-only; production auto-deploy is reserved for the configured Cloudflare Worker");
+const wranglerConfig=JSON.parse(read("wrangler.jsonc"));
+check(wranglerConfig.name==="dirtyfingaz-zx1",
+  "Cloudflare production worker name must remain dirtyfingaz-zx1");
+
+
+/* AUD-022 · Main CI must validate without deploying */
+const mainWorkflow=read(".github/workflows/ci.yml");
+check(mainWorkflow.includes("name: ZX1 main CI")&&mainWorkflow.includes("branches: [main]")&&
+  mainWorkflow.includes("node scripts/validate-zx1.mjs")&&
+  !mainWorkflow.includes("pages: write")&&!mainWorkflow.includes("deploy-pages"),
+  "Main must have a read-only CI workflow that validates the source without deploying");
 
 if (errors.length) {
   console.error("\nVALIDATION FAILED");

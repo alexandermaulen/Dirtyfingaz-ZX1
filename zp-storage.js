@@ -115,11 +115,18 @@
   }
   function saveHistorySnapshot(projectId, snapshot) {
     const id = String(projectId || "current");
-    return listHistory(id).then(function (items) {
-      const sequence = items.reduce(function (max, item) { return Math.max(max, Number(item.sequence) || 0); }, 0) + 1;
-      const version = "V" + String(sequence).padStart(3, "0");
-      const record = Object.assign({}, snapshot, { projectId: id, version: version, sequence: sequence, createdAt: Date.now() });
-      return transact(HISTORY_STORE, "readwrite", function (store) { return store.put(record); }).then(function () { return { projectId: id, version: version, sequence: sequence, scope: record.scope, module: record.module || null, label: record.label, createdAt: record.createdAt }; });
+    return transact(HISTORY_STORE, "readwrite", function (store) {
+      const output = { result: null };
+      const request = store.getAll();
+      request.onsuccess = function () {
+        const items = request.result.filter(function (item) { return item.projectId === id; });
+        const sequence = items.reduce(function (max, item) { return Math.max(max, Number(item.sequence) || 0); }, 0) + 1;
+        const version = "V" + String(sequence).padStart(3, "0");
+        const record = Object.assign({}, snapshot, { projectId: id, version: version, sequence: sequence, createdAt: Date.now() });
+        output.result = { projectId: id, version: version, sequence: sequence, scope: record.scope, module: record.module || null, label: record.label, createdAt: record.createdAt };
+        store.put(record);
+      };
+      return output;
     });
   }
   function getHistorySnapshot(projectId, version) {
@@ -150,12 +157,23 @@
   function deleteProject(projectId) {
     const id = String(projectId || "");
     if (!id || id === "current") return Promise.reject(new Error("No se puede eliminar el proyecto de recuperación"));
-    return Promise.all([
-      transact(PROJECT_STORE, "readwrite", function (store) { return store.delete(id); }),
-      getProjectSamples(id).then(function (items) {
-        return Promise.all(items.map(function (item) { return deleteProjectSample(id, item.pad, item.bank); }));
-      })
-    ]);
+    return open().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        const tx = db.transaction([PROJECT_STORE, PROJECT_SAMPLE_STORE], "readwrite");
+        tx.objectStore(PROJECT_STORE).delete(id);
+        const samples = tx.objectStore(PROJECT_SAMPLE_STORE);
+        const cursorRequest = samples.openCursor();
+        cursorRequest.onsuccess = function () {
+          const cursor = cursorRequest.result;
+          if (!cursor) return;
+          if (cursor.value.projectId === id) cursor.delete();
+          cursor.continue();
+        };
+        tx.oncomplete = function () { resolve({ deleted: id }); };
+        tx.onerror = function () { reject(tx.error || new Error("No se pudo eliminar el proyecto y sus muestras")); };
+        tx.onabort = function () { reject(tx.error || new Error("Eliminación de proyecto cancelada")); };
+      });
+    });
   }
 
   root.DirtyfingazStorage = Object.freeze({

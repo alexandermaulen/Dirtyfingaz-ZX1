@@ -182,7 +182,7 @@ canvas{width:168px;height:46px}
 .piano-ruler-key,.piano-ruler{display:flex;align-items:center;justify-content:center;font:9px/1 VT323,monospace;color:var(--lcd);background:#102b0d;border-bottom:1px solid var(--lcd)}.piano-ruler-key{grid-column:1}.piano-key{grid-column:1;display:flex;align-items:center;justify-content:center;font:9px/1 VT323,monospace;border-right:1px solid var(--lcd);color:var(--lcd);z-index:1}.piano-key.black{background:#142014;color:#a7ca78}.piano-key.white{background:#0b260b}
 .piano-cell{border:1px solid #aaff4a24;background:#0a210a;z-index:0}.piano-cell.black-key{background:#061406}.piano-cell:nth-of-type(17n+2){border-left-color:#baff62aa}.piano-note{z-index:3;align-self:stretch;min-width:0;display:flex;align-items:center;justify-content:space-between;overflow:hidden;border:1px solid #eaffb4;background:linear-gradient(180deg,#d6ff72,#4b9f18 55%,#174c0b);box-shadow:0 0 5px #9dff4a88;border-radius:2px;color:#071a03;font:9px/1 VT323,monospace;touch-action:none;user-select:none}.piano-note.selected{outline:1px solid #fff;box-shadow:0 0 8px #fff,0 0 8px var(--lcd)}.piano-note span{padding-left:2px;pointer-events:none}.piano-note i{width:5px;height:100%;background:#f2ffd0aa;flex:none;pointer-events:none}
 .piano-playhead{z-index:4;pointer-events:none;border-left:1px solid #ff4646;box-shadow:0 0 5px #ff2525;opacity:.85}
-.scr.pr{height:190px!important;margin-top:-95px!important;border-radius:18px}.scr.pr .v2{padding:5px 7px!important;gap:3px!important}.scr.pr .ph{font-size:15px;line-height:16px}.scr.pr .piano-tools{height:17px;flex-wrap:nowrap}.scr.pr .piano-tools button{height:15px;min-width:18px;font-size:10px}.scr.pr .piano-viewport{height:145px}
+.scr.pr{height:260px!important;margin-top:-130px!important;border-radius:18px}.scr.pr .v2{padding:5px 7px!important;gap:3px!important}.scr.pr .ph{font-size:15px;line-height:16px}.scr.pr .piano-tools{height:17px;flex-wrap:nowrap}.scr.pr .piano-tools button{height:15px;min-width:18px;font-size:10px}.scr.pr .piano-viewport{height:145px}
 @media(max-width:430px){.scr.pr{width:min(400px,96vw)!important}.scr.pr .v2{padding:4px 5px!important}.scr.pr .piano-tools{gap:1px}.scr.pr .piano-tools button{padding:0 2px;font-size:9px}.piano-vel input{width:28px}}
 .zp-pad-config{position:fixed;z-index:99980;left:50%;top:calc(env(safe-area-inset-top) + 12px);transform:translateX(-50%);width:min(330px,calc(100vw - 24px));padding:12px;background:#071407f5;color:#c5ff45;border:1px solid #a8ff35;border-radius:10px;box-shadow:0 12px 40px #000c;font:700 12px/1.4 -apple-system,BlinkMacSystemFont,sans-serif}.zp-pad-config[hidden]{display:none!important}.zp-pad-config-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin-top:10px}.zp-pad-config-actions button{min-height:36px;border:1px solid #638d3c;border-radius:5px;background:#10250b;color:#d5ffbd;font-size:11px}.zp-pad-config-actions button:last-child{grid-column:1/-1}.zp-pad-config{max-height:calc(100dvh - 28px);overflow:auto}.zp-pad-detail{margin-top:8px;padding:7px;border:1px solid #638d3c;border-radius:6px;background:#081908}.zp-pad-detail .pad-setting-row{display:flex;align-items:center;gap:7px;margin:6px 0}.zp-pad-detail label{font-size:10px;flex:1}.zp-pad-detail input[type=range]{width:58%;accent-color:#c5ff45}.zp-pad-detail select{flex:1;min-width:0;background:#10250b;color:#d5ffbd;border:1px solid #638d3c;padding:5px}.zp-pad-detail button{min-height:28px;border:1px solid #638d3c;border-radius:5px;background:#10250b;color:#d5ffbd;padding:4px 7px;font-size:10px}
 .zp-adsr-panel{position:fixed;z-index:99990;left:50%;top:calc(env(safe-area-inset-top) + 12px);transform:translateX(-50%);width:min(360px,calc(100vw - 20px));padding:10px;background:#061206f7;color:#c5ff45;border:1px solid #a8ff35;border-radius:10px;box-shadow:0 12px 40px #000c;font:700 11px/1.3 -apple-system,BlinkMacSystemFont,sans-serif}.zp-adsr-panel[hidden]{display:none!important}.zp-adsr-head{display:flex;align-items:center;justify-content:space-between;gap:8px}.zp-adsr-head button,.zp-adsr-actions button,.zp-adsr-tools button{min-height:26px;border:1px solid #638d3c;border-radius:5px;background:#10250b;color:#d5ffbd;font-size:10px;padding:3px 7px}.zp-adsr-knobs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin:10px 0}.zp-adsr-knob{display:flex;flex-direction:column;align-items:center;gap:3px;touch-action:none;user-select:none}.zp-adsr-dial{width:46px;height:46px;border:2px solid #5c8a39;border-radius:50%;background:conic-gradient(#c5ff45 var(--progress,25%),#1b3214 0);display:grid;place-items:center;position:relative;touch-action:none}.zp-adsr-dial:before{content:"";position:absolute;inset:5px;border-radius:50%;background:#081707;border:1px solid #8cc84c}.zp-adsr-dial:after{content:"";position:absolute;width:2px;height:14px;top:5px;left:calc(50% - 1px);background:#eaffb5;transform:rotate(var(--needle,0deg));transform-origin:50% 18px}.zp-adsr-dial b{z-index:1;font:12px VT323,monospace;color:#eaffb5}.zp-adsr-value{font:10px VT323,monospace;color:#d7f5ad}.zp-adsr-actions,.zp-adsr-tools{display:flex;gap:5px;flex-wrap:wrap}.zp-adsr-actions button{flex:1}.zp-adsr-curve{margin-top:8px;padding:5px;border:1px solid #6e9e45;border-radius:6px;background:#061106;overflow:hidden}.zp-adsr-curve[hidden]{display:none!important}.zp-adsr-curve svg{display:block;width:100%;height:125px;touch-action:none;transform-origin:center center}.zp-adsr-curve .grid-line{stroke:#45652d;stroke-width:.7;opacity:.65}.zp-adsr-curve.grid-off .grid-line{opacity:0}.zp-adsr-curve .adsr-path{fill:none;stroke:#d7ff68;stroke-width:2.5;stroke-linejoin:round}.zp-adsr-curve .adsr-handle{fill:#f1ff9d;stroke:#7bbd38;stroke-width:2;touch-action:none}.zp-adsr-tools{display:flex;gap:4px;justify-content:space-between;margin-top:5px}.zp-adsr-tools button{flex:1}.zp-adsr-tools .active{background:#c5ff45;color:#061206}.zp-sample-edit-panel{position:fixed;z-index:99989;left:50%;bottom:calc(env(safe-area-inset-bottom) + 12px);transform:translateX(-50%);width:min(360px,calc(100vw - 20px));max-height:58dvh;overflow:auto;padding:10px;background:#061206f7;color:#c5ff45;border:1px solid #a8ff35;border-radius:10px;box-shadow:0 12px 40px #000c;font:700 11px/1.35 -apple-system,BlinkMacSystemFont,sans-serif}.zp-sample-edit-panel[hidden]{display:none!important}.zp-sample-edit-head{display:flex;justify-content:space-between;align-items:center;gap:8px}.zp-sample-edit-panel button{min-height:27px;padding:4px 7px;border:1px solid #638d3c;border-radius:5px;background:#10250b;color:#d5ffbd;font-size:10px}.zp-sample-edit-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px;margin:8px 0}.zp-sample-edit-row{display:flex;align-items:center;gap:7px;margin:7px 0}.zp-sample-edit-row label{flex:1;font-size:10px}.zp-sample-edit-row input[type=range]{width:58%;accent-color:#c5ff45}.zp-sample-edit-modes,.zp-sample-chop-actions{display:flex;gap:5px;flex-wrap:wrap;margin-top:7px}.zp-sample-edit-panel .active{background:#c5ff45;color:#061206}.zp-sample-edit-status{margin-top:7px;color:#d5ffbd;font:10px VT323,monospace}.zp-clipboard-menu{position:fixed;z-index:100000;left:50%;top:50%;transform:translate(-50%,-50%);width:min(280px,calc(100vw - 32px));padding:12px;background:#061206f8;color:#c5ff45;border:1px solid #a8ff35;border-radius:9px;box-shadow:0 14px 44px #000d;font:700 11px/1.4 -apple-system,BlinkMacSystemFont,sans-serif}.zp-clipboard-menu[hidden]{display:none!important}.zp-clipboard-menu .clip-actions{display:flex;gap:7px;margin-top:9px}.zp-clipboard-menu button{flex:1;min-height:30px;background:#10250b;color:#d5ffbd;border:1px solid #638d3c;border-radius:5px;font-size:10px}
@@ -433,6 +433,7 @@ body{background:#041a06;touch-action:none}html,body{overscroll-behavior:none;ove
     <div class="gr" id="gr"></div>
     <div class="pf">PATTERN EDIT</div>
    </div>
+   <div id="zx1-value-feedback" class="zx1-value-feedback" role="status" aria-live="polite" hidden></div>
   </div>
  </div>
  <div class="kn" id="kn"></div>
@@ -784,12 +785,28 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
  const frame=document.getElementById("zp-engine");
  let ready=false,sequence=0;const queue=[],pending=new Map();
  const dispatch=(type,detail)=>window.dispatchEvent(new CustomEvent(type,{detail}));
- const sendPacket=packet=>{if(!frame.contentWindow){pending.delete(packet.requestId);return}frame.contentWindow.postMessage(packet,location.origin)};
+ const removeQueuedRequest=requestId=>{const index=queue.findIndex(packet=>packet.requestId===requestId);if(index>=0){queue.splice(index,1);return true}return false};
+ const sendPacket=packet=>{
+  const item=pending.get(packet.requestId);
+  if(!frame.contentWindow){
+   if(item)clearTimeout(item.timer);pending.delete(packet.requestId);removeQueuedRequest(packet.requestId);
+   dispatch("zp-engine-error",{requestId:packet.requestId,command:packet.command,error:{code:"FRAME_UNAVAILABLE",message:"Motor de audio no disponible"}});return;
+  }
+  try{frame.contentWindow.postMessage(packet,location.origin)}
+  catch(error){
+   if(item)clearTimeout(item.timer);pending.delete(packet.requestId);removeQueuedRequest(packet.requestId);
+   dispatch("zp-engine-error",{requestId:packet.requestId,command:packet.command,error:{code:"MESSAGE_SEND_FAILED",message:String(error?.message||error)}});
+  }
+ };
  window.zpBridgeSend=(command,payload={})=>{
   if(typeof command!=="string"||!command.startsWith("creator."))throw new TypeError("Comando Creator inválido");
   const requestId="creator-ui-"+(++sequence)+"-"+Date.now();
   const packet={type:"zp-engine-command",protocolVersion:1,source:"creator.ui",timestamp:Date.now(),requestId,command,payload:payload&&typeof payload==="object"?payload:{}};
-  const timer=setTimeout(()=>{if(pending.has(requestId)){pending.delete(requestId);dispatch("zp-engine-timeout",{requestId,command})}},8000);
+  const timer=setTimeout(()=>{
+   if(!pending.has(requestId))return;
+   pending.delete(requestId);removeQueuedRequest(requestId);
+   dispatch("zp-engine-timeout",{requestId,command});
+  },8000);
   pending.set(requestId,{command,timer});
   if(ready)sendPacket(packet);else queue.push(packet);
   return requestId;
@@ -801,7 +818,8 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
   if(data.type==="zp-engine-ready"&&data.protocolVersion===1){ready=true;while(queue.length)sendPacket(queue.shift());dispatch("zp-engine-ready",data);return}
   if(data.type==="zp-engine-ack"||data.type==="zp-engine-error"){
    const item=pending.get(data.requestId);
-   if(item){clearTimeout(item.timer);pending.delete(data.requestId)}
+   if(!item)return;
+   clearTimeout(item.timer);pending.delete(data.requestId);
    dispatch(data.type==="zp-engine-ack"?"zp-engine-result":"zp-engine-error",data);
    if(data.type==="zp-engine-error")console.error("Creator engine:",data.command,data.error||data.message);
   }
@@ -810,9 +828,40 @@ document.querySelectorAll('.tg span').forEach(s=>{const t=s.textContent;if(['UND
  window.addEventListener("message",ev=>{const d=ev.data;if(ev.source!==frame.contentWindow||ev.origin!==location.origin||!d||d.type!=="zp-engine-pattern-state"||d.protocolVersion!==1||d.source!=="creator.engine")return;if(Array.isArray(d.patternList))latestPatternState={items:d.patternList,activePatternId:d.patternId||latestPatternState.activePatternId};if(!patternMenu.hidden)renderPatternMenu();document.querySelectorAll("#gr .c").forEach(cell=>{const gridElement=document.getElementById("gr");if(!gridElement)return;const index=[...gridElement.children].indexOf(cell),padId=Math.max(1,Math.min(9,Math.floor((index-17)/17)+1)),step=Number(cell.dataset.s)||0;cell.classList.toggle("on",!!d.patterns?.[padId]?.[step])})});
  window.addEventListener("message",ev=>{const d=ev.data;if(ev.source!==frame.contentWindow||ev.origin!==location.origin||d?.type!=="zp-engine-tuner-state"||d.protocolVersion!==1||d.source!=="creator.engine")return;window.__zpTunerText=d.active?(d.frequency?d.note+" · "+d.frequency.toFixed(1)+" HZ · "+(d.cents>0?"+":"")+d.cents+" CENTS":"LISTENING · NO PITCH"): "TUNER OFF";latestEngineState.tunerActive=!!d.active;const el=document.getElementById("utility-tuner-status");if(el)el.textContent=window.__zpTunerText;const toggle=document.querySelector(".utility-tuner-toggle");if(toggle)toggle.textContent=d.active?"STOP TUNER":"START TUNER"});
 window.addEventListener("message",ev=>{const d=ev.data;if(ev.source!==frame.contentWindow||ev.origin!==location.origin||d?.type!=="zp-engine-meter"||d.protocolVersion!==1||d.source!=="creator.engine")return;window.__zpMasterPeak=d.peak||0;const bar=document.getElementById("utility-master-meter-bar");if(bar)bar.style.width=Math.max(0,Math.min(1,d.peak||0))*100+"%";const label=document.getElementById("utility-master-peak");if(label)label.textContent="PEAK · "+Math.round((d.peak||0)*100)+"%"});
-window.addEventListener("zp-engine-timeout",ev=>console.error("Creator engine timeout:",ev.detail.command));
- window.addEventListener("zp-engine-error",ev=>console.error("Creator engine error:",ev.detail.command,ev.detail.error||ev.detail.message));
- window.addEventListener("zp-engine-result",ev=>{if(ev.detail.result?.ok===false)console.error("Creator command failed:",ev.detail.command,ev.detail.result.error)});
+let zx1ValueFeedbackTimer=null;
+window.addEventListener("message",ev=>{
+ const d=ev.data;
+ if(ev.source!==frame.contentWindow||ev.origin!==location.origin||d?.type!=="zp-engine-value-feedback"||d.protocolVersion!==1||d.source!=="creator.engine")return;
+ const display=document.getElementById("zx1-value-feedback");if(!display)return;
+ const parameter=String(d.parameter||"VALUE").toUpperCase().replace(/[^A-Z0-9._ -]/g,"").slice(0,16);
+ const value=String(d.value??"").replace(/[<>]/g,"").slice(0,18);
+ const pad=Number(d.padId);
+ display.dataset.kind="value";
+ display.textContent=(Number.isInteger(pad)&&pad>=1&&pad<=9?"PAD "+String(pad).padStart(2,"0")+" · ":"")+parameter+(value?" · "+value:"");
+ display.hidden=false;
+ if(zx1ValueFeedbackTimer)clearTimeout(zx1ValueFeedbackTimer);
+ zx1ValueFeedbackTimer=setTimeout(()=>{display.hidden=true;zx1ValueFeedbackTimer=null},1300);
+});
+const zx1FailureText=detail=>{
+ const code=String(detail?.error?.code||detail?.result?.error?.code||"");
+ if(code==="INVALID_INPUT")return "ERROR · VALOR NO VÁLIDO";
+ if(["NOT_FOUND","SAMPLE_NOT_FOUND","NO_SAMPLE","BPM_NOT_FOUND"].includes(code))return "ERROR · ELEMENTO NO DISPONIBLE";
+ if(["MEDIA_RECORDER_UNAVAILABLE","MIC_UNAVAILABLE"].includes(code))return "ERROR · AUDIO NO DISPONIBLE";
+ if(["CLIPBOARD_EMPTY"].includes(code))return "ERROR · PORTAPAPELES VACÍO";
+ if(["NO_EMPTY_PADS"].includes(code))return "ERROR · NO HAY PADS LIBRES";
+ if(["UNSUPPORTED"].includes(code))return "ERROR · FUNCIÓN NO DISPONIBLE";
+ if(/Quota|Abort|Constraint|IndexedDB|STORAGE/i.test(code))return "ERROR · NO SE PUDO GUARDAR";
+ return "ERROR · ACCIÓN NO DISPONIBLE";
+};
+const showZX1Failure=message=>{
+ const display=document.getElementById("zx1-value-feedback");if(!display)return;
+ display.dataset.kind="error";display.textContent=message;display.hidden=false;
+ if(zx1ValueFeedbackTimer)clearTimeout(zx1ValueFeedbackTimer);
+ zx1ValueFeedbackTimer=setTimeout(()=>{display.hidden=true;delete display.dataset.kind;zx1ValueFeedbackTimer=null},2200);
+};
+window.addEventListener("zp-engine-timeout",ev=>{showZX1Failure("ERROR · MOTOR NO RESPONDE");console.error("Creator engine timeout:",ev.detail?.command)});
+window.addEventListener("zp-engine-error",ev=>{showZX1Failure(zx1FailureText(ev.detail));console.error("Creator engine error:",ev.detail?.command,ev.detail?.error||ev.detail?.message)});
+window.addEventListener("zp-engine-result",ev=>{if(ev.detail?.result?.ok===false){showZX1Failure(zx1FailureText(ev.detail));console.error("Creator command failed:",ev.detail.command,ev.detail.result.error)}});
  window.addEventListener("message",ev=>{const d=ev.data;if(ev.source===frame.contentWindow&&ev.origin===location.origin&&d?.type==="zp-engine-radio-state"&&d.protocolVersion===1&&d.source==="creator.engine"){const state=d.state||{};document.querySelectorAll("#rows .b[data-bank]").forEach(b=>b.classList.toggle("lit",b.dataset.bank===state.activeBank));if(state.patternMeta)latestPatternState={items:Object.values(state.patternMeta),activePatternId:state.activePatternId||latestPatternState.activePatternId};latestEngineState={...latestEngineState,...state};window.__zpSelectedStepIndex=Number.isInteger(state.selectedStepIndex)?state.selectedStepIndex:null;latestPadSetting.mute=!!state.muted?.[state.activePad];latestPadSetting.solo=!!state.soloed?.[state.activePad];if(!sampleEditPanel.hidden&&Number(state.activePad)!==Number(sampleEditState.pad)){if(sampleEditState.manualChopMode)zpBridgeSend("creator.sample.chop.manual.cancel",{});zpBridgeSend("creator.sample.edit.state",{})}if(!adsrPanel.hidden&&Number(state.activePad)!==adsrPad){adsrPad=Number(state.activePad)||1;adsrCurveOpen=false;adsrValues=state.envelopes?.[adsrPad]||{attack:.01,decay:.18,sustain:.72,release:.2};renderAdsrPanel();zpBridgeSend("creator.envelope.get",{pad:adsrPad})}if(!padConfig.hidden&&Number(state.activePad)!==configuredPad){configuredPad=Number(state.activePad)||1;$("#zp-pad-config-title").textContent="PAD "+String(configuredPad).padStart(2,"0")+" · SETTINGS";zpBridgeSend("creator.pad.setting.get",{pad:configuredPad})}latestRecordState={...latestRecordState,mode:state.recordMode||latestRecordState.mode,armed:!!state.recordArmed,recording:!!state.recording,countIn:!!state.countInEnabled,overdub:!!state.overdubEnabled};latestLoopState={...latestLoopState,looping:!!state.looping,loopStart:state.loopStart??latestLoopState.loopStart,loopEnd:state.loopEnd??latestLoopState.loopEnd,loopRecordEnabled:!!state.loopRecordEnabled,stepIndex:state.stepIndex??latestLoopState.stepIndex};latestBpmState={...latestBpmState,bpm:state.bpm||latestBpmState.bpm,bpmSyncEnabled:!!state.bpmSyncEnabled};const play=document.getElementById("play");if(play)play.textContent=state.playing?"STOP":(Number(state.stepIndex)>Number(state.loopStart)?"CONTINUE":"PLAY");by("REC")?.classList.toggle("on",!!(state.recording||state.recordArmed));by("LOOP")?.classList.toggle("on",!!state.looping);by("BPMSYNC")?.classList.toggle("on",!!state.bpmSyncEnabled);if(!patternMenu.hidden)renderPatternMenu();if(!utilityPanel.hidden)renderUtilityPanel();if(!transportMenu.hidden)renderTransportMenu();parent.postMessage({type:"zp-radio-publish-state",protocolVersion:1,source:"creator.ui",state},location.origin);return}if(ev.source===parent&&ev.origin===location.origin&&d?.type==="zp-radio-state"&&d.protocolVersion===1&&d.source==="radio.gateway"){zpBridgeSend("creator.radio.apply-state",{state:d.state})}});
 
  const norm=s=>(s||"").replace(/<[^>]*>/g,"").replace(/\s+/g,"").toUpperCase();
@@ -1011,12 +1060,43 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  let drawMode=true,snapSize=1,defaultLength=1,octaveShift=0,selectedNoteId=null,activeNotes=[],pianoMode=false,noteSequence=0,topMidi=71;
  let pianoEngineState={quantizeEnabled:false,quantizeDivision:'1/16'};
  const drawButton=$('#zpDraw'),snapButton=$('#zpSnap'),lengthButton=$('#zpLen'),velocityInput=$('#zpVelocity'),stepModeButton=$('#zpStepMode');
+ drawButton.setAttribute('aria-label','Modo dibujo de notas');
+ drawButton.setAttribute('aria-pressed','true');
+ stepModeButton.setAttribute('aria-pressed','false');
+ stepModeButton.setAttribute('aria-label','Mostrar Piano Roll');
+ nudgeButton.setAttribute('aria-label','Movimiento libre de notas');
+ nudgeButton.setAttribute('aria-pressed','false');
  const clamp=(v,min,max)=>Math.max(min,Math.min(max,v));
  const noteName=m=>['C','C#','D','D#','E','F','F#','G','G#','A','A#','B'][((m%12)+12)%12]+(Math.floor(m/12)-1);
  const noteCommand=(command,payload={})=>window.zpBridgeSend?.(command,payload);
  window.addEventListener('zp-agent-runtime-context',event=>{const state=event.detail||{};if(typeof state.quantizeEnabled==='boolean'&&['OFF','1/16','1/8','1/4','1/32','1/4T','1/8T','1/16T'].includes(state.quantizeDivision)){pianoEngineState={...pianoEngineState,quantizeEnabled:state.quantizeEnabled,quantizeDivision:state.quantizeDivision};syncPianoControls()}});
 
  const nudgeButton=$('#zpNudge'),freeCursor=mk('div','piano-free-cursor'),noteTools=mk('div','piano-note-tools');freeCursor.setAttribute('aria-hidden','true');noteTools.hidden=true;noteTools.innerHTML='<b>MIDI TOOLS</b><span id="zpNoteInfo"></span><div class="midi-targets"><button type="button" data-midi-target="step">STEP</button><button type="button" data-midi-target="pitch" class="selected">PITCH</button><button type="button" data-midi-target="length">LEN</button><button type="button" data-midi-target="velocity">VEL</button></div><label>VELOCITY <input id="zpLongVelocity" type="range" min="1" max="127" value="100"></label><button type="button" id="zpLongDelete">DEL</button><button type="button" id="zpLongClose">×</button>';pianoViewport.append(freeCursor,noteTools);
+
+/* AUD-012 · Accessible names and state for generated Creator controls */
+patternMenu.querySelector(".zp-pattern-close")?.setAttribute("aria-label","Cerrar gestor de patrones");
+transportMenu.querySelector(".zp-transport-close")?.setAttribute("aria-label","Cerrar menú de transporte");
+utilityPanel.querySelector(".zp-utility-close")?.setAttribute("aria-label","Cerrar centro de utilidades");
+document.querySelectorAll(".zp-project-close").forEach(button=>button.setAttribute("aria-label","Cerrar ventana"));
+noteTools.querySelector("#zpLongClose")?.setAttribute("aria-label","Cerrar herramientas MIDI");
+const projectLabels=projectDialog.querySelectorAll("label");
+if(projectLabels[0])projectLabels[0].htmlFor="zp-project-select";
+if(projectLabels[1])projectLabels[1].htmlFor="zp-project-name";
+const historyModule=historyDialog.querySelector("#zp-history-module");
+historyModule?.setAttribute("aria-label","Módulo para crear snapshot");
+const historyLabels=[...historyDialog.querySelectorAll("label")];
+const historyListLabel=historyLabels.find(label=>label.textContent.includes("HISTORIAL SECUENCIAL"));
+if(historyListLabel)historyListLabel.htmlFor="zp-history-list";
+const sampleLabels=[...sampleEditPanel.querySelectorAll("label")];
+const pitchLabel=sampleLabels.find(label=>label.textContent.includes("PITCH"));
+const timeLabel=sampleLabels.find(label=>label.textContent.includes("TIME"));
+if(pitchLabel)pitchLabel.htmlFor="zp-sample-pitch";
+if(timeLabel)timeLabel.htmlFor="zp-sample-time";
+const samplePitch=sampleEditPanel.querySelector("#zp-sample-pitch");
+const sampleTime=sampleEditPanel.querySelector("#zp-sample-time");
+samplePitch?.setAttribute("aria-label","Pitch de la muestra en semitonos");
+sampleTime?.setAttribute("aria-label","Velocidad de reproducción de la muestra");
+
  let freeMove=false,longPressTimer=null,longPressFired=false,menuVelocity=$('#zpLongVelocity');
  const selectedNote=()=>activeNotes.find(n=>n.id===selectedNoteId);
 
@@ -1127,6 +1207,8 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
   pianoViewport.hidden=!pianoMode;
   viewport.hidden=pianoMode;
   stepModeButton.textContent=pianoMode?'STEP':'PIANO';
+  stepModeButton.setAttribute('aria-pressed',String(pianoMode));
+  stepModeButton.setAttribute('aria-label',pianoMode?'Mostrar secuenciador por pasos':'Mostrar Piano Roll');
   $('#zpClear').textContent='CLR';
   window.__zpPianoEncoderMode=!!(pianoMode&&scr.classList.contains('pr'));
   const patternOpen=scr.classList.contains('pr');
@@ -1142,7 +1224,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  const renderNotes=()=>{pianoGrid.querySelectorAll('.piano-note').forEach(n=>n.remove());activeNotes.forEach(note=>{const row=topMidi-note.pitch;if(row<0||row>=24)return;const el=mk('div','piano-note'+(note.id===selectedNoteId?' selected':''),'<span>'+noteName(note.pitch)+'</span><i></i>');el.dataset.id=note.id;el.style.gridColumn=(note.step+2)+' / span '+note.length;el.style.gridRow=String(row+2);el.style.transform=note.micro?'translateX('+((note.micro/Math.max(1,note.length))*100)+'%)':'none';el.style.opacity=String(.35+.65*note.velocity/127);pianoGrid.append(el)});const selected=activeNotes.find(n=>n.id===selectedNoteId);if(selected){velocityInput.value=String(selected.velocity);defaultLength=selected.length}syncPianoControls()};
  const upsertNote=note=>{const step=clamp(Math.round(note.step),0,15),normalized={...note,step,pitch:clamp(Math.round(note.pitch),36,96),length:clamp(Math.round(note.length),1,16-step),velocity:clamp(Math.round(note.velocity),1,127)};const existing=activeNotes.findIndex(n=>n.id===normalized.id);if(existing>=0)activeNotes[existing]=normalized;else activeNotes.push(normalized);activeNotes.sort((a,b)=>a.step-b.step||a.pitch-b.pitch);selectedNoteId=normalized.id;window.__zpSelectedMidiNoteId=selectedNoteId;renderNotes();noteCommand('creator.piano.note.upsert',{note:normalized})};
  const setSelected=note=>{selectedNoteId=note?.id||null;window.__zpSelectedMidiNoteId=selectedNoteId;renderNotes()};
- drawButton.onclick=()=>{drawMode=!drawMode;drawButton.classList.toggle('selected',drawMode);drawButton.textContent=drawMode?'DRAW':'SELECT'};
+ drawButton.onclick=()=>{drawMode=!drawMode;drawButton.classList.toggle('selected',drawMode);drawButton.textContent=drawMode?'DRAW':'SELECT';drawButton.setAttribute('aria-pressed',String(drawMode))};
  snapButton.onclick=()=>{const current=pianoEngineState?.quantizeEnabled?pianoEngineState.quantizeDivision:'OFF',order=['OFF','1/16','1/8','1/4'],next=order[(order.indexOf(current)+1)%order.length];noteCommand('creator.quantize.set',{enabled:next!=='OFF',division:next})};
  lengthButton.onclick=()=>{defaultLength=defaultLength===1?2:defaultLength===2?4:defaultLength===4?8:defaultLength===8?16:1;const n=activeNotes.find(x=>x.id===selectedNoteId);if(n)upsertNote({...n,length:defaultLength});else syncPianoControls()};
  velocityInput.addEventListener('change',()=>{const n=activeNotes.find(x=>x.id===selectedNoteId);if(n)upsertNote({...n,velocity:Number(velocityInput.value)})});
@@ -1186,7 +1268,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
   swipePattern.active=false;swipePattern.lastStep=-1;swipePattern.lastPad=0;swipePattern.visited.clear();
   gr.querySelectorAll('.pattern-swipe-active').forEach(el=>el.classList.remove('pattern-swipe-active'));
  }));
- nudgeButton.addEventListener('click',()=>{freeMove=!freeMove;nudgeButton.classList.toggle('selected',freeMove);nudgeButton.textContent=freeMove?'✥':'↕';pianoGrid.classList.toggle('free-drag',freeMove)});
+ nudgeButton.addEventListener('click',()=>{freeMove=!freeMove;nudgeButton.classList.toggle('selected',freeMove);nudgeButton.textContent=freeMove?'✥':'↕';nudgeButton.setAttribute('aria-pressed',String(freeMove));pianoGrid.classList.toggle('free-drag',freeMove)});
  let rotorAngle=null,rotorRemainder=0,rotorTarget="pitch";
  window.__zpEncoderTargets={...(window.__zpEncoderTargets||{}),lx:"step",rx:"pitch"};
  const midiRotor=document.querySelector('.pe');
@@ -1502,5 +1584,21 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
 }
 </style>
 
+<style id="zx1-value-feedback-style">
+/* Transient value feedback stays inside the existing LCD box; it does not affect geometry. */
+.zx1-value-feedback{
+ position:absolute;z-index:20;left:50%;bottom:18px;transform:translateX(-50%);
+ max-width:calc(100% - 16px);padding:2px 6px;border:1px solid var(--lcd);border-radius:2px;
+ background:rgba(2,18,3,.94);color:var(--lcd);
+ font:14px/14px VT323,'Courier New',monospace;letter-spacing:.25px;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;
+ box-shadow:0 0 7px var(--glow);text-shadow:0 0 3px var(--lcd);
+}
+.zx1-value-feedback[hidden]{display:none!important}
+.zx1-value-feedback[data-kind="error"]{
+ border-color:#ff8d79;color:#ffd1c7;
+ box-shadow:0 0 7px #ff6d5b66;text-shadow:0 0 3px #ff8d79;
+}
+</style>
 </body>
 </html>

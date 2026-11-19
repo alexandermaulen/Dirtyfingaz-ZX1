@@ -523,8 +523,29 @@ async function restoreHistorySnapshot(payload={}){
 function publishPianoState(){parent.postMessage({type:"zp-engine-piano-state",protocolVersion:1,source:"creator.engine",bank:activeBank,patternId:activePatternId,activePad,notes:(pianoData[activePatternId]?.[activePad]||[]).map(n=>({...n}))},location.origin)}
 let radioStatePublishQueued=false;function publishRadioState(){if(radioStatePublishQueued)return;radioStatePublishQueued=true;setTimeout(()=>{radioStatePublishQueued=false;const state={...projectSnapshot(),playing,recording,recordArmed,stepIndex,selectedStepIndex};parent.postMessage({type:"zp-engine-radio-state",protocolVersion:1,source:"creator.engine",state,project:{id:currentProjectId,name:currentProjectName}},location.origin)},80)}
 async function saveSession(silent=false){const data=projectSnapshot();try{await assetStorage.saveProject(data,currentProjectId,currentProjectName);if(currentProjectId==="current"){try{localStorage.setItem("dirtyfingaz-zx1-session",JSON.stringify(data))}catch(legacyError){console.warn("Copia localStorage omitida",legacyError)}}if(!silent)notify("GUARDADO · "+currentProjectName);return {id:currentProjectId,name:currentProjectName}}catch(e){console.error(e);if(!silent)notify("ERROR AL GUARDAR PROYECTO");throw e}}
-async function loadSession(projectId="current"){try{currentProjectId=String(projectId||"current");const projects=await assetStorage.listProjects();const meta=projects.find(p=>p.id===currentProjectId);currentProjectName=meta?.name||(currentProjectId==="current"?"Proyecto recuperado":"Proyecto sin título");let d=await assetStorage.loadProject(currentProjectId);if(!d&&currentProjectId==="current")d=JSON.parse(localStorage.getItem("dirtyfingaz-zx1-session")||"null");
- resetPatterns();
+function validateStoredSampleRecord(item){
+ if(!item||typeof item!=="object"||Array.isArray(item))return null;
+ const bank=item.bank==null?"A":String(item.bank),pad=Number(item.pad);
+ const sampleRate=Number(item.sampleRate),length=Number(item.length);
+ if(!BANKS.includes(bank)||!Number.isInteger(pad)||pad<1||pad>9||
+    !Number.isInteger(sampleRate)||sampleRate<3000||sampleRate>384000||
+    !Number.isSafeInteger(length)||length<1||length>sampleRate*300||
+    !Array.isArray(item.channels)||!item.channels.length||item.channels.length>8)return null;
+ if(!item.channels.every(channel=>(Array.isArray(channel)||ArrayBuffer.isView(channel))&&channel.length===length))return null;
+ const sourceRange=item.range||{start:0,end:1},start=Number(sourceRange.start),end=Number(sourceRange.end);
+ if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end>1||start>=end)return null;
+ return {bank,pad,range:{start,end},name:String(typeof item.name==="string"?item.name:"SAMPLE").slice(0,80)};
+}
+async function loadSession(projectId="current"){
+ try{
+  const targetProjectId=String(projectId||"current");
+  const projects=await assetStorage.listProjects(),meta=projects.find(p=>p.id===targetProjectId);
+  const targetProjectName=meta?.name||(targetProjectId==="current"?"Proyecto recuperado":"Proyecto sin título");
+  let d=await assetStorage.loadProject(targetProjectId);
+  if(!d&&targetProjectId==="current")d=JSON.parse(localStorage.getItem("dirtyfingaz-zx1-session")||"null");
+  const savedSamples=await assetStorage.getProjectSamples(targetProjectId);
+  currentProjectId=targetProjectId;currentProjectName=targetProjectName;
+  resetPatterns();
  Object.keys(samples).forEach(k=>delete samples[k]);Object.keys(sampleNames).forEach(k=>delete sampleNames[k]);Object.keys(ranges).forEach(k=>delete ranges[k]);
  [padLevels,padPitch,padFilter,padPan,padTime,padChoke,padRouting,padFx,envelopes,muted,soloed].forEach(obj=>Object.keys(obj).forEach(k=>delete obj[k]));
  envelopeMode="ADSR";sampleEditMode="NONDESTRUCTIVE";manualChopMode=false;manualChopMarkers=[];bpm=96;masterLevel=.58;activePad=1;activeBank="A";resetPatterns();songMode=false;looping=true;loopStart=0;loopEnd=15;loopRecordEnabled=false;recordMode="MIDI";recordArmed=false;recording=false;countInEnabled=false;overdubEnabled=true;bpmSyncEnabled=false;metronomeEnabled=false;stopMetronomeTimer();keyRoot="C";scaleName="MAJOR";quantizeEnabled=false;quantizeDivision="1/16";fxAmount=.25;Object.keys(fxState).forEach(k=>fxState[k]=false);
@@ -560,14 +581,119 @@ async function loadSession(projectId="current"){try{currentProjectId=String(proj
   if(!songOrder.length)songOrder=Object.keys(patternData);
  }
  bpm=Math.max(40,Math.min(240,Number(d?.bpm)||96));masterLevel=Number.isFinite(d?.masterLevel)?Math.max(0,Math.min(1,d.masterLevel)):.58;activePad=Math.max(1,Math.min(9,Number(d?.activePad)||1));activeBank=BANKS.includes(d?.activeBank)?d.activeBank:"A";if(!patternData[activePatternId])activePatternId=Object.keys(patternData)[0]||ensurePattern("PATTERN_01","PATTERN 01");if(d?.padLevels)Object.assign(padLevels,d.padLevels);if(d?.padPitch)Object.assign(padPitch,d.padPitch);if(d?.padFilter)Object.assign(padFilter,d.padFilter);if(d?.padPan)Object.assign(padPan,d.padPan);if(d?.padTime)Object.assign(padTime,d.padTime);sampleEditMode=d?.sampleEditMode==="DESTRUCTIVE"?"DESTRUCTIVE":"NONDESTRUCTIVE";if(d?.padChoke)Object.assign(padChoke,d.padChoke);if(d?.padRouting)Object.assign(padRouting,d.padRouting);if(d?.padFx)Object.assign(padFx,d.padFx);if(d?.envelopes&&typeof d.envelopes==="object")Object.assign(envelopes,d.envelopes);envelopeMode=d?.envelopeMode==="ADR"?"ADR":"ADSR";if(d?.muted)Object.assign(muted,d.muted);if(d?.soloed)Object.assign(soloed,d.soloed);if(d?.fxState)Object.assign(fxState,d.fxState);if(d?.fxParams)for(const key of Object.keys(fxParams))if(d.fxParams[key])Object.assign(fxParams[key],d.fxParams[key]);fxBypass=!!d?.fxBypass;fxScope=d?.fxScope==="PAD"?"PAD":"MASTER";fxChain=Array.isArray(d?.fxChain)?d.fxChain.filter(x=>["filter","drive","compressor","resonator","isolator","delay","reverb"].includes(x)):fxChain;fxAmount=Number.isFinite(d?.fxAmount)?d.fxAmount:.25;looping=d?.looping!==false;songMode=!!d?.songMode;keyRoot=["C","C#","D","D#","E","F","F#","G","G#","A","A#","B"].includes(d?.keyRoot)?d.keyRoot:"C";scaleName=["MAJOR","MINOR","DORIAN","PHRYGIAN","LYDIAN","MIXOLYDIAN","LOCRIAN","PENTATONIC","BLUES"].includes(d?.scaleName)?d.scaleName:"MAJOR";quantizeEnabled=!!d?.quantizeEnabled;quantizeDivision=["OFF","1/4","1/8","1/16","1/32","1/4T","1/8T","1/16T"].includes(d?.quantizeDivision)?d.quantizeDivision:"1/16";metronomeAccent=d?.metronomeAccent!==false;timeSignature=["2/4","3/4","4/4","5/4","6/8","7/8"].includes(d?.timeSignature)?d.timeSignature:"4/4";recordMode=d?.recordMode==="AUDIO"?"AUDIO":"MIDI";countInEnabled=!!d?.countInEnabled;overdubEnabled=d?.overdubEnabled!==false;loopStart=Math.max(0,Math.min(14,Math.round(Number(d?.loopStart)||0)));loopEnd=Math.max(loopStart+1,Math.min(15,Math.round(Number(d?.loopEnd??15))));loopRecordEnabled=!!d?.loopRecordEnabled;bpmSyncEnabled=!!d?.bpmSyncEnabled;recording=false;recordArmed=false;metronomeEnabled=false;stopMetronomeTimer()
- const savedSamples=await assetStorage.getProjectSamples(currentProjectId);if(savedSamples&&savedSamples.length){const c=audio(false);for(const item of savedSamples){const bank=BANKS.includes(item.bank)?item.bank:"A",slot=sampleSlot(item.pad,bank);samples[slot]=assetStorage.decodeBuffer(item,c);sampleNames[slot]=item.name;ranges[slot]=item.range||{start:0,end:1}}
- }if(ctx){master.gain.setTargetAtTime(masterLevel,ctx.currentTime,.02);filterBus.frequency.setTargetAtTime(fxState.filter?1200:18000,ctx.currentTime,.02);delayWet.gain.setTargetAtTime(fxState.delay?fxAmount*.65:0,ctx.currentTime,.02);reverbWet.gain.setTargetAtTime(fxState.reverb?fxAmount*.55:0,ctx.currentTime,.02);driveAmount(fxState.drive?fxAmount*35:0)}sampleDriveOn=!!fxState.drive;updatePadLabels();updateScreen();setKnobValues();refreshSteps();publishPianoState();bpmText.textContent=bpm+" BPM";bankButtons?.forEach(b=>b.classList.toggle("active",b.dataset.bank===activeBank));publishTrimState();publishRadioState();if(migratedLegacyPatterns)await saveSession(true);if(savedSamples&&savedSamples.length)notify(savedSamples.length+" MUESTRAS RESTAURADAS");return {id:currentProjectId,name:currentProjectName}}catch(e){console.error(e);notify("STORAGE LOCAL NO DISPONIBLE");throw e}}
+ let skippedStoredSamples=0;
+ if(savedSamples&&savedSamples.length){
+  const c=audio(false);
+  for(const item of savedSamples){
+   const valid=validateStoredSampleRecord(item);
+   if(!valid){skippedStoredSamples++;console.warn("Sample local omitido por metadata/canales inválidos",item?.bank,item?.pad);continue}
+   try{
+    const slot=sampleSlot(valid.pad,valid.bank);
+    samples[slot]=assetStorage.decodeBuffer(item,c);sampleNames[slot]=valid.name;ranges[slot]=valid.range;
+   }catch(error){skippedStoredSamples++;console.warn("Sample local omitido durante decodificación",valid.bank,valid.pad,error)}
+  }
+ }if(ctx){master.gain.setTargetAtTime(masterLevel,ctx.currentTime,.02);filterBus.frequency.setTargetAtTime(fxState.filter?1200:18000,ctx.currentTime,.02);delayWet.gain.setTargetAtTime(fxState.delay?fxAmount*.65:0,ctx.currentTime,.02);reverbWet.gain.setTargetAtTime(fxState.reverb?fxAmount*.55:0,ctx.currentTime,.02);driveAmount(fxState.drive?fxAmount*35:0)}sampleDriveOn=!!fxState.drive;updatePadLabels();updateScreen();setKnobValues();refreshSteps();publishPianoState();bpmText.textContent=bpm+" BPM";bankButtons?.forEach(b=>b.classList.toggle("active",b.dataset.bank===activeBank));publishTrimState();publishRadioState();if(migratedLegacyPatterns)await saveSession(true);if(savedSamples&&savedSamples.length)notify((savedSamples.length-skippedStoredSamples)+" MUESTRAS RESTAURADAS"+(skippedStoredSamples?" · "+skippedStoredSamples+" NO DISPONIBLES":""));return {id:currentProjectId,name:currentProjectName,restoredSamples:savedSamples.length-skippedStoredSamples,skippedSamples:skippedStoredSamples}}catch(e){console.error(e);notify("STORAGE LOCAL NO DISPONIBLE");throw e}}
 function makeProjectId(){return "zp-"+(crypto.randomUUID?crypto.randomUUID():Date.now()+"-"+Math.random().toString(36).slice(2,10))}
 async function createProject(name){await saveSession(true);stopTransport();currentProjectId=makeProjectId();currentProjectName=String(name||"Proyecto nuevo").trim().slice(0,80)||"Proyecto nuevo";bpm=96;activePad=1;activeBank="A";resetPatterns();songMode=false;looping=true;loopStart=0;loopEnd=15;loopRecordEnabled=false;recordMode="MIDI";recordArmed=false;recording=false;countInEnabled=false;overdubEnabled=true;bpmSyncEnabled=false;metronomeEnabled=false;stopMetronomeTimer();keyRoot="C";scaleName="MAJOR";quantizeEnabled=false;quantizeDivision="1/16";fxAmount=.25;masterLevel=.58;envelopeMode="ADSR";sampleEditMode="NONDESTRUCTIVE";manualChopMode=false;manualChopMarkers=[];Object.keys(envelopes).forEach(k=>delete envelopes[k]);Object.keys(samples).forEach(k=>delete samples[k]);Object.keys(sampleNames).forEach(k=>delete sampleNames[k]);Object.keys(ranges).forEach(k=>delete ranges[k]);[padLevels,padPitch,padFilter,padPan,padTime,padChoke,padRouting,padFx,muted,soloed].forEach(obj=>Object.keys(obj).forEach(k=>delete obj[k]));Object.keys(fxState).forEach(k=>fxState[k]=false);resetPatterns();await saveSession(true);await loadSession(currentProjectId);notify("NUEVO PROYECTO · "+currentProjectName);return {id:currentProjectId,name:currentProjectName}}
 async function refreshProjectList(){const select=projectDialog.querySelector("#zp-project-select");const items=await assetStorage.listProjects();select.replaceChildren();items.forEach(item=>{const option=document.createElement("option");option.value=item.id;option.textContent=item.name+(item.id===currentProjectId?" · ACTUAL":"");select.append(option)});if(!items.some(item=>item.id===currentProjectId)){const option=document.createElement("option");option.value=currentProjectId;option.textContent=currentProjectName+" · ACTUAL";select.prepend(option)}select.value=currentProjectId;projectDialog.querySelector("#zp-project-current").textContent="ACTUAL: "+currentProjectName;projectDialog.querySelector("#zp-project-name").value=currentProjectName;projectDialog.querySelector("#zp-project-delete").disabled=select.value==="current"||select.value===currentProjectId}
 async function openProjectManager(){await saveSession(true);await refreshProjectList();if(!projectDialog.open)projectDialog.showModal();return {open:true,currentProjectId}}
 async function exportProjectFile(){await saveSession(true);const samplesForExport=await assetStorage.getProjectSamples(currentProjectId);const payload={format:"dirtyfingaz-zx1-project",formatVersion:1,exportedAt:new Date().toISOString(),name:currentProjectName,data:projectSnapshot(),samples:samplesForExport.map(item=>({bank:item.bank||"A",pad:item.pad,name:item.name,sampleRate:item.sampleRate,length:item.length,range:item.range,channels:item.channels.map(channel=>Array.from(channel))}))};const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=(currentProjectName.replace(/[^a-z0-9-_]+/gi,"-")||"dirtyfingaz-project")+".zp.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);notify("PROYECTO EXPORTADO");return {samples:samplesForExport.length}}
-async function importProjectFile(file){if(!file)return;try{const payload=JSON.parse(await file.text());if(payload.format!=="dirtyfingaz-zx1-project"||!payload.data||!payload.data.patterns)throw new Error("Archivo ZX1 no reconocido");const id=makeProjectId(),name=String(payload.name||file.name.replace(/\.zp\.json$|\.json$/i,"")||"Proyecto importado").slice(0,80);await assetStorage.saveProject(payload.data,id,name);for(const item of (Array.isArray(payload.samples)?payload.samples:[])){if(!Number.isInteger(item.pad)||item.pad<1||item.pad>9||!Array.isArray(item.channels)||!item.channels.length||item.channels.length>8||!Number.isInteger(item.length)||item.length<1||item.length>item.sampleRate*300)continue;const c=audio(),buffer=c.createBuffer(item.channels.length,item.length,item.sampleRate);item.channels.forEach((channel,index)=>buffer.copyToChannel(new Float32Array(channel),index));await assetStorage.saveProjectSample(id,item.pad,buffer,item.name,item.range||{start:0,end:1},BANKS.includes(item.bank)?item.bank:"A")}await saveSession(true);await loadSession(id);await refreshProjectList();notify("PROYECTO IMPORTADO · "+name);return {id,name}}catch(error){console.error(error);notify("ERROR AL IMPORTAR · "+error.message);throw error}}
+function sanitizeImportedProjectValue(value,depth=0){
+ if(depth>24)throw Object.assign(new Error("Proyecto demasiado profundo"),{code:"INVALID_INPUT"});
+ if(Array.isArray(value))return value.map(item=>sanitizeImportedProjectValue(item,depth+1));
+ if(value&&typeof value==="object"){
+  const safe={};
+  for(const key of Object.keys(value)){
+   if(key==="__proto__"||key==="prototype"||key==="constructor")throw Object.assign(new Error("Clave de proyecto no permitida"),{code:"INVALID_INPUT"});
+   safe[key]=sanitizeImportedProjectValue(value[key],depth+1);
+  }
+  return safe;
+ }
+ return value;
+}
+function prepareProjectImport(payload){
+ if(!payload||payload.format!=="dirtyfingaz-zx1-project"||(payload.formatVersion!==undefined&&payload.formatVersion!==1)||
+    !payload.data||typeof payload.data!=="object"||Array.isArray(payload.data)||
+    !payload.data.patterns||typeof payload.data.patterns!=="object"||Array.isArray(payload.data.patterns))
+  throw Object.assign(new Error("Archivo ZX1 no reconocido o versión no compatible"),{code:"INVALID_INPUT"});
+ const data=sanitizeImportedProjectValue(payload.data);
+ const patternIds=Object.keys(data.patterns);
+ if(!patternIds.length||patternIds.length>256||patternIds.some(id=>!/^PATTERN_\d+$/i.test(id)&&!BANKS.includes(id)))
+  throw Object.assign(new Error("Estructura de patrones no válida"),{code:"INVALID_INPUT"});
+ if(Array.isArray(data.songOrder))data.songOrder=data.songOrder.filter(id=>patternIds.includes(id));
+ if(data.activePatternId&&!patternIds.includes(data.activePatternId))delete data.activePatternId;
+ if(data.patternMeta&&typeof data.patternMeta==="object")Object.keys(data.patternMeta).forEach(id=>{if(!patternIds.includes(id))delete data.patternMeta[id]});
+ if(data.pianoNotes&&typeof data.pianoNotes==="object"){
+  Object.keys(data.pianoNotes).forEach(id=>{
+   if(!patternIds.includes(id)){delete data.pianoNotes[id];return}
+   const pads=data.pianoNotes[id];
+   if(!pads||typeof pads!=="object"||Array.isArray(pads)){delete data.pianoNotes[id];return}
+   Object.keys(pads).forEach(padId=>{
+    if(!/^[1-9]$/.test(padId)||!Array.isArray(pads[padId])){delete pads[padId];return}
+    const used=new Set();let sequence=0;
+    pads[padId]=pads[padId].filter(note=>note&&typeof note==="object"&&!Array.isArray(note)).map(note=>{
+     let noteId=typeof note.id==="string"?note.id:"";
+     if(!/^[A-Za-z0-9_-]{1,120}$/.test(noteId)||used.has(noteId))noteId="import-midi-"+(++sequence);
+     used.add(noteId);return {...note,id:noteId};
+    });
+   });
+  });
+ }
+ const incoming=payload.samples==null?[]:payload.samples;
+ if(!Array.isArray(incoming)||incoming.length>45)throw Object.assign(new Error("Lista de samples no válida"),{code:"INVALID_INPUT"});
+ const seen=new Set();
+ const samples=incoming.map((item,index)=>{
+  if(!item||typeof item!=="object"||Array.isArray(item))throw Object.assign(new Error("Sample "+(index+1)+" no válido"),{code:"INVALID_INPUT"});
+  const pad=Number(item.pad),bank=item.bank==null?"A":String(item.bank),sampleRate=Number(item.sampleRate),length=Number(item.length);
+  if(!Number.isInteger(pad)||pad<1||pad>9||!BANKS.includes(bank)||
+     !Number.isInteger(sampleRate)||sampleRate<3000||sampleRate>384000||
+     !Number.isSafeInteger(length)||length<1||length>sampleRate*300||
+     !Array.isArray(item.channels)||!item.channels.length||item.channels.length>8)
+   throw Object.assign(new Error("Metadatos de sample no válidos"),{code:"INVALID_INPUT"});
+  const slot=bank+":"+pad;if(seen.has(slot))throw Object.assign(new Error("Sample duplicado en banco/PAD "+slot),{code:"INVALID_INPUT"});seen.add(slot);
+  const channels=item.channels.map(channel=>{
+   if(!Array.isArray(channel)||channel.length!==length||!channel.every(value=>typeof value==="number"&&Number.isFinite(value)))
+    throw Object.assign(new Error("Canal de audio incompleto o no numérico"),{code:"INVALID_INPUT"});
+   return channel;
+  });
+  const sourceRange=item.range||{start:0,end:1},start=Number(sourceRange.start),end=Number(sourceRange.end);
+  if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end>1||start>=end)
+   throw Object.assign(new Error("Rango IN/OUT del sample no válido"),{code:"INVALID_INPUT"});
+  return {bank,pad,sampleRate,length,channels,name:String(typeof item.name==="string"?item.name:"SAMPLE").slice(0,80),range:{start,end}};
+ });
+ return {data,samples};
+}
+async function importProjectFile(file){
+ if(!file)return;
+ let importedId=null,previousProjectId=currentProjectId,loadAttempted=false;
+ try{
+  const payload=JSON.parse(await file.text()),prepared=prepareProjectImport(payload);
+  await saveSession(true);
+  const id=makeProjectId();importedId=id;
+  const name=String(payload.name||file.name?.replace(/\.zp\.json$|\.json$/i,"")||"Proyecto importado").slice(0,80);
+  await assetStorage.saveProject(prepared.data,id,name);
+  if(prepared.samples.length){
+   const c=audio();
+   for(const item of prepared.samples){
+    const buffer=c.createBuffer(item.channels.length,item.length,item.sampleRate);
+    item.channels.forEach((channel,index)=>buffer.copyToChannel(new Float32Array(channel),index));
+    await assetStorage.saveProjectSample(id,item.pad,buffer,item.name,item.range,item.bank);
+   }
+  }
+  await refreshProjectList();
+  loadAttempted=true;
+  await loadSession(id);
+  importedId=null;
+  notify("PROYECTO IMPORTADO · "+name);
+  return {id,name,samples:prepared.samples.length};
+ }catch(error){
+  if(importedId){try{await assetStorage.deleteProject(importedId)}catch(cleanupError){console.error("No se pudo revertir la importación incompleta",cleanupError)}}
+  if(loadAttempted&&previousProjectId){try{await loadSession(previousProjectId)}catch(restoreError){console.error("No se pudo restaurar el proyecto anterior",restoreError)}}
+  try{await refreshProjectList()}catch(refreshError){console.warn("No se pudo actualizar la lista tras el rollback",refreshError)}
+  console.error(error);notify("ERROR AL IMPORTAR · "+error.message);throw error;
+ }
+}
+
 const projectDialog=document.createElement("dialog");projectDialog.className="zp-project-dialog";projectDialog.innerHTML='<form method="dialog" class="zp-project-panel"><header><strong>PROJECT MANAGER</strong><button class="zp-project-close" value="cancel" aria-label="Cerrar">×</button></header><label for="zp-project-select">PROYECTOS GUARDADOS</label><select id="zp-project-select" size="5"></select><div class="zp-project-current" id="zp-project-current"></div><label for="zp-project-name">NOMBRE DEL PROYECTO</label><input id="zp-project-name" maxlength="80" value="Proyecto nuevo" autocomplete="off"><div class="zp-project-actions"><button type="button" id="zp-project-new">NEW PROJECT</button><button type="button" id="zp-project-save">SAVE</button><button type="button" id="zp-project-load">LOAD</button><button type="button" id="zp-project-delete">DELETE</button><button type="button" id="zp-project-export">EXPORT JSON</button><button type="button" id="zp-project-import">IMPORT JSON</button></div><input id="zp-project-file" type="file" accept="application/json,.json" hidden><small>Los proyectos y sus muestras se almacenan por separado en este dispositivo.</small></form>';document.body.append(projectDialog);
 projectDialog.querySelector("#zp-project-new").onclick=async()=>{await createProject(projectDialog.querySelector("#zp-project-name").value);await refreshProjectList()};
 projectDialog.querySelector("#zp-project-save").onclick=async()=>{currentProjectName=projectDialog.querySelector("#zp-project-name").value.trim().slice(0,80)||currentProjectName;await saveSession();await refreshProjectList()};
@@ -826,7 +952,7 @@ function enterSystemMenu(){
 function exitSystemMenu(){if(systemMenu){if(menuPage==="MAIN"){systemMenu=false;updateScreen()}else{menuPage="MAIN";menuIndex=0;updateScreen()}publishSystemMenuState()}else{activeTab="MUESTRA";updateScreen()}}
 function drawValueWheel(el,label,initial,onValue,extraClass=""){let wrap=$("div","sp-dial value-encoder-wrap"),k=$("div","kb value-wheel"+(extraClass?" "+extraClass:""),"<i></i><b></b>"),caption=$("span","",label),out=$("output","",Math.round(initial*100)+"%"),v=initial,lastAngle=null;const set=x=>{v=Math.max(0,Math.min(1,x));k.firstChild.style.transform="rotate("+(-135+270*v)+"deg)";out.textContent=Math.round(v*100)+"%";onValue(v)};const angle=e=>{let r=k.getBoundingClientRect(),dx=e.clientX-(r.left+r.width/2),dy=e.clientY-(r.top+r.height/2);return Math.atan2(dy,dx)*180/Math.PI};k.addEventListener("pointerdown",e=>{e.preventDefault();k.setPointerCapture(e.pointerId);lastAngle=angle(e)});k.addEventListener("pointermove",e=>{if(lastAngle===null)return;let a=angle(e),d=a-lastAngle;if(d>180)d-=360;if(d< -180)d+=360;lastAngle=a;set(v+d/270)});["pointerup","pointercancel","lostpointercapture"].forEach(ev=>k.addEventListener(ev,()=>lastAngle=null));wrap.append(caption,k,out);return {wrap,set,get:()=>v,output:out};}
 function setKnobValues(){if(knobSetters.length){knobSetters[0].set(masterLevel);knobSetters[1].set(padLevels[activePad]??.85);knobSetters[2].set(((padPitch[activePad]??0)/24)+.5);knobSetters[3].set(((padFilter[activePad]??18000)-300)/17700)}}
-function draw(){let w=Math.max(1,Math.floor(canvas.clientWidth*2)),h=Math.max(1,Math.floor(canvas.clientHeight*2));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}let x=canvas.getContext("2d");x.clearRect(0,0,w,h);let sample=activeTab==="RECORTE"?samples[sampleSlot(activePad)]:null;if(sample){let r=ranges[sampleSlot(activePad)]||{start:0,end:1},data=sample.getChannelData(0),stride=Math.max(1,Math.floor(data.length/w));x.fillStyle="#174c12";x.fillRect(0,0,w,h);x.strokeStyle="#d8ff4f";x.lineWidth=2;x.beginPath();for(let i=0;i<w;i++){let min=1,max=-1,from=i*stride,to=Math.min(data.length,from+stride);for(let j=from;j<to;j++){min=Math.min(min,data[j]);max=Math.max(max,data[j])}let y1=h*(.5-max*.46),y2=h*(.5-min*.46);x.moveTo(i,y1);x.lineTo(i,y2)}x.stroke();let now=ctx?ctx.currentTime:0;for(let q=playbackCursors.length-1;q>=0;q--){let c=playbackCursors[q],elapsed=(now-c.at)*c.rate;if(elapsed<0)continue;if(elapsed>c.duration){playbackCursors.splice(q,1);continue}if(c.pad===activePad){let pos=Math.max(0,Math.min(1,(c.offset+elapsed)/sample.duration));let px=pos*w;x.save();x.strokeStyle="#ffffff";x.shadowColor="#d8ff4f";x.shadowBlur=14;x.lineWidth=3;x.beginPath();x.moveTo(px,0);x.lineTo(px,h);x.stroke();x.fillStyle="#fff";x.font="bold 12px monospace";x.fillText("PLAY",Math.min(w-36,px+4),12);x.restore()}}x.fillStyle="#ff252555";x.fillRect(0,0,w*r.start,h);x.fillRect(w*r.end,0,w*(1-r.end),h);x.strokeStyle="#fff";x.lineWidth=3;x.beginPath();x.moveTo(w*r.start,0);x.lineTo(w*r.start,h);x.moveTo(w*r.end,0);x.lineTo(w*r.end,h);x.stroke();x.fillStyle="#fff";x.font="bold 18px monospace";x.fillText("IN",Math.max(2,w*r.start+3),15);x.fillText("OUT",Math.min(w-38,w*r.end+3),15)}else{x.strokeStyle="#d8ff4f";x.lineWidth=2;if(analyser){let data=new Uint8Array(analyser.fftSize);analyser.getByteTimeDomainData(data);x.beginPath();for(let i=0;i<w;i++){let yy=h/2+(data[Math.floor(i/w*data.length)]-128)/128*h*.42;i?x.lineTo(i,yy):x.moveTo(i,yy)}x.stroke()}else{x.beginPath();for(let i=0;i<w;i++){let yy=h/2+Math.sin(i*.05)*Math.sin(i*.013)*h*.2;i?x.lineTo(i,yy):x.moveTo(i,yy)}x.stroke()}}requestAnimationFrame(draw)}
+function draw(){const frameElement=window.frameElement;if(frameElement){const bounds=frameElement.getBoundingClientRect();if(bounds.width<=1||bounds.height<=1)return}let w=Math.max(1,Math.floor(canvas.clientWidth*2)),h=Math.max(1,Math.floor(canvas.clientHeight*2));if(canvas.width!==w||canvas.height!==h){canvas.width=w;canvas.height=h}let x=canvas.getContext("2d");x.clearRect(0,0,w,h);let sample=activeTab==="RECORTE"?samples[sampleSlot(activePad)]:null;if(sample){let r=ranges[sampleSlot(activePad)]||{start:0,end:1},data=sample.getChannelData(0),stride=Math.max(1,Math.floor(data.length/w));x.fillStyle="#174c12";x.fillRect(0,0,w,h);x.strokeStyle="#d8ff4f";x.lineWidth=2;x.beginPath();for(let i=0;i<w;i++){let min=1,max=-1,from=i*stride,to=Math.min(data.length,from+stride);for(let j=from;j<to;j++){min=Math.min(min,data[j]);max=Math.max(max,data[j])}let y1=h*(.5-max*.46),y2=h*(.5-min*.46);x.moveTo(i,y1);x.lineTo(i,y2)}x.stroke();let now=ctx?ctx.currentTime:0;for(let q=playbackCursors.length-1;q>=0;q--){let c=playbackCursors[q],elapsed=(now-c.at)*c.rate;if(elapsed<0)continue;if(elapsed>c.duration){playbackCursors.splice(q,1);continue}if(c.pad===activePad){let pos=Math.max(0,Math.min(1,(c.offset+elapsed)/sample.duration));let px=pos*w;x.save();x.strokeStyle="#ffffff";x.shadowColor="#d8ff4f";x.shadowBlur=14;x.lineWidth=3;x.beginPath();x.moveTo(px,0);x.lineTo(px,h);x.stroke();x.fillStyle="#fff";x.font="bold 12px monospace";x.fillText("PLAY",Math.min(w-36,px+4),12);x.restore()}}x.fillStyle="#ff252555";x.fillRect(0,0,w*r.start,h);x.fillRect(w*r.end,0,w*(1-r.end),h);x.strokeStyle="#fff";x.lineWidth=3;x.beginPath();x.moveTo(w*r.start,0);x.lineTo(w*r.start,h);x.moveTo(w*r.end,0);x.lineTo(w*r.end,h);x.stroke();x.fillStyle="#fff";x.font="bold 18px monospace";x.fillText("IN",Math.max(2,w*r.start+3),15);x.fillText("OUT",Math.min(w-38,w*r.end+3),15)}else{x.strokeStyle="#d8ff4f";x.lineWidth=2;if(analyser){let data=new Uint8Array(analyser.fftSize);analyser.getByteTimeDomainData(data);x.beginPath();for(let i=0;i<w;i++){let yy=h/2+(data[Math.floor(i/w*data.length)]-128)/128*h*.42;i?x.lineTo(i,yy):x.moveTo(i,yy)}x.stroke()}else{x.beginPath();for(let i=0;i<w;i++){let yy=h/2+Math.sin(i*.05)*Math.sin(i*.013)*h*.2;i?x.lineTo(i,yy):x.moveTo(i,yy)}x.stroke()}}requestAnimationFrame(draw)}
 canvas.addEventListener("pointerdown",e=>{if(activeTab!=="RECORTE"||!samples[sampleSlot(activePad)])return;canvas.setPointerCapture(e.pointerId);let rect=canvas.getBoundingClientRect(),p=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width)),r=ranges[sampleSlot(activePad)]||{start:0,end:1};trimTarget=Math.abs(p-r.start)<=Math.abs(p-r.end)?"start":"end";setTrimValue(trimTarget,p);updateScreen()});canvas.addEventListener("pointermove",e=>{if(!e.buttons||activeTab!=="RECORTE"||!samples[sampleSlot(activePad)])return;let rect=canvas.getBoundingClientRect(),p=Math.max(0,Math.min(1,(e.clientX-rect.left)/rect.width));setTrimValue(trimTarget,p)});
 function fit(){const designHeight=app.classList.contains("inspect-mode")?414:896;let scale=Math.min(innerWidth/414,innerHeight/designHeight);app.style.transform="scale("+scale+") translate(-50%,-50%)";app.style.left=innerWidth/2+"px";app.style.top=innerHeight/2+"px"}
 let lastMeterSent=0,meterTimer=null;
@@ -841,7 +967,7 @@ function startMeterTimer(){
  },80);
 }
 function stopMeterTimer(){if(meterTimer){clearInterval(meterTimer);meterTimer=null}}
-currentProjectId=makeProjectId();currentProjectName="Proyecto nuevo";resetPatterns();updatePadLabels();updateScreen();setKnobValues();refreshSteps();publishPianoState();bpmText.textContent=bpm+" BPM";bankButtons.forEach(b=>b.classList.toggle("active",b.dataset.bank===activeBank));publishTrimState();publishRadioState();parent.postMessage({type:"zp-engine-bpm-state",protocolVersion:1,source:"creator.engine",bpm},location.origin);updatePadLabels();updateScreen();setKnobValues();refreshSteps();requestAnimationFrame(draw);fit();addEventListener("resize",fit);addEventListener("orientationchange",fit);document.addEventListener("gesturestart",e=>e.preventDefault());document.addEventListener("touchmove",e=>{if(!e.target.closest(".kb,.trim-mini,.sp-dial"))e.preventDefault()},{passive:false});document.addEventListener("pointerdown",()=>{try{navigator.wakeLock?.request("screen")}catch(e){}},{once:true});
+currentProjectId=makeProjectId();currentProjectName="Proyecto nuevo";resetPatterns();updatePadLabels();updateScreen();setKnobValues();refreshSteps();publishPianoState();bpmText.textContent=bpm+" BPM";bankButtons.forEach(b=>b.classList.toggle("active",b.dataset.bank===activeBank));publishTrimState();publishRadioState();parent.postMessage({type:"zp-engine-bpm-state",protocolVersion:1,source:"creator.engine",bpm},location.origin);updatePadLabels();updateScreen();setKnobValues();refreshSteps();requestAnimationFrame(draw);fit();addEventListener("resize",fit);addEventListener("orientationchange",fit);document.addEventListener("gesturestart",e=>e.preventDefault());document.addEventListener("touchmove",e=>{if(!e.target.closest(".kb,.trim-mini,.sp-dial"))e.preventDefault()},{passive:false});document.addEventListener("pointerdown",()=>{try{navigator.wakeLock?.request("screen")?.catch(()=>{})}catch(e){}},{once:true});
 
 /* HOST BRIDGE · motor aislado de la nueva capa Creator */
 window.addEventListener("message",async function(ev){
