@@ -187,3 +187,32 @@ The user requests that Notion, GitHub and Cloudflare be managed in a coherent, o
 ## Branch reconciliation · 2026-11-19
 
 The documentation update originally committed independently on `auxiliary` (a64bfdb08edc1030407e9d62968c6f08e1d3f146) is reconciled here with the coordinated release protocol originally committed on `main` (bd2204d43f0e8dd37a52495dad30c7d695c29109). Both changes concern only this migration record; no application source, audio engine, Creator, Worker code, or persistent data was changed by the reconciliation. The RadioRoom preservation guardrails and the deployment blocker recorded above remain in force.
+
+
+## Execution checkpoint · 2026-11-19
+
+### Step 1 — branch reconciliation: complete
+
+- Original divergent documentation commits: `bd2204d43f0e8dd37a52495dad30c7d695c29109` on `main` and `a64bfdb08edc1030407e9d62968c6f08e1d3f146` on `auxiliary`.
+- Both changed only `CLOUDFLARE-ZP-MIGRATION.md` and shared base `d1e2ce9a3cf1d1ecaa93d4f4f9b4393a5871f350`.
+- Created a two-parent merge commit `0ca5bead9fc0ce75151d47486fe778002e3d9e04` preserving both documentation updates.
+- Verified `main` and `auxiliary` are identical at `0ca5bea`; `test` remains exactly `a1286bed7487d78b01f8f32d756bb4963a9da6b1`.
+- GitHub Pages workflow run `44507052722` is running for the merge commit; result not yet known.
+
+### Step 2 — RadioRoom audit: source review complete, deployment ownership unresolved
+
+- ZP `radio-worker.mjs` exports `RadioRoom`; the Durable Object accepts WebSockets, broadcasts presence, relays WebRTC signaling, handles collaborator chat and persists `roomState` using `this.state.storage.get/put`.
+- Worker routes include `/api/radio/health`, `/api/radio/rooms/:name`, `/api/agent/*`; unknown API routes return JSON 404 and non-API requests go to `env.ASSETS.fetch(request)`.
+- `RADIO_ALLOWED_ORIGINS` currently contains only `https://alexandermaulen.github.io` plus same-origin. The ZX1 Cloudflare hostname is not yet authorized by this source. Do not enable cross-origin Radio from ZX1 until this is deliberately reviewed.
+- ZP production `wrangler.jsonc` binds `RADIO_ROOMS` to `RadioRoom` and declares SQLite storage. ZP `wrangler.preview.jsonc` does not declare `durable_objects` or `exports`; it is not a safe drop-in config for a Worker with an already provisioned RadioRoom namespace.
+- No `migrations/` directory is present in the ZP root tree. The current config's class export/storage declaration and Cloudflare's provisioned namespace history therefore need dashboard-side verification before any Wrangler change.
+- ZX1 repository has no root `wrangler.jsonc`, `radio-worker.mjs`, or `package.json` at the inspected ref. The failed Cloudflare build ran `npx wrangler deploy` from ZX1 branch `auxiliary` and auto-generated a static-only config for Worker `dirtyfingaz-zp-preview`; this conflicts with the existing provisioned RadioRoom class.
+- This is a deployment ownership/architecture risk, not a frontend defect. Do not add Wrangler config, copy ZP Worker code, delete/recreate a namespace, or retry deploy until the target Worker ownership and namespace history are confirmed.
+
+### Stop point — user decision / Cloudflare dashboard evidence required
+
+Before Step 3, confirm whether the intended architecture is:
+A. Keep `dirtyfingaz-zp-preview` as the original ZP RadioRoom service and create a separate ZX1 preview Worker (recommended safest separation); later connect ZX1 Radio to ZP via a reviewed API/origin change; or
+B. Intentionally combine ZX1 assets and the ZP RadioRoom runtime into the existing `dirtyfingaz-zp-preview` Worker after verifying its exact deployed bindings, namespace ID, class history and configuration in Cloudflare.
+
+No Wrangler configuration or Cloudflare deployment has been changed in this checkpoint. RadioRoom data and namespace have not been deleted, reset, renamed or migrated.
