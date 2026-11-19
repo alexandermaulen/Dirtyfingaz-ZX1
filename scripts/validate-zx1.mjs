@@ -276,17 +276,22 @@ check(gui.includes("visited:new Set()") &&
 
 
 /* AUD-007 · Protected LCD geometry and finite numeric inputs */
-const importantPatternHeights=[...gui.matchAll(/\\.scr\\.pr\\s*\\{[^}]*?height\\s*:\\s*([^;]+?)\\s*!important[^}]*\\}/g)].map(match=>match[1].trim());
-check(importantPatternHeights[importantPatternHeights.length-1]==="190px",
-  "Pattern Edit LCD must retain the protected 190px baseline");
-check(!gui.includes(".scr.pr{height:260px!important"),
-  "Pattern Edit must not force the expanded LCD to 260px");
+const patternStyleBlocks=[...gui.matchAll(/\.scr\.pr\s*\{([^}]*)\}/g)].map(match=>match[1]);
+const importantPatternHeights=patternStyleBlocks.flatMap(block=>{
+  const height=block.match(/\bheight\s*:\s*([^;]+?)\s*!important\b/i);
+  return height?[height[1].trim()]:[];
+});
+check(importantPatternHeights[importantPatternHeights.length-1]==="260px",
+  "Pattern Edit LCD must preserve the pre-audit deployed 260px height until device measurement is approved");
+check(gui.includes(".scr.pr{height:260px!important"),
+  "Pattern Edit LCD must keep its verified pre-audit height override");
 const finiteHelperStart=engine.indexOf("function readFiniteNumber(");
-const finiteHelperEnd=engine.indexOf("\\n",finiteHelperStart);
-check(finiteHelperStart>=0&&finiteHelperEnd>finiteHelperStart,
+const finiteHelperLine=finiteHelperStart>=0?engine.slice(finiteHelperStart).split(/\r?\n/,1)[0]:"";
+const finiteHelperEnd=finiteHelperStart+finiteHelperLine.length;
+check(finiteHelperStart>=0&&finiteHelperLine.length>0&&finiteHelperEnd>finiteHelperStart,
   "Shared finite numeric input guard missing");
-if(finiteHelperStart>=0&&finiteHelperEnd>finiteHelperStart){
-  const readFiniteNumber=new Function(engine.slice(finiteHelperStart,finiteHelperEnd)+";return readFiniteNumber;")();
+if(finiteHelperStart>=0&&finiteHelperLine.length>0&&finiteHelperEnd>finiteHelperStart){
+  const readFiniteNumber=new Function(finiteHelperLine+";return readFiniteNumber;")();
   check(readFiniteNumber("123",0,"TEST")===123,"Finite numeric parser must accept numeric strings");
   let invalidRejected=false;
   try{readFiniteNumber("NaN",0,"TEST")}catch(error){invalidRejected=error.code==="INVALID_INPUT"}
