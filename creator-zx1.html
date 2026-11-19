@@ -1048,8 +1048,7 @@ const projectLabels=projectDialog.querySelectorAll("label");
 if(projectLabels[0])projectLabels[0].htmlFor="zp-project-select";
 if(projectLabels[1])projectLabels[1].htmlFor="zp-project-name";
 const historyModule=historyDialog.querySelector("#zp-history-module");
-if(historyModule){const label=document.createElement("label");label.htmlFor="zp-history-module";label.textContent="MÓDULO";historyModule.parentNode.insertBefore(label,historyModule);}
-historyDialog.querySelector("label[for='zp-history-list']")?.setAttribute("for","zp-history-list");
+historyModule?.setAttribute("aria-label","Módulo para crear snapshot");
 const historyLabels=[...historyDialog.querySelectorAll("label")];
 const historyListLabel=historyLabels.find(label=>label.textContent.includes("HISTORIAL SECUENCIAL"));
 if(historyListLabel)historyListLabel.htmlFor="zp-history-list";
