@@ -274,6 +274,41 @@ check(gui.includes("visited:new Set()") &&
   gui.includes("swipePattern.visited.clear();"),
   "AUD-006: a PAD/step cell must be toggled at most once during one drag gesture");
 
+
+/* AUD-007 · Protected LCD geometry and finite numeric inputs */
+const importantPatternHeights=[...gui.matchAll(/\\.scr\\.pr\\s*\\{[^}]*?height\\s*:\\s*([^;]+?)\\s*!important[^}]*\\}/g)].map(match=>match[1].trim());
+check(importantPatternHeights[importantPatternHeights.length-1]==="190px",
+  "Pattern Edit LCD must retain the protected 190px baseline");
+check(!gui.includes(".scr.pr{height:260px!important"),
+  "Pattern Edit must not force the expanded LCD to 260px");
+const finiteHelperStart=engine.indexOf("function readFiniteNumber(");
+const finiteHelperEnd=engine.indexOf("\\n",finiteHelperStart);
+check(finiteHelperStart>=0&&finiteHelperEnd>finiteHelperStart,
+  "Shared finite numeric input guard missing");
+if(finiteHelperStart>=0&&finiteHelperEnd>finiteHelperStart){
+  const readFiniteNumber=new Function(engine.slice(finiteHelperStart,finiteHelperEnd)+";return readFiniteNumber;")();
+  check(readFiniteNumber("123",0,"TEST")===123,"Finite numeric parser must accept numeric strings");
+  let invalidRejected=false;
+  try{readFiniteNumber("NaN",0,"TEST")}catch(error){invalidRejected=error.code==="INVALID_INPUT"}
+  check(invalidRejected,"Finite numeric parser must reject NaN");
+  let emptyRejected=false;
+  try{readFiniteNumber("",0,"TEST")}catch(error){emptyRejected=error.code==="INVALID_INPUT"}
+  check(emptyRejected,"Finite numeric parser must reject empty numeric input");
+}
+check(engine.includes('readFiniteNumber(v,undefined,"IN/OUT")')&&
+  engine.includes('readFiniteNumber(value,96,"BPM")')&&
+  engine.includes('readFiniteNumber(payload.value,undefined,"Valor de control")'),
+  "IN/OUT, BPM and control values must use finite numeric validation");
+check(engine.includes('readFiniteNumber(input.step,undefined,"Paso MIDI")')&&
+  engine.includes('readFiniteNumber(input.pitch,60,"Pitch")')&&
+  engine.includes('readFiniteNumber(input.velocity,100,"Velocity")'),
+  "Piano Roll step, pitch and velocity must reject invalid numeric input");
+check(engine.includes("function startMeterTimer()")&&engine.includes("function stopMeterTimer()")&&
+  !engine.includes("let lastMeterSent=0;setInterval("),
+  "Audio meter must not run an unconditional idle interval");
+check(engine.includes('window.addEventListener("pagehide",()=>{stopTransport(false);releaseAllNotes();stopMetronomeTimer();stopMeterTimer();stopTuner()});'),
+  "Engine pagehide must stop transport, active voices, meter and tuner resources");
+
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
