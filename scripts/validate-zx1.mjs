@@ -465,6 +465,32 @@ check(gui.includes("pending.delete(requestId);removeQueuedRequest(requestId)")&&
   gui.includes("dispatch(\"zp-engine-timeout\",{requestId,command})")&&
   gui.includes("if(!item)return;"),
   "Timed-out queued commands and late ACK/error responses must not dispatch stale results");
+/* AUD-016 · User-facing error feedback and technical detail isolation */
+const failureHelperStart=gui.indexOf("const zx1FailureText=detail=>");
+const failureHelperEnd=gui.indexOf("const showZX1Failure=",failureHelperStart);
+check(failureHelperStart>=0&&failureHelperEnd>failureHelperStart,
+  "GUI must translate engine errors into concise user-facing status");
+if(failureHelperStart>=0&&failureHelperEnd>failureHelperStart){
+  const failureText=new Function(gui.slice(failureHelperStart,failureHelperEnd)+";return zx1FailureText;")();
+  check(failureText({error:{code:"INVALID_INPUT",message:"internal detail"}})==="ERROR · VALOR NO VÁLIDO"&&
+    failureText({error:{code:"SAMPLE_NOT_FOUND"}})==="ERROR · ELEMENTO NO DISPONIBLE"&&
+    failureText({result:{error:{code:"MIC_UNAVAILABLE"}}})==="ERROR · AUDIO NO DISPONIBLE"&&
+    failureText({error:{code:"CLIPBOARD_EMPTY"}})==="ERROR · PORTAPAPELES VACÍO"&&
+    failureText({error:{code:"NO_EMPTY_PADS"}})==="ERROR · NO HAY PADS LIBRES"&&
+    failureText({error:{code:"UNSUPPORTED"}})==="ERROR · FUNCIÓN NO DISPONIBLE"&&
+    failureText({error:{code:"QuotaExceededError"}})==="ERROR · NO SE PUDO GUARDAR",
+    "Engine error codes must map to safe and understandable LCD messages");
+  check(failureText({error:{code:"SECRET_TOKEN",message:"private internal detail"}})==="ERROR · ACCIÓN NO DISPONIBLE",
+    "Unknown technical messages must not be exposed in the LCD status");
+}
+check(gui.includes('showZX1Failure("ERROR · MOTOR NO RESPONDE")')&&
+  gui.includes('showZX1Failure(zx1FailureText(ev.detail))')&&
+  gui.includes('showZX1Failure(zx1FailureText(ev.detail))'),
+  "Timeout and engine errors must reach the LCD status");
+check(gui.includes('.zx1-value-feedback[data-kind="error"]')&&
+  gui.includes('display.dataset.kind="error"')&&gui.includes('role="status" aria-live="polite"'),
+  "Error feedback must be announced accessibly and visually distinguished without changing LCD geometry");
+
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
