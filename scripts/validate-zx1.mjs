@@ -529,6 +529,52 @@ check(engine.includes("let skippedStoredSamples=0;")&&
 check(engine.includes('console.warn("Sample local omitido por metadata/canales inválidos"')&&
   engine.includes('skippedSamples:skippedStoredSamples'),
   "Skipped sample records must remain in storage and be reported in recovery diagnostics");
+/* AUD-019 · Atomic project and banked-sample deletion */
+const deleteStart=storage.indexOf("function deleteProject(projectId)");
+const deleteEnd=storage.indexOf("root.DirtyfingazStorage",deleteStart);
+check(deleteStart>=0&&deleteEnd>deleteStart,
+  "Project delete implementation must exist");
+if(deleteStart>=0&&deleteEnd>deleteStart){
+  const state={projects:[{id:"target"},{id:"other"}],samples:[
+    {projectId:"target",bank:"A",pad:1},{projectId:"target",bank:"E",pad:9},{projectId:"other",bank:"A",pad:1}
+  ]};
+  const transactions=[];
+  const open=()=>Promise.resolve({transaction(names,mode){
+    const tx={oncomplete:null,onerror:null,onabort:null};
+    transactions.push({names,mode});
+    tx.objectStore=name=>{
+      if(name==="projects")return {delete(id){state.projects=state.projects.filter(item=>item.id!==id)}};
+      if(name==="projectSamplesV3")return {openCursor(){
+        const ordered=state.samples.slice(),request={result:null,onsuccess:null};let index=0;
+        const advance=()=>{
+          const item=ordered[index++];
+          request.result=item?{
+            value:item,
+            delete(){state.samples=state.samples.filter(candidate=>candidate!==item)},
+            continue(){queueMicrotask(advance)}
+          }:null;
+          if(request.onsuccess)request.onsuccess();
+          if(!item)queueMicrotask(()=>tx.oncomplete?.());
+        };
+        queueMicrotask(advance);return request;
+      }};
+      throw new Error("Unexpected object store: "+name);
+    };
+    return tx;
+  }});
+  const removeProject=new Function("open","PROJECT_STORE","PROJECT_SAMPLE_STORE",
+    storage.slice(deleteStart,deleteEnd)+";return deleteProject;")(open,"projects","projectSamplesV3");
+  const removed=await removeProject("target");
+  check(removed.deleted==="target"&&state.projects.length===1&&state.projects[0].id==="other"&&
+    state.samples.length===1&&state.samples[0].projectId==="other",
+    "Deleting a project must remove only its own banked samples while preserving other projects");
+  check(transactions.length===1&&transactions[0].mode==="readwrite"&&
+    transactions[0].names.includes("projects")&&transactions[0].names.includes("projectSamplesV3"),
+    "Project metadata and its sample records must be deleted in one readwrite transaction");
+  let recoveryProtected=false;try{await removeProject("current")}catch(error){recoveryProtected=/recuperación/.test(error.message)}
+  check(recoveryProtected,"The current recovery project must remain protected from deletion");
+}
+
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
