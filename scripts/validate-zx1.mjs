@@ -498,7 +498,7 @@ const storedSampleEnd=engine.indexOf('async function loadSession(projectId="curr
 check(storedSampleStart>=0&&storedSampleEnd>storedSampleStart,
   "Stored sample validation helper must exist before project restore");
 if(storedSampleStart>=0&&storedSampleEnd>storedSampleStart){
-  const validateStoredSample=new Function(engine.slice(storedSampleStart,storedSampleEnd)+";return validateStoredSampleRecord;")();
+  const validateStoredSample=new Function("BANKS",engine.slice(storedSampleStart,storedSampleEnd)+";return validateStoredSampleRecord;")(["A","B","C","D","E"]);
   const valid=validateStoredSample({bank:"C",pad:3,sampleRate:44100,length:4,
     channels:[new Float32Array(4),[0,.1,.2,.3]],range:{start:.1,end:.9},name:"SNARE"});
   check(valid?.bank==="C"&&valid.pad===3&&valid.range.start===.1&&valid.range.end===.9&&valid.name==="SNARE",
