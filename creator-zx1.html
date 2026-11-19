@@ -693,10 +693,8 @@ if(patternEditControl&&patternEditControl.tagName!=="BUTTON"){
  nativePatternEdit.style.cursor="pointer";
  nativePatternEdit.style.width="100%";
  nativePatternEdit.style.margin="0";
- nativePatternEdit.style.padding="0";
- nativePatternEdit.style.border="0";
- nativePatternEdit.style.background="transparent";
  nativePatternEdit.style.touchAction="manipulation";
+ nativePatternEdit.setAttribute("aria-pressed","false");
  patternEditControl.replaceWith(nativePatternEdit);
 }
 /* estados fijos como en la imagen */
