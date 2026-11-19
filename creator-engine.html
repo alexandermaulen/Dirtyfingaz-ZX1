@@ -567,7 +567,84 @@ async function createProject(name){await saveSession(true);stopTransport();curre
 async function refreshProjectList(){const select=projectDialog.querySelector("#zp-project-select");const items=await assetStorage.listProjects();select.replaceChildren();items.forEach(item=>{const option=document.createElement("option");option.value=item.id;option.textContent=item.name+(item.id===currentProjectId?" · ACTUAL":"");select.append(option)});if(!items.some(item=>item.id===currentProjectId)){const option=document.createElement("option");option.value=currentProjectId;option.textContent=currentProjectName+" · ACTUAL";select.prepend(option)}select.value=currentProjectId;projectDialog.querySelector("#zp-project-current").textContent="ACTUAL: "+currentProjectName;projectDialog.querySelector("#zp-project-name").value=currentProjectName;projectDialog.querySelector("#zp-project-delete").disabled=select.value==="current"||select.value===currentProjectId}
 async function openProjectManager(){await saveSession(true);await refreshProjectList();if(!projectDialog.open)projectDialog.showModal();return {open:true,currentProjectId}}
 async function exportProjectFile(){await saveSession(true);const samplesForExport=await assetStorage.getProjectSamples(currentProjectId);const payload={format:"dirtyfingaz-zx1-project",formatVersion:1,exportedAt:new Date().toISOString(),name:currentProjectName,data:projectSnapshot(),samples:samplesForExport.map(item=>({bank:item.bank||"A",pad:item.pad,name:item.name,sampleRate:item.sampleRate,length:item.length,range:item.range,channels:item.channels.map(channel=>Array.from(channel))}))};const blob=new Blob([JSON.stringify(payload)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=(currentProjectName.replace(/[^a-z0-9-_]+/gi,"-")||"dirtyfingaz-project")+".zp.json";a.click();setTimeout(()=>URL.revokeObjectURL(url),30000);notify("PROYECTO EXPORTADO");return {samples:samplesForExport.length}}
-async function importProjectFile(file){if(!file)return;try{const payload=JSON.parse(await file.text());if(payload.format!=="dirtyfingaz-zx1-project"||!payload.data||!payload.data.patterns)throw new Error("Archivo ZX1 no reconocido");const id=makeProjectId(),name=String(payload.name||file.name.replace(/\.zp\.json$|\.json$/i,"")||"Proyecto importado").slice(0,80);await assetStorage.saveProject(payload.data,id,name);for(const item of (Array.isArray(payload.samples)?payload.samples:[])){if(!Number.isInteger(item.pad)||item.pad<1||item.pad>9||!Array.isArray(item.channels)||!item.channels.length||item.channels.length>8||!Number.isInteger(item.length)||item.length<1||item.length>item.sampleRate*300)continue;const c=audio(),buffer=c.createBuffer(item.channels.length,item.length,item.sampleRate);item.channels.forEach((channel,index)=>buffer.copyToChannel(new Float32Array(channel),index));await assetStorage.saveProjectSample(id,item.pad,buffer,item.name,item.range||{start:0,end:1},BANKS.includes(item.bank)?item.bank:"A")}await saveSession(true);await loadSession(id);await refreshProjectList();notify("PROYECTO IMPORTADO · "+name);return {id,name}}catch(error){console.error(error);notify("ERROR AL IMPORTAR · "+error.message);throw error}}
+function sanitizeImportedProjectValue(value,depth=0){
+ if(depth>24)throw Object.assign(new Error("Proyecto demasiado profundo"),{code:"INVALID_INPUT"});
+ if(Array.isArray(value))return value.map(item=>sanitizeImportedProjectValue(item,depth+1));
+ if(value&&typeof value==="object"){
+  const safe={};
+  for(const key of Object.keys(value)){
+   if(key==="__proto__"||key==="prototype"||key==="constructor")throw Object.assign(new Error("Clave de proyecto no permitida"),{code:"INVALID_INPUT"});
+   safe[key]=sanitizeImportedProjectValue(value[key],depth+1);
+  }
+  return safe;
+ }
+ return value;
+}
+function prepareProjectImport(payload){
+ if(!payload||payload.format!=="dirtyfingaz-zx1-project"||(payload.formatVersion!==undefined&&payload.formatVersion!==1)||
+    !payload.data||typeof payload.data!=="object"||Array.isArray(payload.data)||
+    !payload.data.patterns||typeof payload.data.patterns!=="object"||Array.isArray(payload.data.patterns))
+  throw Object.assign(new Error("Archivo ZX1 no reconocido o versión no compatible"),{code:"INVALID_INPUT"});
+ const data=sanitizeImportedProjectValue(payload.data);
+ const patternIds=Object.keys(data.patterns);
+ if(!patternIds.length||patternIds.length>256||patternIds.some(id=>!/^PATTERN_\d+$/i.test(id)&&!BANKS.includes(id)))
+  throw Object.assign(new Error("Estructura de patrones no válida"),{code:"INVALID_INPUT"});
+ if(Array.isArray(data.songOrder))data.songOrder=data.songOrder.filter(id=>patternIds.includes(id));
+ if(data.activePatternId&&!patternIds.includes(data.activePatternId))delete data.activePatternId;
+ if(data.patternMeta&&typeof data.patternMeta==="object")Object.keys(data.patternMeta).forEach(id=>{if(!patternIds.includes(id))delete data.patternMeta[id]});
+ if(data.pianoNotes&&typeof data.pianoNotes==="object")Object.keys(data.pianoNotes).forEach(id=>{if(!patternIds.includes(id))delete data.pianoNotes[id]});
+ const incoming=payload.samples==null?[]:payload.samples;
+ if(!Array.isArray(incoming)||incoming.length>45)throw Object.assign(new Error("Lista de samples no válida"),{code:"INVALID_INPUT"});
+ const seen=new Set();
+ const samples=incoming.map((item,index)=>{
+  if(!item||typeof item!=="object"||Array.isArray(item))throw Object.assign(new Error("Sample "+(index+1)+" no válido"),{code:"INVALID_INPUT"});
+  const pad=Number(item.pad),bank=item.bank==null?"A":String(item.bank),sampleRate=Number(item.sampleRate),length=Number(item.length);
+  if(!Number.isInteger(pad)||pad<1||pad>9||!BANKS.includes(bank)||
+     !Number.isInteger(sampleRate)||sampleRate<3000||sampleRate>384000||
+     !Number.isSafeInteger(length)||length<1||length>sampleRate*300||
+     !Array.isArray(item.channels)||!item.channels.length||item.channels.length>8)
+   throw Object.assign(new Error("Metadatos de sample no válidos"),{code:"INVALID_INPUT"});
+  const slot=bank+":"+pad;if(seen.has(slot))throw Object.assign(new Error("Sample duplicado en banco/PAD "+slot),{code:"INVALID_INPUT"});seen.add(slot);
+  const channels=item.channels.map(channel=>{
+   if(!Array.isArray(channel)||channel.length!==length||!channel.every(value=>typeof value==="number"&&Number.isFinite(value)))
+    throw Object.assign(new Error("Canal de audio incompleto o no numérico"),{code:"INVALID_INPUT"});
+   return channel;
+  });
+  const sourceRange=item.range||{start:0,end:1},start=Number(sourceRange.start),end=Number(sourceRange.end);
+  if(!Number.isFinite(start)||!Number.isFinite(end)||start<0||end>1||start>=end)
+   throw Object.assign(new Error("Rango IN/OUT del sample no válido"),{code:"INVALID_INPUT"});
+  return {bank,pad,sampleRate,length,channels,name:String(typeof item.name==="string"?item.name:"SAMPLE").slice(0,80),range:{start,end}};
+ });
+ return {data,samples};
+}
+async function importProjectFile(file){
+ if(!file)return;
+ let importedId=null;
+ try{
+  const payload=JSON.parse(await file.text()),prepared=prepareProjectImport(payload);
+  await saveSession(true);
+  const id=makeProjectId();importedId=id;
+  const name=String(payload.name||file.name?.replace(/\.zp\.json$|\.json$/i,"")||"Proyecto importado").slice(0,80);
+  await assetStorage.saveProject(prepared.data,id,name);
+  if(prepared.samples.length){
+   const c=audio();
+   for(const item of prepared.samples){
+    const buffer=c.createBuffer(item.channels.length,item.length,item.sampleRate);
+    item.channels.forEach((channel,index)=>buffer.copyToChannel(new Float32Array(channel),index));
+    await assetStorage.saveProjectSample(id,item.pad,buffer,item.name,item.range,item.bank);
+   }
+  }
+  await refreshProjectList();
+  await loadSession(id);
+  importedId=null;
+  notify("PROYECTO IMPORTADO · "+name);
+  return {id,name,samples:prepared.samples.length};
+ }catch(error){
+  if(importedId){try{await assetStorage.deleteProject(importedId)}catch(cleanupError){console.error("No se pudo revertir la importación incompleta",cleanupError)}}
+  console.error(error);notify("ERROR AL IMPORTAR · "+error.message);throw error;
+ }
+}
+
 const projectDialog=document.createElement("dialog");projectDialog.className="zp-project-dialog";projectDialog.innerHTML='<form method="dialog" class="zp-project-panel"><header><strong>PROJECT MANAGER</strong><button class="zp-project-close" value="cancel" aria-label="Cerrar">×</button></header><label for="zp-project-select">PROYECTOS GUARDADOS</label><select id="zp-project-select" size="5"></select><div class="zp-project-current" id="zp-project-current"></div><label for="zp-project-name">NOMBRE DEL PROYECTO</label><input id="zp-project-name" maxlength="80" value="Proyecto nuevo" autocomplete="off"><div class="zp-project-actions"><button type="button" id="zp-project-new">NEW PROJECT</button><button type="button" id="zp-project-save">SAVE</button><button type="button" id="zp-project-load">LOAD</button><button type="button" id="zp-project-delete">DELETE</button><button type="button" id="zp-project-export">EXPORT JSON</button><button type="button" id="zp-project-import">IMPORT JSON</button></div><input id="zp-project-file" type="file" accept="application/json,.json" hidden><small>Los proyectos y sus muestras se almacenan por separado en este dispositivo.</small></form>';document.body.append(projectDialog);
 projectDialog.querySelector("#zp-project-new").onclick=async()=>{await createProject(projectDialog.querySelector("#zp-project-name").value);await refreshProjectList()};
 projectDialog.querySelector("#zp-project-save").onclick=async()=>{currentProjectName=projectDialog.querySelector("#zp-project-name").value.trim().slice(0,80)||currentProjectName;await saveSession();await refreshProjectList()};
