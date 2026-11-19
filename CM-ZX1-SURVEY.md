@@ -1234,3 +1234,41 @@ Commits verificados:
 - Se amplió el validador para comprobar la conversión a botón nativo, el tipo, el estilo táctil, el listener, el estado accesible y la sincronización de visibilidad del Piano Roll.
 - No se alteran los demás controles ni la lógica del motor.
 - CI de auditoría en `mejoras/auditoria`: PASS, ejecución 42776026158 sobre el commit e92c49a67cad70500f80f215aa8834b228914d22. Esta validación no publica GitHub Pages. El despliegue Pages de la versión actual sigue pendiente porque `main` no se ha modificado ni integrado con esta rama. QA táctil físico Safari/iPhone 11 y validación audible real siguen pendientes; no se declaran como probados.
+
+
+## SINCRONIZACIÓN MAESTRA · GitHub ↔ Notion · 2026-11-19
+
+**Regla confirmada por el usuario:** coordinar GitHub y Notion como un solo flujo. Notion mantiene decisiones y estado aprobado; GitHub contiene código, contratos, pruebas y publicación. Ningún cambio se cierra hasta que ambos reflejen el mismo resultado y evidencia.
+
+### Snapshot verificado del repositorio · 2026-11-19
+
+- `main`: `a51592b7a942f6d265a3e04f3fb9f7d0e0d0651e` — “Ajusta Creator a pantalla completa en móviles”.
+- `auxiliary`: `9edbff40d9858a910d0b38aa26a268c94ed9589b` — 12 commits detrás de `main`.
+- `test`: `a1286bed7487d78b01f8f32d756bb4963a9da6b1` — fuera de alcance; no modificar.
+- `mejoras/auditoria`: `f63d182b7badb7e0b2ad7e3a6fb3e0d64fd8bb5e`; rama preexistente, PR #3 fusionado en `main`. No usar para nuevos trabajos ni borrar sin decisión específica.
+- Comparación `auxiliary...main`: 12 commits de diferencia.
+- Auditoría Actions [44482419201](https://github.com/alexandermaulen/Dirtyfingaz-ZX1/actions/runs/44482419201): completed/success sobre `a51592b7...`.
+- Pages [44479402063](https://github.com/alexandermaulen/Dirtyfingaz-ZX1/actions/runs/44479402063): completed/success sobre el mismo SHA.
+- CI y Pages PASS no equivalen a QA táctil Safari/iPhone ni a audio/MIDI audible en dispositivo.
+
+### Protocolo de sincronización obligatorio
+
+1. Leer la ficha aprobada en Notion y contrastarla con el código vigente.
+2. Registrar objetivo, alcance, archivos, comportamiento esperado y criterios de aceptación.
+3. Inspeccionar/reproducir antes de etiquetar un fallo; separar fallo confirmado, riesgo y QA pendiente.
+4. Aplicar el cambio mínimo autorizado directamente en `main`; no crear ramas.
+5. Actualizar este archivo y los contratos/registro técnico afectados.
+6. Ejecutar validador y pruebas relevantes; revisar diff.
+7. Registrar SHA y sincronizar `auxiliary` exactamente al mismo SHA, verificando ambas ramas. No tocar `test`.
+8. Verificar Actions y Pages para el SHA exacto.
+9. Actualizar Notion con commit, archivos, pruebas, CI, deploy y QA real.
+10. Avanzar solo cuando código, validación y bitácora coincidan.
+
+### Orden recomendado
+
+- Paso 0: reconciliar la diferencia documental Notion ↔ este archivo y los 12 commits de ramas.
+- Paso 1: validar en Safari/iPhone el build publicado, nueve PADs, PATTERN EDIT, bancos y persistencia.
+- Paso 2: continuar el backlog CM-ZX1 aprobado, en orden.
+- Paso 3: cerrar cada módulo solo con evidencia de código, pruebas, CI/deploy y QA requerido.
+
+**Estado:** snapshot y protocolo registrados. No se modificaron funciones de la aplicación; QA físico sigue pendiente.
