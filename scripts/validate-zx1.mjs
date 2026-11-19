@@ -318,6 +318,55 @@ check(gui.includes('id="zx1-value-feedback"')&&gui.includes('aria-live="polite"'
 check(engine.includes('window.addEventListener("pagehide",()=>{stopTransport(false);releaseAllNotes();stopMetronomeTimer();stopMeterTimer();stopTuner()});'),
   "Engine pagehide must stop transport, active voices, meter and tuner resources");
 
+/* AUD-009 · Independent pattern, bank and sample identities */
+const sampleSlotSource=engine.match(/const sampleSlot=\(pad,bank=activeBank\)=>[^;]+;/)?.[0]||"";
+check(!!sampleSlotSource,"Sample slot identity function missing");
+if(sampleSlotSource){
+  const sampleSlot=new Function("activeBank",sampleSlotSource+";return sampleSlot;")("B");
+  check(sampleSlot(4)==="B:4"&&sampleSlot(4,"C")==="C:4"&&sampleSlot(4,"A")==="A:4",
+    "Sample identity must include bank and PAD independently");
+}
+const ensurePatternStart=engine.indexOf("function ensurePattern(");
+const ensurePatternEnd=engine.indexOf("\nfunction resetPatterns",ensurePatternStart);
+check(ensurePatternStart>=0&&ensurePatternEnd>ensurePatternStart,
+  "Pattern initialization function missing");
+if(ensurePatternStart>=0&&ensurePatternEnd>ensurePatternStart){
+  const model=new Function("const patternData={},pianoData={},patternMeta={};"+
+    engine.slice(ensurePatternStart,ensurePatternEnd)+
+    ";return {ensurePattern,patternData,pianoData,patternMeta};")();
+  model.ensurePattern("AUDIT_TEST","AUDIT TEST");
+  check(Array.from({length:9},(_,i)=>i+1).every(pad=>
+    Array.isArray(model.patternData.AUDIT_TEST[pad])&&model.patternData.AUDIT_TEST[pad].length===16&&
+    model.patternData.AUDIT_TEST[pad].every(value=>value===false)&&
+    Array.isArray(model.pianoData.AUDIT_TEST[pad])&&model.pianoData.AUDIT_TEST[pad].length===0),
+    "Each pattern must initialize 9 independent PAD rows with 16 steps and separate MIDI notes");
+}
+const bankSelectStart=engine.indexOf('runtime.register("creator.bank.select",');
+const patternSelectStart=engine.indexOf('runtime.register("creator.pattern.select",',bankSelectStart);
+const patternListStart=engine.indexOf('runtime.register("creator.pattern.list",',patternSelectStart);
+const bankSelectHandler=bankSelectStart>=0&&patternSelectStart>bankSelectStart?engine.slice(bankSelectStart,patternSelectStart):"";
+const patternSelectHandler=patternSelectStart>=0&&patternListStart>patternSelectStart?engine.slice(patternSelectStart,patternListStart):"";
+check(bankSelectHandler.includes("activeBank=p.bank;")&&!bankSelectHandler.includes("activePatternId="),
+  "Changing bank must not implicitly change the active pattern");
+check(patternSelectHandler.includes("activePatternId=id;")&&!patternSelectHandler.includes("activeBank="),
+  "Changing pattern must not implicitly change the active sample bank");
+check(engine.includes('const BANKS=["A","B","C","D","E"];'),
+  "ZX1 must retain the five A–E sample banks");
+check(storage.includes('const PROJECT_SAMPLE_STORE = "projectSamplesV3";')&&
+  storage.includes('keyPath: ["projectId", "bank", "pad"]')&&
+  storage.includes('store.delete([String(projectId || "current"), String(bank || "A"), Number(pad)])'),
+  "Project samples must remain isolated by project, bank and PAD in IndexedDB");
+check(engine.includes("assetStorage.getProjectSamples(currentProjectId)")&&
+  engine.includes("sampleSlot(item.pad,bank)")&&
+  engine.includes("assetStorage.saveProjectSample(currentProjectId"),
+  "Project load/save must persist samples separately using bank-aware sample identities");
+const snapshotStart=engine.indexOf("function projectSnapshot()");
+const snapshotEnd=engine.indexOf("\nconst HISTORY_MODULE_FIELDS",snapshotStart);
+const snapshotSource=snapshotStart>=0&&snapshotEnd>snapshotStart?engine.slice(snapshotStart,snapshotEnd):"";
+check(snapshotSource.includes("activeBank")&&snapshotSource.includes("activePatternId")&&
+  snapshotSource.includes("patterns")&&snapshotSource.includes("pianoNotes")&&!snapshotSource.includes("samples"),
+  "Project state must preserve pattern/bank metadata while sample buffers remain in separate storage");
+
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
