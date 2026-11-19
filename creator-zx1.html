@@ -1381,7 +1381,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  display:block!important;min-height:0!important;flex:1 1 auto!important;
  width:100%!important;overflow:auto!important;touch-action:pan-x pan-y;
 }
-.mid.step-sequencer-mode .grid-viewport .gr{width:100%!important;min-width:100%!important}
+/* Grid zoom is driven by applyZoom() inline styles. */
 .mid.piano-roll-mode .grid-viewport{display:none!important}
 .mid.piano-roll-mode .piano-tools{display:flex!important}
 .mid.piano-roll-mode .piano-viewport{display:block!important;min-height:0!important;flex:1 1 auto!important}
@@ -1396,12 +1396,8 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
 /* Step Sequencer ZP-inspired pixel LCD skin.
    Keep the established 400x190 Pattern Edit viewport and the physical LX/RX positions. */
 .mid.step-sequencer-mode .scr.pr{
-  width:min(400px,96vw)!important;
-  height:190px!important;
-  max-height:190px!important;
-  border-radius:18px!important;
+  /* Preserve the established LCD geometry; base and mobile rules own its dimensions. */
   image-rendering:pixelated;
-  transition:width .35s ease,height .35s ease,border-radius .35s ease;
 }
 .mid.step-sequencer-mode .scr.pr .v2{
   position:absolute!important;inset:0!important;
@@ -1482,7 +1478,6 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
 .mid.piano-roll-mode .grid-viewport{display:none!important}
 .mid.piano-roll-mode .piano-tools{display:flex!important}
 @media(max-width:430px){
-  .mid.step-sequencer-mode .scr.pr{width:min(400px,96vw)!important;height:190px!important}
   .mid.step-sequencer-mode .scr.pr .v2{padding:5px 6px!important}
 }
 </style>
