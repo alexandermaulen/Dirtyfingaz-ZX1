@@ -40,7 +40,7 @@ The previous standalone sampler files `app.js` and `style.css` are removed becau
 - GitHub Pages deployment must be checked after the commit.
 
 ## Development flow
-Work on the explicitly selected working branch and keep `main` unchanged until review and approval. The current engineering audit is isolated in `mejoras/auditoria`. Validation on that branch is test-only and must never publish GitHub Pages. The Pages deployment remains restricted to `main`, including manual workflow dispatches.
+Canonical flow for CM-ZX1: `main` is the only development line; do not create new branches. Keep `auxiliary` as an exact mirror of the verified `main` SHA after each accepted change. Leave `test` untouched. The pre-existing `mejoras/auditoria` branch is historical (its PR #3 was merged); do not use or delete it without a separate decision. Notion is the canonical decision/status record; `CM-ZX1-SURVEY.md` is the versioned implementation snapshot. Every change must update both, pass validation, and record the exact commit, CI/Pages result, and device-QA status.
 
 ## Master survey and implementation traceability
 - `CM-ZX1-SURVEY.md` is the versioned snapshot of the complete CM-ZX1 master survey, inventory, implementation checklist and feedback log.
