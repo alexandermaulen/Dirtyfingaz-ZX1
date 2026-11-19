@@ -182,3 +182,8 @@ The user requests that Notion, GitHub and Cloudflare be managed in a coherent, o
 - Cloudflare build log at 2026-11-19 10:28 UTC: token accepted; assets uploaded; final deploy failed at Durable Object reconciliation.
 - Cloudflare remains blocked. No Worker namespace was deleted or retired by this work.
 - User requests ongoing coordination across Notion, GitHub and Cloudflare in the order defined above.
+
+
+## Branch reconciliation · 2026-11-19
+
+The documentation update originally committed independently on `auxiliary` (a64bfdb08edc1030407e9d62968c6f08e1d3f146) is reconciled here with the coordinated release protocol originally committed on `main` (bd2204d43f0e8dd37a52495dad30c7d695c29109). Both changes concern only this migration record; no application source, audio engine, Creator, Worker code, or persistent data was changed by the reconciliation. The RadioRoom preservation guardrails and the deployment blocker recorded above remain in force.
