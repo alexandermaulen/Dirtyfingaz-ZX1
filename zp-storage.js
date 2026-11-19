@@ -115,11 +115,18 @@
   }
   function saveHistorySnapshot(projectId, snapshot) {
     const id = String(projectId || "current");
-    return listHistory(id).then(function (items) {
-      const sequence = items.reduce(function (max, item) { return Math.max(max, Number(item.sequence) || 0); }, 0) + 1;
-      const version = "V" + String(sequence).padStart(3, "0");
-      const record = Object.assign({}, snapshot, { projectId: id, version: version, sequence: sequence, createdAt: Date.now() });
-      return transact(HISTORY_STORE, "readwrite", function (store) { return store.put(record); }).then(function () { return { projectId: id, version: version, sequence: sequence, scope: record.scope, module: record.module || null, label: record.label, createdAt: record.createdAt }; });
+    return transact(HISTORY_STORE, "readwrite", function (store) {
+      const output = { result: null };
+      const request = store.getAll();
+      request.onsuccess = function () {
+        const items = request.result.filter(function (item) { return item.projectId === id; });
+        const sequence = items.reduce(function (max, item) { return Math.max(max, Number(item.sequence) || 0); }, 0) + 1;
+        const version = "V" + String(sequence).padStart(3, "0");
+        const record = Object.assign({}, snapshot, { projectId: id, version: version, sequence: sequence, createdAt: Date.now() });
+        output.result = { projectId: id, version: version, sequence: sequence, scope: record.scope, module: record.module || null, label: record.label, createdAt: record.createdAt };
+        store.put(record);
+      };
+      return output;
     });
   }
   function getHistorySnapshot(projectId, version) {
