@@ -414,12 +414,17 @@ if(importHelperStart>=0&&importHelperEnd>importHelperStart){
   const prepareImport=new Function("BANKS",engine.slice(importHelperStart,importHelperEnd)+
     ";return prepareProjectImport;")(["A","B","C","D","E"]);
   const validPayload={format:"dirtyfingaz-zx1-project",formatVersion:1,
-    data:{patterns:{PATTERN_01:{1:Array(16).fill(false)}},activePatternId:"PATTERN_01",songOrder:["PATTERN_01","__proto__"]},
+    data:{patterns:{PATTERN_01:{1:Array(16).fill(false)}},pianoNotes:{PATTERN_01:{1:[
+      {id:'bad"]selector',step:0,pitch:60},{id:"safe_id",step:1,pitch:62},{id:"safe_id",step:2,pitch:64}
+    ]}},activePatternId:"PATTERN_01",songOrder:["PATTERN_01","__proto__"]},
     samples:[{bank:"B",pad:2,sampleRate:44100,length:3,channels:[[0,.25,-.25]],range:{start:0,end:1},name:"KICK"}]};
   const prepared=prepareImport(validPayload);
   check(prepared.data.songOrder.length===1&&prepared.samples.length===1&&
     prepared.samples[0].bank==="B"&&prepared.samples[0].pad===2,
     "Import preflight must preserve valid project data and banked samples while filtering unknown pattern order entries");
+  const importedIds=prepared.data.pianoNotes.PATTERN_01[1].map(note=>note.id);
+  check(importedIds.every(id=>/^[A-Za-z0-9_-]{1,120}$/.test(id))&&new Set(importedIds).size===importedIds.length,
+    "Imported MIDI note identifiers must be safe for CSS selectors and unique within each PAD");
   let prototypeRejected=false;
   try{prepareImport(JSON.parse('{"format":"dirtyfingaz-zx1-project","formatVersion":1,"data":{"patterns":{"PATTERN_01":{},"__proto__":{"x":1}}},"samples":[]}'))}
   catch(error){prototypeRejected=error.code==="INVALID_INPUT"}
