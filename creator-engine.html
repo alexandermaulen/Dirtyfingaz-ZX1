@@ -592,7 +592,22 @@ function prepareProjectImport(payload){
  if(Array.isArray(data.songOrder))data.songOrder=data.songOrder.filter(id=>patternIds.includes(id));
  if(data.activePatternId&&!patternIds.includes(data.activePatternId))delete data.activePatternId;
  if(data.patternMeta&&typeof data.patternMeta==="object")Object.keys(data.patternMeta).forEach(id=>{if(!patternIds.includes(id))delete data.patternMeta[id]});
- if(data.pianoNotes&&typeof data.pianoNotes==="object")Object.keys(data.pianoNotes).forEach(id=>{if(!patternIds.includes(id))delete data.pianoNotes[id]});
+ if(data.pianoNotes&&typeof data.pianoNotes==="object"){
+  Object.keys(data.pianoNotes).forEach(id=>{
+   if(!patternIds.includes(id)){delete data.pianoNotes[id];return}
+   const pads=data.pianoNotes[id];
+   if(!pads||typeof pads!=="object"||Array.isArray(pads)){delete data.pianoNotes[id];return}
+   Object.keys(pads).forEach(padId=>{
+    if(!/^[1-9]$/.test(padId)||!Array.isArray(pads[padId])){delete pads[padId];return}
+    const used=new Set();let sequence=0;
+    pads[padId]=pads[padId].filter(note=>note&&typeof note==="object"&&!Array.isArray(note)).map(note=>{
+     let noteId=typeof note.id==="string"?note.id:"";
+     if(!/^[A-Za-z0-9_-]{1,120}$/.test(noteId)||used.has(noteId))noteId="import-midi-"+(++sequence);
+     used.add(noteId);return {...note,id:noteId};
+    });
+   });
+  });
+ }
  const incoming=payload.samples==null?[]:payload.samples;
  if(!Array.isArray(incoming)||incoming.length>45)throw Object.assign(new Error("Lista de samples no válida"),{code:"INVALID_INPUT"});
  const seen=new Set();
