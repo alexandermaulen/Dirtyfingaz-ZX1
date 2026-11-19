@@ -1272,3 +1272,23 @@ Commits verificados:
 - Paso 3: cerrar cada módulo solo con evidencia de código, pruebas, CI/deploy y QA requerido.
 
 **Estado:** snapshot y protocolo registrados. No se modificaron funciones de la aplicación; QA físico sigue pendiente.
+
+
+## ENCUESTA MAESTRA · CONFIRMACIÓN DEL USUARIO · 2026-11-19
+
+El usuario confirmó expresamente los seis puntos del protocolo CM-ZX1:
+
+- [x] **Decisiones:** Notion conserva las decisiones aprobadas; GitHub refleja su implementación.
+- [x] **Cambios:** avanzar un hallazgo por vez: inspeccionar, corregir, probar y documentar antes del siguiente.
+- [x] **Ramas:** trabajar en `main`, sincronizar `auxiliary` al mismo SHA y no modificar `test`.
+- [x] **Cierre:** terminar solo después de validar código, pruebas, Actions, Pages y QA físico cuando corresponda.
+- [x] **Registro:** anotar commit SHA, archivos modificados, pruebas, despliegue, fallos y pendientes tanto en GitHub como en Notion.
+- [x] **QA iPhone:** entregar instrucciones breves; el usuario prueba una función y comunica el resultado antes de avanzar.
+
+### Consejos operativos aceptados
+- No mezclar varios hallazgos en un commit funcional si dificulta aislar causa y regresiones.
+- No confundir PASS estático/CI con interacción táctil o audio/MIDI real.
+- Registrar cada resultado inmediatamente y referenciar siempre el SHA exacto.
+- Mantener un único elemento activo y no avanzar mientras el anterior tenga validaciones requeridas pendientes.
+
+**Aplicación:** esta confirmación se vuelve parte del protocolo operativo para el trabajo futuro. No autoriza por sí sola a omitir la inspección previa ni los criterios de aceptación de cada cambio.
