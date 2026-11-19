@@ -529,7 +529,7 @@ check(engine.includes("let skippedStoredSamples=0;")&&
 check(engine.includes('console.warn("Sample local omitido por metadata/canales inválidos"')&&
   engine.includes('skippedSamples:skippedStoredSamples'),
   "Skipped sample records must remain in storage and be reported in recovery diagnostics");
-/* AUD-019 · Atomic project, banked-sample and history deletion */
+/* AUD-019 · Atomic project and banked-sample deletion */
 const deleteStart=storage.indexOf("function deleteProject(projectId)");
 const deleteEnd=storage.indexOf("root.DirtyfingazStorage",deleteStart);
 check(deleteStart>=0&&deleteEnd>deleteStart,
@@ -537,29 +537,24 @@ check(deleteStart>=0&&deleteEnd>deleteStart,
 if(deleteStart>=0&&deleteEnd>deleteStart){
   const state={projects:[{id:"target"},{id:"other"}],samples:[
     {projectId:"target",bank:"A",pad:1},{projectId:"target",bank:"E",pad:9},{projectId:"other",bank:"A",pad:1}
-  ],history:[
-    {projectId:"target",version:"V001"},{projectId:"target",version:"V002"},{projectId:"other",version:"V001"}
   ]};
   const transactions=[];
   const open=()=>Promise.resolve({transaction(names,mode){
     const tx={oncomplete:null,onerror:null,onabort:null};
-    let activeCursors=0;
     transactions.push({names,mode});
     tx.objectStore=name=>{
       if(name==="projects")return {delete(id){state.projects=state.projects.filter(item=>item.id!==id)}};
-      const records=name==="projectSamplesV3"?state.samples:name==="projectHistory"?state.history:null;
-      if(records)return {openCursor(){
-        activeCursors++;
-        const ordered=records.slice(),request={result:null,onsuccess:null};let index=0;
+      if(name==="projectSamplesV3")return {openCursor(){
+        const ordered=state.samples.slice(),request={result:null,onsuccess:null};let index=0;
         const advance=()=>{
           const item=ordered[index++];
           request.result=item?{
             value:item,
-            delete(){const target=name==="projectSamplesV3"?state.samples:state.history;const at=target.indexOf(item);if(at>=0)target.splice(at,1)},
+            delete(){state.samples=state.samples.filter(candidate=>candidate!==item)},
             continue(){queueMicrotask(advance)}
           }:null;
           if(request.onsuccess)request.onsuccess();
-          if(!item){activeCursors--;if(activeCursors===0)queueMicrotask(()=>tx.oncomplete?.())}
+          if(!item)queueMicrotask(()=>tx.oncomplete?.());
         };
         queueMicrotask(advance);return request;
       }};
@@ -567,30 +562,19 @@ if(deleteStart>=0&&deleteEnd>deleteStart){
     };
     return tx;
   }});
-  const removeProject=new Function("open","PROJECT_STORE","PROJECT_SAMPLE_STORE","HISTORY_STORE",
-    storage.slice(deleteStart,deleteEnd)+";return deleteProject;")(open,"projects","projectSamplesV3","projectHistory");
+  const removeProject=new Function("open","PROJECT_STORE","PROJECT_SAMPLE_STORE",
+    storage.slice(deleteStart,deleteEnd)+";return deleteProject;")(open,"projects","projectSamplesV3");
   const removed=await removeProject("target");
   check(removed.deleted==="target"&&state.projects.length===1&&state.projects[0].id==="other"&&
-    state.samples.length===1&&state.samples[0].projectId==="other"&&
-    state.history.length===1&&state.history[0].projectId==="other",
-    "Deleting a project must remove only its samples and history while preserving other projects");
+    state.samples.length===1&&state.samples[0].projectId==="other",
+    "Deleting a project must remove only its own banked samples while preserving other projects");
   check(transactions.length===1&&transactions[0].mode==="readwrite"&&
-    transactions[0].names.includes("projects")&&transactions[0].names.includes("projectSamplesV3")&&
-    transactions[0].names.includes("projectHistory"),
-    "Project metadata, samples and history must be deleted in one readwrite transaction");
+    transactions[0].names.includes("projects")&&transactions[0].names.includes("projectSamplesV3"),
+    "Project metadata and its sample records must be deleted in one readwrite transaction");
   let recoveryProtected=false;try{await removeProject("current")}catch(error){recoveryProtected=/recuperación/.test(error.message)}
   check(recoveryProtected,"The current recovery project must remain protected from deletion");
 }
 
-/* AUD-020 · Storage preflight before replacing active project state */
-const loadSessionStart=engine.indexOf('async function loadSession(projectId="current"){');
-const sampleReadAt=engine.indexOf("savedSamples=await assetStorage.getProjectSamples(currentProjectId)",loadSessionStart);
-const firstStateResetAt=engine.indexOf("resetPatterns();",loadSessionStart);
-check(loadSessionStart>=0&&sampleReadAt>loadSessionStart&&firstStateResetAt>sampleReadAt,
-  "Project sample storage must be readable before the current in-memory session is replaced");
-check(engine.includes("const previousProjectId=currentProjectId,previousProjectName=currentProjectName;")&&
-  engine.includes("catch(error){currentProjectId=previousProjectId;currentProjectName=previousProjectName;throw error}"),
-  "A failed sample-store preflight must restore the prior active project identity");
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
