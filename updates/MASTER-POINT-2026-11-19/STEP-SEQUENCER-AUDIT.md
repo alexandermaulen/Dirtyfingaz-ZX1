@@ -67,3 +67,26 @@ No se ha ejecutado aún el sitio en un navegador real ni se ha verificado audio.
 - Se retiraron las dimensiones forzadas del skin. La capa visual solo modifica la presentación interna y deja la geometría al CSS existente.
 - Se detectó además un override `width/min-width:100%!important` sobre la rejilla que impedía que el zoom horizontal inline de `applyZoom()` tomara control. Se retiró el override para que el zoom original funcione.
 - Se conserva el motor y los listeners de interacción. El cambio aún requiere prueba real de toque, zoom y reproducción en Safari/iPhone.
+
+
+## Etapa visual — corrección de herramientas ocultas (2026-11-19)
+
+### Fallos confirmados en main
+- El CSS del modo `.step-sequencer-mode` ocultaba `.piano-tools` completo. Los botones de zoom (+/−) estaban dentro de esa barra, por lo que no podían verse ni utilizarse en Step Sequencer.
+- El mismo bloque ocultaba `.transport-line`, aunque la GUI ya recibía el evento `zp-engine-playhead` y actualizaba su ancho. El progreso/playhead existía en lógica, pero quedaba invisible.
+- Había dos bloques CSS posteriores que imponían geometrías incompatibles al panel `.scr.pr` (expansión a la zona central y panel fijo 400×190). Se retiraron esas imposiciones y se dejó que las reglas LCD originales de ZX1 gobiernen sus dimensiones en escritorio y móvil.
+
+### Cambio aplicado
+- `creator-zx1.html`: mostrar la línea de progreso en Step Sequencer; mostrar únicamente el grupo de zoom dentro de la barra; mantener ocultas las herramientas exclusivas del Piano Roll mientras se está en Step mode.
+- Se conserva `applyZoom()` y su control inline de ancho/min-width de la rejilla.
+- No se modificaron `creator-engine.html`, audio, scheduler, samples, asignaciones, bancos, PADs, SAMPLE EDIT ni las posiciones/diseño de LX/RX.
+- No se alteró la geometría base de la LCD.
+
+### Validación
+- Commit funcional: `6a0d188bd88c9d67bdecbc639e76e798cc8f7d12`.
+- GitHub Actions / Pages run [44571316507](https://github.com/alexandermaulen/Dirtyfingaz-ZX1/actions/runs/44571316507): SUCCESS en el SHA funcional.
+- Validación de contratos, subida de artefacto y despliegue Pages completados.
+- QA Safari/iPhone, visibilidad real, interacción táctil y reproducción audible: pendientes; no se declaran probados.
+
+### Próxima etapa
+Auditar y completar la matriz solicitada: playhead por columna/celda, selección y edición de todos los pasos, MIDI por PAD, movimiento de notas, selección múltiple, clipboard tipado, undo/redo y controles contextuales LX/RX/SHIFT. Cada capacidad se implementará contra los comandos nativos de ZX1, nunca copiando el motor de ZP.
