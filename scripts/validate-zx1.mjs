@@ -445,6 +445,9 @@ if(importHelperStart>=0&&importHelperEnd>importHelperStart){
 check(engine.includes("let importedId=null;")&&
   engine.includes("await assetStorage.deleteProject(importedId)"),
   "A failed project import must remove the partially written project and its banked samples");
+check(engine.includes("let importedId=null,previousProjectId=currentProjectId,loadAttempted=false;")&&
+  engine.includes("if(loadAttempted&&previousProjectId){try{await loadSession(previousProjectId)}"),
+  "A failed project activation must restore the previously active project after rolling back the import");
 
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
