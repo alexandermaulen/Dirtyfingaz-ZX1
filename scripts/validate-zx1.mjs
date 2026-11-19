@@ -372,6 +372,27 @@ check(gui.includes('#zp-engine{position:fixed!important;left:-10000px!important;
   "AUD-010: the hidden 1x1 engine iframe must not run its canvas animation loop");
 check(engine.includes('navigator.wakeLock?.request("screen")?.catch(()=>{})'),
   "AUD-011: Wake Lock permission rejection must be handled without an unhandled promise");
+/* AUD-012 · Accessible labels and state on generated controls */
+check(gui.includes('projectLabels[0].htmlFor="zp-project-select"')&&
+  gui.includes('projectLabels[1].htmlFor="zp-project-name"')&&
+  gui.includes('historyModule?.setAttribute("aria-label","Módulo para crear snapshot")')&&
+  gui.includes('historyListLabel.htmlFor="zp-history-list"'),
+  "AUD-012: project and history fields must expose programmatic labels");
+check(gui.includes('pitchLabel.htmlFor="zp-sample-pitch"')&&
+  gui.includes('timeLabel.htmlFor="zp-sample-time"')&&
+  gui.includes('samplePitch?.setAttribute("aria-label","Pitch de la muestra en semitonos")')&&
+  gui.includes('sampleTime?.setAttribute("aria-label","Velocidad de reproducción de la muestra")'),
+  "AUD-012: Sample Edit range controls must expose accessible names");
+check(gui.includes('patternMenu.querySelector(".zp-pattern-close")?.setAttribute("aria-label"')&&
+  gui.includes('transportMenu.querySelector(".zp-transport-close")?.setAttribute("aria-label"')&&
+  gui.includes('utilityPanel.querySelector(".zp-utility-close")?.setAttribute("aria-label"')&&
+  gui.includes('document.querySelectorAll(".zp-project-close").forEach(button=>button.setAttribute("aria-label"')&&
+  gui.includes('noteTools.querySelector("#zpLongClose")?.setAttribute("aria-label"'),
+  "AUD-012: icon-only close controls must have accessible names");
+check(gui.includes("stepModeButton.setAttribute('aria-pressed',String(pianoMode))")&&
+  gui.includes("drawButton.setAttribute('aria-pressed',String(drawMode))")&&
+  gui.includes("nudgeButton.setAttribute('aria-pressed',String(freeMove))"),
+  "AUD-012: Piano/Step, Draw/Select and free-move toggles must expose pressed state");
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
