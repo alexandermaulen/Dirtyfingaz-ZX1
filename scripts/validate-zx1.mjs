@@ -393,6 +393,18 @@ check(gui.includes("stepModeButton.setAttribute('aria-pressed',String(pianoMode)
   gui.includes("drawButton.setAttribute('aria-pressed',String(drawMode))")&&
   gui.includes("nudgeButton.setAttribute('aria-pressed',String(freeMove))"),
   "AUD-012: Piano/Step, Draw/Select and free-move toggles must expose pressed state");
+/* AUD-013 · Touch painting and horizontal grid navigation */
+check(gui.includes(".gr .c{touch-action:none;user-select:none}")&&
+  gui.includes(".mid.step-sequencer-mode .grid-viewport")&&
+  gui.includes("overflow-x:auto!important;overflow-y:hidden!important")&&
+  gui.includes("touch-action:pan-x pan-y"),
+  "AUD-013: step cells must preserve drag painting while the sequencer viewport retains horizontal pan");
+check(gui.includes("let zoom=1;const applyZoom=()=>{grid.style.width=(zoom*100)+'%';grid.style.minWidth=(zoom*100)+'%'")&&
+  gui.includes("zoom=Math.min(2.5")&&gui.includes("zoom=Math.max(1"),
+  "AUD-013: sequencer zoom must remain bounded and must drive the scrollable grid width");
+check(gui.includes("gr.setPointerCapture?.(e.pointerId)")&&
+  gui.includes("document.elementFromPoint(e.clientX,e.clientY)?.closest?.('#gr .c')"),
+  "AUD-013: pointer capture and hit testing must remain connected for touch painting");
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
