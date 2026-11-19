@@ -1322,3 +1322,31 @@ El usuario confirmó expresamente los seis puntos del protocolo CM-ZX1:
 - No se ha probado todavía en dispositivo la integración visual o funcional.
 - Primer entregable técnico pendiente: mapa de integración archivo por archivo y contratos de navegación/estado entre shell y Creator, identificando conflictos antes de editar.
 - Mantener el protocolo vigente: cambios pequeños, uno por vez, pruebas y registro; <code>main</code> y <code>auxiliary</code> en el mismo SHA; <code>test</code> intacta.
+
+
+## INTEGRACIÓN ZP → ZX1 · PRIMERA ENTREGA · 2026-11-19
+
+<b>Objetivo:</b> adoptar la organización de la shell de ZP sin reemplazar ni mezclar el Creator, el motor o el almacenamiento de ZX1.
+
+### Implementación observada
+
+- Se conservó el <code>index.html</code> anterior de ZX1 íntegro como <code>creator-zx1.html</code>. El contenido preservado tiene el mismo tamaño y el mismo blob SHA que el archivo original: <code>82e56d8ba8ae8dfd6394363e34b32dd654b055ae</code>.
+- Se creó una nueva shell en <code>index.html</code> con navegación móvil: Inicio, Creator, 3 Canales, Música, Estaciones y Comunidad.
+- Creator carga <code>creator-zx1.html</code> dentro de un iframe persistente. El motor interno sigue siendo el iframe <code>zp-engine</code> de <code>creator-zx1.html</code> → <code>creator-engine.html</code>.
+- El puente de regreso usa el mensaje validado <code>zp-host-home-request</code>, mismo origen y ventana fuente esperada.
+- Se mantiene el almacenamiento ZX1 en el mismo origen y con las mismas claves. No se copiaron datos ni storage de ZP.
+- Los módulos Mezclador, Música, Estaciones y Comunidad se muestran como pendientes de integración; no se presentan como funciones terminadas.
+
+### Archivos y commits
+
+- <code>creator-zx1.html</code>: copia preservada del Creator original. Commit: <code>cf4b572ee3b30ce321ca73f75b4d1b694f348ecf</code>.
+- <code>index.html</code>: nueva shell y navegación. Commit: <code>51f12669f3c5c1bda12cded2a40ee821a1e268bd</code>.
+- <code>CM-ZX1-SURVEY.md</code>: este registro técnico.
+- <code>main</code> y <code>auxiliary</code> se sincronizaron fast-forward al SHA final del registro; <code>test</code> permanece intacta en <code>a1286bed7487d78b01f8f32d756bb4963a9da6b1</code>.
+
+### Validación y límites
+
+- Inspección estática: la nueva shell apunta al archivo preservado y contiene el puente de regreso; el archivo preservado conserva el SHA original.
+- GitHub Actions / Pages para la shell: run [44497758049](https://github.com/alexandermaulen/Dirtyfingaz-ZX1/actions/runs/44497758049), asociado al SHA <code>51f12669f3c5c1bda12cded2a40ee821a1e268bd</code>; estaba en cola/espera al registrar esta nota. Pendiente confirmar resultado final.
+- No se ha ejecutado todavía QA manual en Safari/iPhone. No declarar comprobado el audio, el retorno táctil, la conservación de sesión ni el comportamiento de navegación en dispositivo.
+- Próximo QA: abrir la URL publicada y comprobar que corresponde al SHA final; entrar a Creator; verificar nueve PADs; abrir/cerrar PATTERN EDIT y Piano Roll; probar A-E y persistencia de samples; probar transporte/BPM/MIDI/audio; volver a Inicio y reabrir Creator para verificar continuidad.
