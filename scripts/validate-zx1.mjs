@@ -311,6 +311,10 @@ check(engine.includes('readFiniteNumber(input.step,undefined,"Paso MIDI")')&&
 check(engine.includes("function startMeterTimer()")&&engine.includes("function stopMeterTimer()")&&
   !engine.includes("let lastMeterSent=0;setInterval("),
   "Audio meter must not run an unconditional idle interval");
+check(gui.includes('id="zx1-value-feedback"')&&gui.includes('aria-live="polite"')&&
+  gui.includes('d?.type!=="zp-engine-value-feedback"')&&
+  gui.includes("clearTimeout(zx1ValueFeedbackTimer)"),
+  "AUD-008: engine value feedback must reach the LCD without changing its geometry");
 check(engine.includes('window.addEventListener("pagehide",()=>{stopTransport(false);releaseAllNotes();stopMetronomeTimer();stopMeterTimer();stopTuner()});'),
   "Engine pagehide must stop transport, active voices, meter and tuner resources");
 
