@@ -143,3 +143,42 @@ Commit: `ff86f03c11d962f2f814a51893ca39cbc0fac46a` — `feat: align ZX1 shell wi
 - iPhone/Safari visual and interaction QA remains pending.
 
 Next: confirm automated validation and deployment, then verify the published page and Creator continuity on iPhone before moving to a real ZX1 mixer integration.
+
+
+## Coordinated release protocol · 2026-11-19
+
+The user requests that Notion, GitHub and Cloudflare be managed in a coherent, ordered workflow. This protocol is now authoritative for changes across the three systems.
+
+### Order of operations
+
+1. **Notion — decision and change record:** record the objective, scope, dependencies, risks, acceptance checks and current state before implementation. Notion is the coordination/source-of-decisions layer; checklist completion means a decision is ready, not that code is shipped.
+2. **GitHub — source of truth:** inspect current branch heads and files; implement the smallest independently testable change; review the diff; run repository validators and Actions; commit the verified result. Keep `main` and `auxiliary` aligned as required by the deployment configuration; leave `test` untouched.
+3. **Cloudflare — deployment only:** deploy only the reviewed GitHub commit/branch intended for the Worker. Verify build settings, Wrangler config, Worker entry point, bindings, Durable Object migrations/exports, routes and environment before retrying. Do not use a generated default static configuration as a substitute for the source Worker's runtime configuration.
+4. **Verification — exact SHA:** confirm the Cloudflare deployment references the intended commit, inspect its live URL, then perform iPhone/Safari QA. Record success, failure and remaining device checks in both Notion and this file.
+
+### Current Cloudflare blocker — confirmed from logs and source
+
+- Cloudflare build authentication is now working: the build initialized, cloned the repository and ran `npx wrangler deploy`.
+- Wrangler detected Worker name `dirtyfingaz-zp-preview`, framework Static and output directory `.`; no Wrangler project config was present in the ZX1 repository path, so Wrangler generated a basic static `wrangler.jsonc`.
+- Upload of static assets succeeded, then deployment failed during Durable Object exports reconciliation:
+  `orphaned_provisioned_namespace` for class `RadioRoom`, provisioned namespace ID `64333bad04b84057b155f15da1e67a3e`.
+- ZX1 currently has no `wrangler.jsonc`, `package.json` or `radio-worker.mjs` at the inspected `auxiliary` ref (GitHub Contents API returned 404 for those paths).
+- The ZP source repository does contain `radio-worker.mjs` exporting `RadioRoom`, and its `wrangler.jsonc` declares `main: ./radio-worker.mjs`, binding `RADIO_ROOMS` to class `RadioRoom`, and a live Durable Object export with SQLite storage.
+- Therefore this is not a token failure or a frontend CSS problem. It is a deployment-architecture mismatch: the existing Cloudflare Worker has a provisioned RadioRoom Durable Object, while the ZX1 deployment is being treated as a static-only Worker with no matching class/export.
+- **Safety rule:** do not add a `deleted` tombstone, delete/recreate the namespace, reset storage, or overwrite the existing Worker until the intended ownership and preservation plan for RadioRoom is explicit and tested. Do not blindly copy the ZP Wrangler config or Worker into ZX1; first audit class compatibility, namespace binding, migration history, storage format, allowed origins, WebSocket routes and the exact Cloudflare environment.
+
+### Next safe work sequence
+
+1. Inspect Cloudflare Worker settings and identify which GitHub repository/branch, build command and production/preview environment are connected to `dirtyfingaz-zp-preview`.
+2. Compare the ZP Worker configuration and RadioRoom implementation with the actual Cloudflare Worker deployment/migrations. Confirm whether the provisioned namespace is the existing live radio service and whether it contains data.
+3. Decide the target architecture: preserve the existing ZP RadioRoom service as a separate service consumed by ZX1, or deliberately migrate the Worker/runtime into a ZX1-owned deployment while preserving the same Durable Object class and namespace. Prefer keeping the existing radio service separate until migration compatibility is proven.
+4. Only after that audit, make the smallest GitHub change: either keep Cloudflare deployment attached to the ZP service/repository while ZX1 deploys separately, or add an explicitly reviewed Worker entry/configuration to ZX1 with a safe namespace binding. Do not change the UI or audio engine as part of this infrastructure repair.
+5. Deploy the exact reviewed commit to Cloudflare and verify both the Worker health endpoint and RadioRoom WebSocket behavior. Then test the ZX1 site and record iPhone QA.
+
+### Verified release state at this checkpoint
+
+- GitHub Pages workflow run `44504158957` for commit `d1e2ce9a3cf1d1ecaa93d4f4f9b4393a5871f350` completed with conclusion `success` (GitHub Pages only).
+- This does **not** prove Cloudflare deployment succeeded.
+- Cloudflare build log at 2026-11-19 10:28 UTC: token accepted; assets uploaded; final deploy failed at Durable Object reconciliation.
+- Cloudflare remains blocked. No Worker namespace was deleted or retired by this work.
+- User requests ongoing coordination across Notion, GitHub and Cloudflare in the order defined above.
