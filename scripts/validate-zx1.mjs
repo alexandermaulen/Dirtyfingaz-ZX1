@@ -449,6 +449,22 @@ check(engine.includes("let importedId=null,previousProjectId=currentProjectId,lo
   engine.includes("if(loadAttempted&&previousProjectId){try{await loadSession(previousProjectId)}"),
   "A failed project activation must restore the previously active project after rolling back the import");
 
+/* AUD-015 · Expired requests must not execute after engine readiness */
+const queueHelperStart=gui.indexOf("const removeQueuedRequest=requestId=>");
+const queueHelperEnd=gui.indexOf("\\n const sendPacket",queueHelperStart);
+check(queueHelperStart>=0&&queueHelperEnd>queueHelperStart,
+  "GUI/engine bridge must expose queued-request removal");
+if(queueHelperStart>=0&&queueHelperEnd>queueHelperStart){
+  const queue=[],removeQueuedRequest=new Function("queue",gui.slice(queueHelperStart,queueHelperEnd)+";return removeQueuedRequest;")(queue);
+  queue.push({requestId:"expired"},{requestId:"active"});
+  check(removeQueuedRequest("expired")===true&&queue.length===1&&queue[0].requestId==="active"&&
+    removeQueuedRequest("missing")===false,
+    "A timed-out queued packet must be removed without disturbing other pending commands");
+}
+check(gui.includes("pending.delete(requestId);removeQueuedRequest(requestId)")&&
+  gui.includes("dispatch(\"zp-engine-timeout\",{requestId,command})")&&
+  gui.includes("if(!item)return;"),
+  "Timed-out queued commands and late ACK/error responses must not dispatch stale results");
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
