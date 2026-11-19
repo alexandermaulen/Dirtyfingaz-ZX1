@@ -491,6 +491,35 @@ check(gui.includes('.zx1-value-feedback[data-kind="error"]')&&
   gui.includes('display.dataset.kind="error"')&&gui.includes('role="status" aria-live="polite"'),
   "Error feedback must be announced accessibly and visually distinguished without changing LCD geometry");
 
+/* AUD-017 · Isolate corrupted stored samples during project recovery */
+const storedSampleStart=engine.indexOf("function validateStoredSampleRecord(item){");
+const storedSampleEnd=engine.indexOf('async function loadSession(projectId="current")',storedSampleStart);
+check(storedSampleStart>=0&&storedSampleEnd>storedSampleStart,
+  "Stored sample validation helper must exist before project restore");
+if(storedSampleStart>=0&&storedSampleEnd>storedSampleStart){
+  const validateStoredSample=new Function(engine.slice(storedSampleStart,storedSampleEnd)+";return validateStoredSampleRecord;")();
+  const valid=validateStoredSample({bank:"C",pad:3,sampleRate:44100,length:4,
+    channels:[new Float32Array(4),[0,.1,.2,.3]],range:{start:.1,end:.9},name:"SNARE"});
+  check(valid?.bank==="C"&&valid.pad===3&&valid.range.start===.1&&valid.range.end===.9&&valid.name==="SNARE",
+    "Valid banked sample records must remain restorable");
+  check(validateStoredSample({bank:"Z",pad:3,sampleRate:44100,length:4,channels:[[0,0,0,0]]})===null,
+    "Stored samples with an unknown bank must be isolated");
+  check(validateStoredSample({bank:"A",pad:10,sampleRate:44100,length:4,channels:[[0,0,0,0]]})===null,
+    "Stored samples outside PAD 1–9 must be isolated");
+  check(validateStoredSample({bank:"A",pad:1,sampleRate:44100,length:4,channels:[[0,0]]})===null,
+    "Stored sample channels with inconsistent lengths must be isolated");
+  check(validateStoredSample({bank:"A",pad:1,sampleRate:44100,length:4,channels:Array.from({length:9},()=>[0,0,0,0])})===null,
+    "Stored samples with unsupported channel counts must be isolated");
+  check(validateStoredSample({bank:"A",pad:1,sampleRate:44100,length:4,channels:[[0,0,0,0]],range:{start:.9,end:.1}})===null,
+    "Stored samples with invalid IN/OUT ranges must be isolated");
+}
+check(engine.includes("let skippedStoredSamples=0;")&&
+  engine.includes("if(!valid){skippedStoredSamples++;")&&
+  engine.includes("catch(error){skippedStoredSamples++;"),
+  "A single damaged sample must not abort restoration of the complete project");
+check(engine.includes('console.warn("Sample local omitido por metadata/canales inválidos"')&&
+  engine.includes('skippedSamples:skippedStoredSamples'),
+  "Skipped sample records must remain in storage and be reported in recovery diagnostics");
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
