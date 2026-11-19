@@ -405,6 +405,42 @@ check(gui.includes("let zoom=1;const applyZoom=()=>{grid.style.width=(zoom*100)+
 check(gui.includes("gr.setPointerCapture?.(e.pointerId)")&&
   gui.includes("document.elementFromPoint(e.clientX,e.clientY)?.closest?.('#gr .c')"),
   "AUD-013: pointer capture and hit testing must remain connected for touch painting");
+/* AUD-014 · Safe and atomic project import preflight */
+const importHelperStart=engine.indexOf("function sanitizeImportedProjectValue(");
+const importHelperEnd=engine.indexOf("async function importProjectFile(",importHelperStart);
+check(importHelperStart>=0&&importHelperEnd>importHelperStart,
+  "Project import sanitizer and preflight must exist");
+if(importHelperStart>=0&&importHelperEnd>importHelperStart){
+  const prepareImport=new Function("BANKS",engine.slice(importHelperStart,importHelperEnd)+
+    ";return prepareProjectImport;")(["A","B","C","D","E"]);
+  const validPayload={format:"dirtyfingaz-zx1-project",formatVersion:1,
+    data:{patterns:{PATTERN_01:{1:Array(16).fill(false)}},activePatternId:"PATTERN_01",songOrder:["PATTERN_01","__proto__"]},
+    samples:[{bank:"B",pad:2,sampleRate:44100,length:3,channels:[[0,.25,-.25]],range:{start:0,end:1},name:"KICK"}]};
+  const prepared=prepareImport(validPayload);
+  check(prepared.data.songOrder.length===1&&prepared.samples.length===1&&
+    prepared.samples[0].bank==="B"&&prepared.samples[0].pad===2,
+    "Import preflight must preserve valid project data and banked samples while filtering unknown pattern order entries");
+  let prototypeRejected=false;
+  try{prepareImport(JSON.parse('{"format":"dirtyfingaz-zx1-project","formatVersion":1,"data":{"patterns":{"PATTERN_01":{},"__proto__":{"x":1}}},"samples":[]}'))}
+  catch(error){prototypeRejected=error.code==="INVALID_INPUT"}
+  check(prototypeRejected,"Import must reject dangerous object keys before data reaches Object.assign maps");
+  let badChannelRejected=false;
+  try{prepareImport({...validPayload,samples:[{...validPayload.samples[0],channels:[[0,1]]}]})}
+  catch(error){badChannelRejected=error.code==="INVALID_INPUT"}
+  check(badChannelRejected,"Import must reject sample channel lengths that do not match sample metadata");
+  let duplicateRejected=false;
+  try{prepareImport({...validPayload,samples:[validPayload.samples[0],validPayload.samples[0]]})}
+  catch(error){duplicateRejected=error.code==="INVALID_INPUT"}
+  check(duplicateRejected,"Import must reject duplicate bank/PAD sample identities");
+  let invalidRangeRejected=false;
+  try{prepareImport({...validPayload,samples:[{...validPayload.samples[0],range:{start:.9,end:.1}}]})}
+  catch(error){invalidRangeRejected=error.code==="INVALID_INPUT"}
+  check(invalidRangeRejected,"Import must reject invalid IN/OUT ranges");
+}
+check(engine.includes("let importedId=null;")&&
+  engine.includes("await assetStorage.deleteProject(importedId)"),
+  "A failed project import must remove the partially written project and its banked samples");
+
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
