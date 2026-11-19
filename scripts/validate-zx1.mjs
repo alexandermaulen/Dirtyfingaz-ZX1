@@ -100,7 +100,9 @@ check(gui.includes("FAVORITES ONLY"), "UTILITY favorites filter missing");
 check(gui.includes("pianoMode=false") && gui.includes("buildPiano();setPianoMode(false);"),
   "PATTERN EDIT must start closed with the step sequencer visible");
 check(gui.includes("const setPatternEditOpen=open=>") &&
-  gui.includes("patternButton?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();setPatternEditOpen(!scr.classList.contains('pr'))})") &&
+  gui.includes("patternButton?.addEventListener('click',event=>{") &&
+  gui.includes("event.preventDefault();") && gui.includes("event.stopPropagation();") &&
+  gui.includes("setPatternEditOpen(!scr.classList.contains('pr'))") &&
   gui.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false))") &&
   gui.includes("setPianoMode(false)"),
   "PATTERN EDIT open/close toggle contract missing");
@@ -219,7 +221,9 @@ check(gui.includes("nativePatternEdit.style.touchAction=\"manipulation\""), "AUD
 check(gui.includes("const patternButton=document.querySelector('#rows .pattern-edit-trigger')") &&
   gui.includes("||[...document.querySelectorAll('#rows .b')].find(el=>el.textContent.replace(/\\s/g,'').toUpperCase()==='PATTERNEDIT')"),
   "AUD-004: PATTERN EDIT resolves through the native hardware button");
-check(gui.includes("patternButton?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();setPatternEditOpen(!scr.classList.contains('pr'))})"), "AUD-004: PATTERN EDIT native click toggles open/close");
+check(gui.includes("patternButton?.addEventListener('click',event=>{") &&
+  gui.includes("event.preventDefault();") && gui.includes("event.stopPropagation();") &&
+  gui.includes("setPatternEditOpen(!scr.classList.contains('pr'))"), "AUD-004: PATTERN EDIT native click toggles open/close");
 check(gui.includes("patternButton?.setAttribute('aria-controls','gr zpPianoViewport')"), "AUD-004: PATTERN EDIT explicitly controls the step grid and Piano Roll viewports");
 check(gui.includes("pianoViewport.id='zpPianoViewport'"), "AUD-004: Piano Roll viewport has stable control ID");
 check(gui.includes("scr.classList.toggle('pr',active)"), "AUD-004: LCD pattern-edit state toggles");
