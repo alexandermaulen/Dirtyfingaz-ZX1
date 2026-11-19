@@ -1335,12 +1335,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
 </script>
 
 <style id="zx1-zp-step-sequencer-match">
-/* ZP → ZX1: PATTERN EDIT ocupa la zona central completa y conserva el dock inferior. */
-.mid.piano-open .scr.pr{
- top:5px!important;left:7px!important;right:7px!important;bottom:59px!important;
- width:auto!important;height:auto!important;margin:0!important;transform:none!important;
- border-radius:14px!important;overflow:hidden!important;z-index:8!important;
-}
+/* ZP → ZX1: reutiliza la geometría LCD original de ZX1; solo adapta el contenido interno. */
 .mid.piano-open .scr.pr .v2{
  position:absolute!important;inset:0!important;display:flex!important;
  flex-direction:column!important;align-items:stretch!important;
@@ -1363,13 +1358,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
 </style>
 
 <style id="zx1-zp-step-sequencer-physical-encoders">
-/* ZP Step Sequencer in ZX1: original centered panel; LX/RX stay in their existing housing. */
-.mid.piano-open .scr.pr{
- top:50%!important;left:50%!important;right:auto!important;bottom:auto!important;
- width:min(400px,calc(100% - 18px))!important;height:190px!important;
- margin:-95px 0 0!important;transform:translateX(-50%)!important;
- border-radius:18px!important;overflow:hidden!important;z-index:8!important;
-}
+/* ZP Step Sequencer in ZX1: keep LCD geometry and LX/RX housing unchanged. */
 .mid.piano-open .scr.pr .v2{
  position:absolute!important;inset:0!important;display:flex!important;
  flex-direction:column!important;align-items:stretch!important;
@@ -1386,7 +1375,6 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
 .mid.piano-roll-mode .piano-tools{display:flex!important}
 .mid.piano-roll-mode .piano-viewport{display:block!important;min-height:0!important;flex:1 1 auto!important}
 @media(max-width:430px){
- .mid.piano-open .scr.pr{width:min(400px,96vw)!important;height:190px!important}
  .mid.piano-open .scr.pr .v2{padding:5px 6px!important}
 }
 </style>
@@ -1479,6 +1467,36 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
 .mid.piano-roll-mode .piano-tools{display:flex!important}
 @media(max-width:430px){
   .mid.step-sequencer-mode .scr.pr .v2{padding:5px 6px!important}
+}
+</style>
+
+
+<style id="zx1-step-sequencer-visible-tools">
+/* ZP → ZX1: el modo Step muestra sus herramientas de zoom y el playhead. */
+.mid.step-sequencer-mode .transport-line{
+ display:block!important;flex:0 0 5px!important;width:100%;height:5px;
+ border:1px solid #5e9d43;background:#061606;overflow:hidden;border-radius:2px;
+}
+.mid.step-sequencer-mode .transport-line i{
+ display:block;height:100%;background:linear-gradient(90deg,#47e34b,#baff62);
+ box-shadow:0 0 8px #58ff4c;transition:width .045s linear;
+}
+.mid.step-sequencer-mode .piano-tools{
+ display:flex!important;flex:0 0 27px!important;height:27px!important;min-height:27px;
+ align-items:center;gap:4px;overflow-x:auto;overflow-y:hidden;
+ scrollbar-width:none;
+}
+.mid.step-sequencer-mode .piano-tools::-webkit-scrollbar{display:none}
+.mid.step-sequencer-mode .piano-tools>:not(.piano-zoom){display:none!important}
+.mid.step-sequencer-mode .piano-tools .piano-zoom{
+ display:flex!important;position:sticky;left:0;z-index:5;
+ gap:5px;padding:0 4px 0 0;background:#061506;
+}
+.mid.step-sequencer-mode .piano-tools .piano-zoom button{
+ display:inline-flex!important;align-items:center;justify-content:center;
+ min-width:34px;height:25px;padding:0 8px;
+ border:1px solid var(--lcd);border-radius:3px;
+ background:#092208;color:var(--lcd);font:20px/1 VT323,monospace;
 }
 </style>
 
