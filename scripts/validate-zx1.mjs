@@ -100,8 +100,9 @@ check(gui.includes("FAVORITES ONLY"), "UTILITY favorites filter missing");
 check(gui.includes("pianoMode=false") && gui.includes("buildPiano();setPianoMode(false);"),
   "PATTERN EDIT must start closed with the step sequencer visible");
 check(gui.includes("const setPatternEditOpen=open=>") &&
-  gui.includes("patternButton?.addEventListener('click',event=>{event.preventDefault();setPatternEditOpen(!scr.classList.contains('pr'))})") &&
-  gui.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false))"),
+  gui.includes("patternButton?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();setPatternEditOpen(!scr.classList.contains('pr'))})") &&
+  gui.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false))") &&
+  gui.includes("setPianoMode(false)"),
   "PATTERN EDIT open/close toggle contract missing");
 check(!gui.includes("setTimeout(()=>setPianoMode(scr.classList.contains('pr')),0)"),
   "Legacy asynchronous PATTERN EDIT duplicate handler must be removed");
@@ -125,8 +126,9 @@ check(gui.includes("defaultLength=selected.length") &&
   "Selected-note length must synchronize with NOTE LEN and persist through the engine upsert command");
 
 check(gui.includes("creator.quantize.set") &&
-  gui.includes("latestEngineState?.quantizeEnabled?latestEngineState.quantizeDivision:'OFF'") &&
-  gui.includes("zp-agent-runtime-context"),
+  gui.includes("pianoEngineState={...pianoEngineState,quantizeEnabled:state.quantizeEnabled,quantizeDivision:state.quantizeDivision}") &&
+  gui.includes("window.addEventListener('zp-agent-runtime-context'") &&
+  gui.includes("syncPianoControls()"),
   "Piano SNAP must send quantization commands and resync from engine radio state");
 check(gui.includes("order=['OFF','1/16','1/8','1/4']") &&
   gui.includes("enabled:next!=='OFF'"),
@@ -214,16 +216,18 @@ check(gui.includes("document.createElement(\"button\")"), "AUD-004: PATTERN EDIT
 check(gui.includes("nativePatternEdit.type=\"button\""), "AUD-004: PATTERN EDIT uses type=button");
 check(gui.includes("nativePatternEdit.className=patternEditControl.className+\" pattern-edit-trigger\""), "AUD-004: PATTERN EDIT preserves original visual class");
 check(gui.includes("nativePatternEdit.style.touchAction=\"manipulation\""), "AUD-004: PATTERN EDIT uses touch-action manipulation");
-check(gui.includes("const patternButton=by('PATTERNEDIT')"), "AUD-004: PATTERN EDIT resolves through the shared control lookup");
-check(gui.includes("patternButton?.addEventListener('click',event=>{event.preventDefault();setPatternEditOpen(!scr.classList.contains('pr'))})"), "AUD-004: PATTERN EDIT native click toggles open/close");
-check(gui.includes("patternButton?.setAttribute('aria-controls','zpPianoViewport')"), "AUD-004: PATTERN EDIT explicitly controls Piano Roll viewport");
+check(gui.includes("const patternButton=document.querySelector('#rows .pattern-edit-trigger')") &&
+  gui.includes("||[...document.querySelectorAll('#rows .b')].find(el=>el.textContent.replace(/\\s/g,'').toUpperCase()==='PATTERNEDIT')"),
+  "AUD-004: PATTERN EDIT resolves through the native hardware button");
+check(gui.includes("patternButton?.addEventListener('click',event=>{event.preventDefault();event.stopPropagation();setPatternEditOpen(!scr.classList.contains('pr'))})"), "AUD-004: PATTERN EDIT native click toggles open/close");
+check(gui.includes("patternButton?.setAttribute('aria-controls','gr zpPianoViewport')"), "AUD-004: PATTERN EDIT explicitly controls the step grid and Piano Roll viewports");
 check(gui.includes("pianoViewport.id='zpPianoViewport'"), "AUD-004: Piano Roll viewport has stable control ID");
 check(gui.includes("scr.classList.toggle('pr',active)"), "AUD-004: LCD pattern-edit state toggles");
 check(gui.includes("patternButton?.setAttribute('aria-expanded',String(active))"), "AUD-004: aria-expanded follows open/close state");
-check(gui.includes("setPianoMode(active)"), "AUD-004: Piano Roll mode follows open/close state");
+check(gui.includes("setPianoMode(false)"), "AUD-004: opening PATTERN EDIT always starts in the step-sequencer view");
 check(gui.includes("window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false))"), "AUD-004: external close event closes PATTERN EDIT");
-check(gui.includes("pianoViewport.hidden=!on"), "AUD-004: Piano Roll viewport visibility follows mode");
-check(gui.includes("viewport.hidden=on"), "AUD-004: pattern grid viewport visibility follows mode");
+check(gui.includes("pianoViewport.hidden=!pianoMode"), "AUD-004: Piano Roll viewport visibility follows Piano Roll mode");
+check(gui.includes("viewport.hidden=pianoMode"), "AUD-004: step grid viewport visibility follows Piano Roll mode");
 
 /* AUD-005 · PAD bank selection contract */
 check(gui.includes('b.addEventListener(\'click\',()=>{window.zpBridgeSend?.("creator.bank.select",{bank:b.dataset.bank})})') &&
@@ -251,6 +255,15 @@ for (const command of agentCommands) {
   check(engine.includes('runtime.register("' + command + '"'), "Agent command is not registered by engine: " + command);
 }
 console.log("Repository integrity checks:", "local assets and", agentCommands.length, "agent commands");
+
+
+/* AUD-006 · touch step painting contract */
+check(gui.includes("gr.addEventListener('pointerdown',e=>{") &&
+  gui.includes("gr.setPointerCapture?.(e.pointerId)") &&
+  gui.includes("noteCommand('creator.pattern.step.toggle',{step})") &&
+  gui.includes("elementFromPoint(e.clientX,e.clientY)?.closest?.('#gr .c')") &&
+  gui.includes(".gr .c{touch-action:none;user-select:none}"),
+  "AUD-006: step cells must support reliable touch and drag editing");
 
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
