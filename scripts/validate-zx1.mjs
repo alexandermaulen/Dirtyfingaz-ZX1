@@ -268,6 +268,11 @@ check(gui.includes("gr.addEventListener('pointerdown',e=>{") &&
   gui.includes("elementFromPoint(e.clientX,e.clientY)?.closest?.('#gr .c')") &&
   gui.includes(".gr .c{touch-action:none;user-select:none}"),
   "AUD-006: step cells must support reliable touch and drag editing");
+check(gui.includes("visited:new Set()") &&
+  gui.includes("swipePattern.visited.clear();swipePattern.visited.add(padId+':'+step)") &&
+  gui.includes("if(!swipePattern.visited.has(key))") &&
+  gui.includes("swipePattern.visited.clear();"),
+  "AUD-006: a PAD/step cell must be toggled at most once during one drag gesture");
 
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
