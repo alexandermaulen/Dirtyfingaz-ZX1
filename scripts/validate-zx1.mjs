@@ -599,6 +599,14 @@ const wranglerConfig=JSON.parse(read("wrangler.jsonc"));
 check(wranglerConfig.name==="dirtyfingaz-zx1",
   "Cloudflare production worker name must remain dirtyfingaz-zx1");
 
+
+/* AUD-022 · Main CI must validate without deploying */
+const mainWorkflow=read(".github/workflows/ci.yml");
+check(mainWorkflow.includes("name: ZX1 main CI")&&mainWorkflow.includes("branches: [main]")&&
+  mainWorkflow.includes("node scripts/validate-zx1.mjs")&&
+  !mainWorkflow.includes("pages: write")&&!mainWorkflow.includes("deploy-pages"),
+  "Main must have a read-only CI workflow that validates the source without deploying");
+
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
