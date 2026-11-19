@@ -1350,3 +1350,12 @@ El usuario confirmó expresamente los seis puntos del protocolo CM-ZX1:
 - GitHub Actions / Pages para la shell: run [44497758049](https://github.com/alexandermaulen/Dirtyfingaz-ZX1/actions/runs/44497758049), asociado al SHA <code>51f12669f3c5c1bda12cded2a40ee821a1e268bd</code>; estaba en cola/espera al registrar esta nota. Pendiente confirmar resultado final.
 - No se ha ejecutado todavía QA manual en Safari/iPhone. No declarar comprobado el audio, el retorno táctil, la conservación de sesión ni el comportamiento de navegación en dispositivo.
 - Próximo QA: abrir la URL publicada y comprobar que corresponde al SHA final; entrar a Creator; verificar nueve PADs; abrir/cerrar PATTERN EDIT y Piano Roll; probar A-E y persistencia de samples; probar transporte/BPM/MIDI/audio; volver a Inicio y reabrir Creator para verificar continuidad.
+
+
+### AUDITORÍA DEL VALIDADOR · CORRECCIÓN DE SHELL · 2026-11-19
+
+- Workflow [44497758049](https://github.com/alexandermaulen/Dirtyfingaz-ZX1/actions/runs/44497758049) falló en `Validate source and survey contracts`: el validador leía `index.html` como GUI del Creator y por ello reportaba controles ausentes. La nueva shell no perdió esos controles; quedaron preservados en `creator-zx1.html`.
+- El workflow [44497850425](https://github.com/alexandermaulen/Dirtyfingaz-ZX1/actions/runs/44497850425), sobre el commit documental, repitió la misma incompatibilidad del validador.
+- Corrección aplicada en `scripts/validate-zx1.mjs`, commit `eab67c4abf3d013d9733e4496ac4596ec414e6de`: parsea JavaScript de shell, Creator preservado y motor; ejecuta los contratos existentes del Creator contra `creator-zx1.html`; añade contratos para seis destinos de navegación, iframe preservado, puente de retorno y existencia del módulo; inspecciona recursos locales de los tres documentos.
+- `main` y `auxiliary` sincronizadas al commit de corrección. `test` permanece intacta.
+- Workflow [44497967676](https://github.com/alexandermaulen/Dirtyfingaz-ZX1/actions/runs/44497967676), SHA `eab67c4...`: pendiente de resultado. No declarar PASS hasta su conclusión.
