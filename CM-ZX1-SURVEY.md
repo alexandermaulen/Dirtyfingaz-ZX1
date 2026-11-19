@@ -1389,3 +1389,16 @@ Conservar e integrar el Creator ZX1 y su motor, nueve PADs, PATTERN EDIT/Piano R
 5. Validar código, CI, Pages y QA físico; registrar SHA y evidencia antes de avanzar.
 
 **Alcance:** esta nota actualiza la referencia y el plan; no declara módulos pendientes como terminados ni autoriza reemplazar el Creator/motor ZX1 en bloque.
+
+
+## AVANCE DE INTEGRACIÓN ZP → ZX1 · STEP SEQUENCER · 2026-11-19
+
+- [x] Detectado y corregido que el modo Step ocultaba los controles de zoom y la línea de progreso/playhead.
+- [x] El zoom horizontal vuelve a estar visible en Step mode y sigue usando `applyZoom()`.
+- [x] El indicador de progreso del transporte vuelve a mostrarse.
+- [x] Retirados los overrides de tamaño/posición añadidos para el panel Pattern Edit; la geometría LCD original de ZX1 vuelve a ser la autoridad.
+- [x] GitHub Actions / Pages: run 44571316507 SUCCESS sobre el commit funcional 6a0d188bd88c9d67bdecbc639e76e798cc8f7d12.
+- [ ] Prueba manual en Safari/iPhone de zoom, progreso y toque/arrastre.
+- [ ] Completar y verificar cursor por paso, MIDI por PAD, selección múltiple, copiar/pegar y undo/redo.
+
+**Límite:** esta corrección no modifica motor de audio, datos, samples, asignaciones, bancos A–E, nueve PADs, SAMPLE EDIT, Piano Roll ni controles físicos LX/RX. CI/Pages no equivale a QA físico.
