@@ -216,3 +216,20 @@ A. Keep `dirtyfingaz-zp-preview` as the original ZP RadioRoom service and create
 B. Intentionally combine ZX1 assets and the ZP RadioRoom runtime into the existing `dirtyfingaz-zp-preview` Worker after verifying its exact deployed bindings, namespace ID, class history and configuration in Cloudflare.
 
 No Wrangler configuration or Cloudflare deployment has been changed in this checkpoint. RadioRoom data and namespace have not been deleted, reset, renamed or migrated.
+
+
+## Architecture decision A · 2026-11-19
+
+User approved isolated deployment architecture A: preserve `dirtyfingaz-zp-preview` as the ZP RadioRoom service; create a separate ZX1 preview Worker; consider connecting ZX1 Radio to ZP only after an explicit origin/API review. The existing RadioRoom namespace and all persisted state must remain untouched.
+
+### Safe release validation
+
+- GitHub Pages run `44507168418` for commit `0215c6d9c8090ed0e0f3b46caac8c2069fa81e30` completed `success`. The `Validate source and survey contracts` step, Pages artifact upload, and Pages deploy all succeeded.
+- This is GitHub Pages validation only; it is not a Cloudflare Worker deployment and does not verify iPhone Safari behavior.
+- `main` and `auxiliary` were verified identical at `0215c6d9c8090ed0e0f3b46caac8c2069fa81e30`; `test` remains unchanged at `a1286bed7487d78b01f8f32d756bb4963a9da6b1`.
+
+### Next safe action — Cloudflare configuration inspection
+
+Do not add a Wrangler config or push a deployment-triggering commit until Cloudflare Workers & Pages > `dirtyfingaz-zp-preview` > Settings > Builds is inspected. Confirm repository, production/preview branches, build command, deploy command, root directory, and whether the existing worker is attached to the ZX1 repository. Then create a distinct ZX1 Worker configuration with a unique Worker name, ensuring the existing ZP worker remains independently managed. Do not modify the existing ZP Worker settings, routes, bindings, Durable Object namespace, migrations, or storage.
+
+No Cloudflare deployment or Worker setting has been changed as part of this checkpoint. iPhone Safari QA remains pending user-side.
