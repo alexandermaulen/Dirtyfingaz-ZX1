@@ -1,0 +1,35 @@
+{
+  "snapshot_name": "MASTER-POINT-2026-11-19",
+  "repository": "alexandermaulen/Dirtyfingaz-ZX1",
+  "production_branch": "main",
+  "baseline_commit": "c2eb4e2e8162b1b2bccb5de56d5ba230ba0234d6",
+  "backup_branch": "backup/master-point-2026-11-19",
+  "git_tag": "zx1-master-point-2026-11-19",
+  "git_tag_status": "not_created_tooling_does_not_expose_tag_creation",
+  "captured_at": "2026-11-19",
+  "protected_files": {
+    "creator-zx1.html": "41cc1985032ac87afe50408122bc6d9d5ddf1101",
+    "creator-engine.html": "d14cd62fc2745b00e807d605940334e2dafd70f3"
+  },
+  "cloudflare": {
+    "worker": "dirtyfingaz-zx1",
+    "production_url": "https://dirtyfingaz-zx1.alexandermaulen.workers.dev/creator-zx1.html",
+    "previously_reported_version_id": "4a09910d-6dab-4923-ac0d-10fbb49f648d",
+    "version_id_note": "Historical deployment identifier supplied in prior project context; not independently re-queried during this backup operation."
+  },
+  "source_reference": {
+    "repository": "alexandermaulen/Dirtyfingaz-ZP",
+    "ui_files": [
+      "creator.html",
+      "zp-ui-system.css"
+    ],
+    "engine_policy": "reference only; do not overwrite ZX1 engine"
+  },
+  "verification": {
+    "backup_branch_created_from_exact_baseline_commit": true,
+    "application_files_modified": false,
+    "file_hashes_are_github_blob_shas": true,
+    "runtime_tests": "not run",
+    "deployment_performed": false
+  }
+}
