@@ -71,3 +71,59 @@ Then propose the smallest safe first implementation slice. No module should be r
 ## Status
 
 Direction and initial Cloudflare page inventory recorded. No new functional migration from the Cloudflare reference has been implemented or device-tested in this record.
+
+
+## Detailed source-to-target map · audit 2026-11-19
+
+### Repositories and source confidence
+
+- ZX1 target `main` currently points to `dbd9490c38018b0a0678ce6f27af72d4685f1edb`. Its GitHub Pages workflow run `44501825454` completed with `success` for that SHA.
+- ZP reference repository `main` currently points to `959e253afec5be0f3047067c6da3071a770f151b`.
+- The Cloudflare Worker URL could not be fetched through the available page-fetch path during this audit. Therefore the repository is an inspectable source candidate, not yet proven byte-for-byte identical to the deployed preview. The deployed page was previously inspected visually; compare again against the live preview during implementation and device QA.
+- ZP has its own deploy and runtime architecture. Do not move its Cloudflare deployment configuration, secrets, Durable Object namespace, or service bindings into ZX1 as a side effect of copying UI.
+
+### Module-by-module map
+
+| Reference area | ZP source evidence | ZX1 current state | Target treatment |
+| --- | --- | --- | --- |
+| Global shell / Home | `index.html` lines 1–55; inline CSS; `zp-ui-system.css` | `index.html` has a simpler 560px mobile shell, tabs, dashboard and status card | Rebuild the ZX1 shell to match the Cloudflare composition, typography, neon palette, cards, spacing, status LED and responsive behavior. Keep ZX1-owned navigation and iframe contract. |
+| Creator | ZP `creator.html`, `creator-engine.html`, `zp-core.js`, `zp-storage.js`, `zp-layout.js`, `zp-layout.css`, `zp-agent*.js/css/json` | ZX1 `creator-zx1.html` + `creator-engine.html`; original Creator is preserved in its own document | Keep ZX1 Creator and engine. Adapt its frame/container only where required for visual fit. Never replace with ZP Creator or merge their storage namespaces. |
+| Three-channel mixer | ZP `index.html` inline mixer markup and script | ZX1 `index.html` currently shows an integration placeholder | Rebuild as a real three-channel mixer connected to ZX1 audio graph/outputs after inspecting engine routing. Do not copy ZP demo sliders as if they mix three independent audio inputs. |
+| Music/catalog | ZP `index.html` static release cards and `data-play` handlers | ZX1 `index.html` currently shows an integration placeholder | Recreate the catalog UI and define real track sources/import/local playback. ZP current handlers explicitly report that no audio source is connected; cards are demo data. |
+| Stations / Radio Grid | ZP `index.html` room UI + WebSocket/WebRTC client; `radio-worker.mjs`; `wrangler.jsonc`; `wrangler.preview.jsonc` | ZX1 `index.html` currently shows an integration placeholder | Port the experience only after defining ZX1-owned service endpoint, origin policy, presence, signaling, permissions and failure states. ZP Worker has a Durable Object `RadioRoom`; production Wrangler binds `RADIO_ROOMS`, but `wrangler.preview.jsonc` has no Durable Object binding, while the Worker returns `RADIO_ROOMS_BINDING_MISSING` if absent. ZP client config defaults to same-origin; do not assume it works from ZX1 Pages. |
+| Community | ZP `index.html` empty-state panel | ZX1 `index.html` currently shows an integration placeholder | Recreate the reference's visual card/feed structure and clearly label as preview/coming soon until identity, profile, database, upload and moderation services exist. Do not fabricate users or published mixes. |
+
+### Functional evidence and limits in ZP source
+
+- **Mixer:** three sliders update labels/meters, but the audible test uses one sawtooth oscillator at 110 Hz. Only channel 1's value is applied to that oscillator gain; it is not a three-input mixer. The UI itself says mixing multiple files is a future iteration.
+- **Music:** track buttons update the player label/state and then report `NO HAY UNA FUENTE DE AUDIO CONECTADA`. Catalog cards are demonstration content, not playable catalog entries.
+- **Radio:** client code implements room WebSocket, presence, chat, WebRTC peer signaling and Creator-state broadcast. The Worker defines a Durable Object room with WebSocket support and SQLite storage in production configuration. The preview config omits the Durable Object binding; verify actual deployed binding before advertising rooms as online. STUN servers are configured in the client; no TURN configuration was found in the inspected source.
+- **Community:** current panel is an explicit empty-state placeholder and states that authentication/database are required.
+- **Creator:** ZP Creator is a different implementation and data contract. ZX1's own `creator-zx1.html` and `creator-engine.html` are authoritative for this target.
+
+### ZX1 file ownership and integration boundaries
+
+| ZX1 path | Responsibility | Migration rule |
+| --- | --- | --- |
+| `index.html` | Target shell, six views, navigation and host-to-Creator bridge | Main visual integration surface; retain validated message origin/source checks and persistent Creator iframe. |
+| `creator-zx1.html` | Preserved ZX1 Creator GUI and controls | Preserve behavior and storage; change only after focused audit and regression test. |
+| `creator-engine.html` | ZX1 audio engine, scheduler, project/sample state and command registry | No replacement or bulk copy from ZP. Mixer integration must use explicit engine-owned audio ports. |
+| `scripts/validate-zx1.mjs` | Automated structural/contract regression checks | Extend tests for each module and host/engine contract before claiming completion. |
+| `vendor/lame.min.js` | Existing audio export dependency | Keep local dependency and existing export flow. |
+| `CLOUDFLARE-ZP-MIGRATION.md`, `CM-ZX1-SURVEY.md` | Migration decision and project record | Update with each verified change and limitation. |
+
+The current ZX1 tree also contains `zp-agent*.js/css/json`, `zp-core.js`, `zp-layout*.js/css`, and `zp-storage.js`. Their names and shared code lineage do not prove that they are drop-in replacements for ZP modules. Audit each import, storage key, message contract and validator before reuse.
+
+### Safe implementation order
+
+1. **Visual shell fidelity:** reproduce reference shell and Home layout in ZX1 `index.html`, while keeping the current Creator iframe and its host-return message. Add screenshot/DOM checks for six tabs, safe-area sizing, scrolling and creator-mode fullscreen.
+2. **Creator continuity:** test enter/exit and re-entry without reload; preserve samples, project state and active session. Run existing validator before and after shell changes.
+3. **Mixer architecture:** inspect ZX1 engine graph and add three explicit source buses/controls with mute/solo/level and master routing; add audio graph tests. If three independent inputs cannot be safely exposed, state that limitation instead of presenting dummy faders.
+4. **Music:** implement catalog data model and a real playback source (user-imported local audio first is a possible no-backend slice); distinguish sample/demo metadata from playable files.
+5. **Radio:** decide whether ZX1 will use a separate Worker or a separately approved shared service. Verify Durable Object binding, allowed origins, WebSocket endpoint, TURN needs, microphone permissions and iOS Safari autoplay/ICE behavior before enabling collaboration.
+6. **Community:** implement a truthful public read-only/local preview first; defer accounts, profiles, uploads and likes until an approved identity/database service and moderation model exist.
+7. After each slice: run `node scripts/validate-zx1.mjs`, inspect diff, confirm Actions/Pages for exact SHA, synchronize `auxiliary` fast-forward, then guide iPhone Safari QA. Do not touch `test`.
+
+### Audit conclusion
+
+The current ZX1 shell has all six navigation destinations, but Mixer, Music, Stations and Community are placeholders. ZP's source provides the closest implementation reference for the shell and Radio UI, but its Mixer and Music are demonstrators and Community is a placeholder. The safest route is a high-fidelity shell first, ZX1 Creator preservation second, then real module implementations against ZX1-owned audio/storage/services. No functional code was changed as part of this audit.
