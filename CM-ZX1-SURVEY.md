@@ -1359,3 +1359,33 @@ El usuario confirmó expresamente los seis puntos del protocolo CM-ZX1:
 - Corrección aplicada en `scripts/validate-zx1.mjs`, commit `eab67c4abf3d013d9733e4496ac4596ec414e6de`: parsea JavaScript de shell, Creator preservado y motor; ejecuta los contratos existentes del Creator contra `creator-zx1.html`; añade contratos para seis destinos de navegación, iframe preservado, puente de retorno y existencia del módulo; inspecciona recursos locales de los tres documentos.
 - `main` y `auxiliary` sincronizadas al commit de corrección. `test` permanece intacta.
 - Workflow [44497967676](https://github.com/alexandermaulen/Dirtyfingaz-ZX1/actions/runs/44497967676), SHA `eab67c4...`: pendiente de resultado. No declarar PASS hasta su conclusión.
+
+
+## REFERENCIA MAESTRA ACTUALIZADA · DIRTYFINGAZ ZP PREVIEW · 2026-11-19
+
+El usuario indicó que el trabajo debe continuar en este repositorio y que la referencia principal ahora es la versión publicada en Cloudflare:
+- Repositorio objetivo: https://github.com/alexandermaulen/Dirtyfingaz-ZX1
+- Referencia visual/funcional: https://dirtyfingaz-zp-preview.alexandermaulen.workers.dev/
+
+### Dirección
+Adoptar la experiencia completa de la preview ZP —identidad visual, estructura, navegación y módulos Inicio, Creator, Mezclador de 3 canales, Música, Estaciones/Radio Grid y Comunidad— dentro de ZX1. ZX1 sigue siendo el único repositorio de implementación y producto final.
+
+### Preservación obligatoria
+Conservar e integrar el Creator ZX1 y su motor, nueve PADs, PATTERN EDIT/Piano Roll, bancos A–E, samples, transporte, BPM, MIDI, efectos, proyectos y almacenamiento local. No sobrescribir el motor ni el almacenamiento de ZX1 con equivalentes de ZP sin auditoría y pruebas; no mezclar proyectos, samples ni claves locales. La URL Cloudflare es una referencia publicada: no asumir que el código desplegado coincide exactamente con una rama fuente.
+
+### Estado verificado al coordinar
+- main y auxiliary: SHA 58dfe20a946d2737e2ed496ec65b890d49090c7f.
+- test: SHA a1286bed7487d78b01f8f32d756bb4963a9da6b1; no tocar.
+- La shell actual ofrece seis destinos y carga creator-zx1.html en un iframe persistente.
+- Mezclador, Música, Estaciones y Comunidad siguen siendo marcadores de integración, no módulos terminados.
+- GitHub Actions/Pages para SHA 58dfe20: run [44500611272](https://github.com/alexandermaulen/Dirtyfingaz-ZX1/actions/runs/44500611272), conclusión success.
+- CI/Pages no equivale a QA manual Safari/iPhone ni valida audio real.
+
+### Secuencia de ejecución
+1. Auditar la preview Cloudflare sección por sección.
+2. Comparar cada módulo con ZX1 y clasificar: reutilizar, adaptar, reconstruir o mantener pendiente.
+3. Definir mapa de archivos y contratos de navegación, eventos, audio, persistencia y responsive móvil.
+4. Integrar un módulo funcional por vez, empezando por cerrar la shell/Creator.
+5. Validar código, CI, Pages y QA físico; registrar SHA y evidencia antes de avanzar.
+
+**Alcance:** esta nota actualiza la referencia y el plan; no declara módulos pendientes como terminados ni autoriza reemplazar el Creator/motor ZX1 en bloque.
