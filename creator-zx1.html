@@ -1109,6 +1109,23 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  const paintPadMidi=()=>{pianoGrid.querySelectorAll('.pad-midi-origin').forEach(el=>el.classList.remove('pad-midi-origin'));activeNotes.forEach(note=>{pianoGrid.querySelector('.piano-cell[data-step="'+note.step+'"][data-pitch="'+note.pitch+'"]')?.classList.add('pad-midi-origin');pianoGrid.querySelector('.piano-note[data-id="'+note.id+'"]')?.classList.add('pad-midi-origin')})};
  
  const setPianoMode=on=>{pianoMode=!!on;pianoViewport.hidden=!pianoMode;viewport.hidden=pianoMode;stepModeButton.textContent=pianoMode?'STEP':'PIANO';$('#zpClear').textContent='CLR';window.__zpPianoEncoderMode=!!(pianoMode&&scr.classList.contains('pr'));const patternOpen=scr.classList.contains('pr');midContainer.classList.toggle('piano-open',patternOpen);midContainer.classList.toggle('step-sequencer-mode',patternOpen&&!pianoMode);midContainer.classList.toggle('piano-roll-mode',patternOpen&&pianoMode);midContainer.classList.toggle('sample-context',!patternOpen);setLxContext(!!window.__zpPianoEncoderMode);};
+ const patternButton=document.querySelector('#rows .pattern-edit-trigger')||[...document.querySelectorAll('#rows .b')].find(el=>el.textContent.replace(/\s/g,'').toUpperCase()==='PATTERNEDIT');
+ const setPatternEditOpen=open=>{
+  const active=!!open;
+  scr.classList.toggle('pr',active);
+  patternButton?.classList.toggle('lit',active);
+  patternButton?.setAttribute('aria-expanded',String(active));
+  patternButton?.setAttribute('aria-pressed',String(active));
+  setPianoMode(false);
+ };
+ patternButton?.setAttribute('aria-expanded','false');
+ patternButton?.setAttribute('aria-controls','zpPianoViewport');
+ patternButton?.addEventListener('click',event=>{
+  event.preventDefault();
+  event.stopPropagation();
+  setPatternEditOpen(!scr.classList.contains('pr'));
+ });
+ window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false));
  const buildPiano=()=>{pianoGrid.replaceChildren();topMidi=71+octaveShift*12;const corner=mk('div','piano-ruler-key','♪');corner.style.gridColumn='1';corner.style.gridRow='1';pianoGrid.append(corner);for(let step=0;step<16;step++){const tick=mk('div','piano-ruler',String(step+1));tick.style.gridColumn=String(step+2);tick.style.gridRow='1';pianoGrid.append(tick)}for(let row=0;row<24;row++){const midi=topMidi-row,label=mk('div','piano-key '+([1,3,6,8,10].includes(midi%12)?'black':'white'),noteName(midi));label.style.gridColumn='1';label.style.gridRow=String(row+2);pianoGrid.append(label);for(let step=0;step<16;step++){const cell=mk('div','piano-cell '+([1,3,6,8,10].includes(midi%12)?'black-key':'white-key'));cell.dataset.step=String(step);cell.dataset.pitch=String(midi);cell.style.gridColumn=String(step+2);cell.style.gridRow=String(row+2);pianoGrid.append(cell)}}const play=mk('div','piano-playhead');play.id='zpPianoPlayhead';play.style.gridColumn='2';play.style.gridRow='2 / 26';pianoGrid.append(play);renderNotes()};
  const syncPianoControls=()=>{const selected=activeNotes.find(n=>n.id===selectedNoteId),length=selected?.length??defaultLength,engineDivision=latestEngineState?.quantizeEnabled?latestEngineState.quantizeDivision:'OFF',stepByDivision={'1/16':1,'1/8':2,'1/4':4};if(engineDivision in stepByDivision)snapSize=stepByDivision[engineDivision];lengthButton.textContent='NOTE LEN '+length;lengthButton.setAttribute('aria-label','NOTE LENGTH '+length);snapButton.textContent='SNAP '+engineDivision;snapButton.setAttribute('aria-label','PIANO SNAP '+engineDivision)};
  const renderNotes=()=>{pianoGrid.querySelectorAll('.piano-note').forEach(n=>n.remove());activeNotes.forEach(note=>{const row=topMidi-note.pitch;if(row<0||row>=24)return;const el=mk('div','piano-note'+(note.id===selectedNoteId?' selected':''),'<span>'+noteName(note.pitch)+'</span><i></i>');el.dataset.id=note.id;el.style.gridColumn=(note.step+2)+' / span '+note.length;el.style.gridRow=String(row+2);el.style.transform=note.micro?'translateX('+(note.micro*100)+'%)':'none';el.style.opacity=String(.35+.65*note.velocity/127);pianoGrid.append(el)});const selected=activeNotes.find(n=>n.id===selectedNoteId);if(selected){velocityInput.value=String(selected.velocity);defaultLength=selected.length}syncPianoControls()};
@@ -1162,21 +1179,6 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  pianoGrid.addEventListener('pointermove',e=>{if(!noteDrag)return;const rawDx=(e.clientX-noteDrag.startX)/noteDrag.cellWidth,unsnapped=!!(e.shiftKey||freeMove),dx=unsnapped?rawDx:Math.round(Math.round(rawDx)/snapSize)*snapSize,dy=Math.round((e.clientY-noteDrag.startY)/noteDrag.rowHeight),n=activeNotes.find(x=>x.id===noteDrag.id);if(!n)return;noteDrag.moved=noteDrag.moved||Math.abs(dx)+Math.abs(dy)>0;if(noteDrag.resize){n.length=clamp(noteDrag.startLength+Math.round(dx),1,16-noteDrag.startStep)}else{const position=clamp(noteDrag.startStep+(noteDrag.startMicro||0)+dx,0,15.999),whole=Math.floor(position);n.step=clamp(whole,0,15);n.micro=unsnapped?clamp(position-whole,0,.999):0;n.pitch=clamp(noteDrag.startPitch-dy,36,96)}noteDrag.el.style.gridColumn=(n.step+2)+' / span '+n.length;noteDrag.el.style.transform=n.micro?'translateX('+(n.micro*100)+'%)':'none';const row=topMidi-n.pitch;if(row>=0&&row<24)noteDrag.el.style.gridRow=String(row+2)});
  const finishDrag=()=>{if(!noteDrag)return;const n=activeNotes.find(x=>x.id===noteDrag.id);if(n&&noteDrag.moved)upsertNote({...n});else renderNotes();noteDrag=null};
  pianoGrid.addEventListener('pointerup',finishDrag);pianoGrid.addEventListener('pointercancel',finishDrag);
- const patternButton=document.querySelector('#rows .pattern-edit-trigger')||[...document.querySelectorAll('#rows .b')].find(el=>el.textContent.replace(/\s/g,'').toUpperCase()==='PATTERNEDIT');
-  const setPatternEditOpen=open=>{
-   const active=!!open;
-   scr.classList.toggle('pr',active);
-   patternButton?.classList.toggle('lit',active);
-   patternButton?.setAttribute('aria-expanded',String(active));
-   patternButton?.setAttribute('aria-pressed',String(active));
-   midContainer.classList.toggle('piano-open',active);
-   setPianoMode(false);
-  };
-  patternButton?.setAttribute('aria-expanded','false');
-  patternButton?.setAttribute('aria-controls','zpPianoViewport');
-  patternButton?.addEventListener('click',event=>{event.preventDefault();setPatternEditOpen(!scr.classList.contains('pr'))});
-  window.addEventListener('zp-pattern-edit-close',()=>setPatternEditOpen(false));
-
  let bpmValue=96,lastY=null,remainder=0;
  const syncBpmDisplay=value=>{const next=Number(value);if(!Number.isFinite(next))return false;bpmValue=Math.max(40,Math.min(240,Math.round(next)));bpm.textContent='BPM:'+bpmValue;bpm.setAttribute('aria-valuenow',String(bpmValue));return true};
  const adjustTempo=delta=>{syncBpmDisplay(bpmValue+delta);window.zpBridgeSend?.('creator.bpm.adjust',{delta})};
