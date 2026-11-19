@@ -143,3 +143,31 @@ Commit: `ff86f03c11d962f2f814a51893ca39cbc0fac46a` — `feat: align ZX1 shell wi
 - iPhone/Safari visual and interaction QA remains pending.
 
 Next: confirm automated validation and deployment, then verify the published page and Creator continuity on iPhone before moving to a real ZX1 mixer integration.
+
+
+## Coordinated deployment protocol and Cloudflare incident · 2026-11-19
+
+### Required order for every change
+
+1. Notion: record scope, affected files/services, risks, acceptance criteria and rollback before editing.
+2. GitHub: inspect the current branch and commit; make the smallest change; run validation; review the diff; record the commit. Do not sync publication branches until validation passes.
+3. Cloudflare: verify repository, branch, Worker name, deploy command, Wrangler config, assets binding, Durable Object bindings/exports, variables and secrets. Retry only after these match the intended runtime.
+4. QA: verify the exact deployed SHA, public URL, logs and iPhone/Safari behavior; record evidence in Notion.
+
+### Confirmed failure details
+
+- Worker Builds authentication is no longer the blocker: Cloudflare initializes, clones the repository and Wrangler uploads 17 static assets.
+- The deploy fails at Durable Object reconciliation with orphaned_provisioned_namespace for the provisioned RadioRoom namespace ID 64333bad04b84057b155f15da1e67a3e.
+- The build log identifies Worker dirtyfingaz-zp-preview, branch auxiliary, commit d1e2ce9 and command npx wrangler deploy.
+- Dirtyfingaz-ZX1/auxiliary does not currently expose a root wrangler.jsonc (GitHub contents lookup returned 404). Wrangler therefore generated a basic static-assets config during the non-interactive build.
+- Dirtyfingaz-ZP has a root wrangler.jsonc declaring main ./radio-worker.mjs, assets binding ASSETS, route handling for /api/*, Durable Object binding RADIO_ROOMS -> RadioRoom, and SQLite storage export. The ZP repository also contains radio-worker.mjs and the RadioRoom class.
+
+### Non-destructive guardrails
+
+- Never declare RadioRoom deleted to silence this error.
+- Never delete, recreate, rename, or migrate the provisioned namespace/storage as a build workaround.
+- Do not retry Cloudflare until the Worker config and code are reconciled.
+- Next technical audit: inspect the complete ZP Worker routes and storage behavior, current ZX1 runtime contracts, origin policy, and existing Cloudflare bindings. Then prepare a reviewed Wrangler configuration that preserves the existing namespace identity and serves the ZX1 static interface from the intended Worker.
+- Acceptance: successful deploy without destructive reconciliation; existing RadioRoom remains bound; /api endpoints respond; ZX1 frontend loads from Cloudflare; mobile QA passes.
+
+Status: diagnosis confirmed; corrective code/configuration has not yet been implemented. Cloudflare deploy remains blocked pending the compatibility audit.
