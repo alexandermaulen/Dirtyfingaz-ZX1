@@ -157,12 +157,23 @@
   function deleteProject(projectId) {
     const id = String(projectId || "");
     if (!id || id === "current") return Promise.reject(new Error("No se puede eliminar el proyecto de recuperación"));
-    return Promise.all([
-      transact(PROJECT_STORE, "readwrite", function (store) { return store.delete(id); }),
-      getProjectSamples(id).then(function (items) {
-        return Promise.all(items.map(function (item) { return deleteProjectSample(id, item.pad, item.bank); }));
-      })
-    ]);
+    return open().then(function (db) {
+      return new Promise(function (resolve, reject) {
+        const tx = db.transaction([PROJECT_STORE, PROJECT_SAMPLE_STORE], "readwrite");
+        tx.objectStore(PROJECT_STORE).delete(id);
+        const samples = tx.objectStore(PROJECT_SAMPLE_STORE);
+        const cursorRequest = samples.openCursor();
+        cursorRequest.onsuccess = function () {
+          const cursor = cursorRequest.result;
+          if (!cursor) return;
+          if (cursor.value.projectId === id) cursor.delete();
+          cursor.continue();
+        };
+        tx.oncomplete = function () { resolve({ deleted: id }); };
+        tx.onerror = function () { reject(tx.error || new Error("No se pudo eliminar el proyecto y sus muestras")); };
+        tx.onabort = function () { reject(tx.error || new Error("Eliminación de proyecto cancelada")); };
+      });
+    });
   }
 
   root.DirtyfingazStorage = Object.freeze({
