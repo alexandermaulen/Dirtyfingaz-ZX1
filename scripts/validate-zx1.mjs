@@ -582,6 +582,15 @@ if(deleteStart>=0&&deleteEnd>deleteStart){
   check(recoveryProtected,"The current recovery project must remain protected from deletion");
 }
 
+/* AUD-020 · Storage preflight before replacing active project state */
+const loadSessionStart=engine.indexOf('async function loadSession(projectId="current"){');
+const sampleReadAt=engine.indexOf("savedSamples=await assetStorage.getProjectSamples(currentProjectId)",loadSessionStart);
+const firstStateResetAt=engine.indexOf("resetPatterns();",loadSessionStart);
+check(loadSessionStart>=0&&sampleReadAt>loadSessionStart&&firstStateResetAt>sampleReadAt,
+  "Project sample storage must be readable before the current in-memory session is replaced");
+check(engine.includes("const previousProjectId=currentProjectId,previousProjectName=currentProjectName;")&&
+  engine.includes("catch(error){currentProjectId=previousProjectId;currentProjectName=previousProjectName;throw error}"),
+  "A failed sample-store preflight must restore the prior active project identity");
 if (errors.length) {
   console.error("\nVALIDATION FAILED");
   for (const error of errors) console.error(" -", error);
