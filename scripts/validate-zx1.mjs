@@ -150,8 +150,8 @@ check(gui.includes("let bpmValue=120,lastY=null,remainder=0") &&
   gui.includes("const syncBpmDisplay=value=>") &&
   gui.includes("bpm.setAttribute('aria-valuenow',String(bpmValue))"),
   "BPM UI must use a single bounded display synchronization function");
-check(gui.includes('<div class="scr" id="scr">\\n   <div class="ph">') &&
-  !gui.includes('<div class="v2">\\n    <div class="ph">') &&
+check(gui.includes('<div class="scr" id="scr">\n   <div class="ph">') &&
+  !gui.includes('<div class="v2">\n    <div class="ph">') &&
   gui.includes("const ph=scr.querySelector('.ph')"),
   "One persistent transport dock must serve Sample and Pattern Edit without a duplicate");
 check((gui.match(/id="play"/g)||[]).length===1 && (gui.match(/id="stop"/g)||[]).length===1,
