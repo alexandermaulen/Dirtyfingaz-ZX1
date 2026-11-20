@@ -341,10 +341,17 @@ const importantPatternHeights=patternStyleBlocks.flatMap(block=>{
   const height=block.match(/\bheight\s*:\s*([^;]+?)\s*!important\b/i);
   return height?[height[1].trim()]:[];
 });
-check(importantPatternHeights[importantPatternHeights.length-1]==="260px",
-  "Pattern Edit LCD must preserve the pre-audit deployed 260px height until device measurement is approved");
-check(gui.includes(".scr.pr{height:260px!important"),
-  "Pattern Edit LCD must keep its verified pre-audit height override");
+check(gui.includes('id="zx1-crt-circular-lcd-art-direction"')&&
+  gui.includes(".scr.pr{width:min(360px,calc(100vw - 32px))!important")&&
+  gui.includes("border-radius:50%!important"),
+  "CRT art direction must keep Pattern Edit inside an enlarged circular LCD");
+check(gui.includes('id="wv-expanded" class="wave-display wave-display-expanded"')&&
+  gui.includes('document.querySelectorAll(".wave-display")')&&
+  gui.includes("waveCanvases.forEach(waveCanvas=>"),
+  "Circular LCD must render and support trim interaction on both waveform displays");
+check(gui.includes('const tones=["#e5ad42","#caff55","#caff55","#e5ad42"]')&&
+  gui.includes("const bins=data?.length?data.length:96"),
+  "LCD waveform must use four phosphor segments and preserve real sample data");
 const finiteHelperStart=engine.indexOf("function readFiniteNumber(");
 const finiteHelperLine=finiteHelperStart>=0?engine.slice(finiteHelperStart).split(/\r?\n/,1)[0]:"";
 const finiteHelperEnd=finiteHelperStart+finiteHelperLine.length;
