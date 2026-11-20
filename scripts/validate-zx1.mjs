@@ -108,7 +108,7 @@ check(JSON.stringify(panelContract?.contexts) === JSON.stringify(["sample", "pat
 check(layoutSource.includes("function resolveTarget") && layoutSource.includes("function applyStoredTargets"), "Contextual target resolver and independent target restore missing");
 check(layoutSource.includes('window.__zpPianoEncoderMode?"piano":"pattern"'), "Step Sequencer and Piano Roll context resolution must be distinct");
 check(gui.includes('window.addEventListener("zp-encoder-target-change"'), "Creator GUI must consume validated encoder target assignments");
-check(gui.includes("window.__zpEncoderTargets[side]=target"), "Piano encoder targets must be assigned independently per side");
+check(gui.includes('window.__zpEncoderTargets[side==="L"?"lx":"rx"]=target'), "Piano encoder targets must be assigned independently per side");
 check(gui.includes('window.__zpEncoderTargets[side==="L"?"lx":"rx"]=target'), "Contextual dispatcher must write the lowercase encoder keys consumed by Piano Roll");
 check(!gui.includes('window.addEventListener("zp-panel-option-select",event=>{\n  const d=event.detail||{};if(d.context!=="piano")return;'), "Legacy hardcoded Piano Roll target dispatcher must be removed");
 check(gui.includes('if(d.context!=="piano")return;') && gui.includes('window.__zpEncoderTargets[side]=target'), "Piano Roll rotor feedback must consume the unified target event");
