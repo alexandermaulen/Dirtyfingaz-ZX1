@@ -1402,3 +1402,21 @@ Conservar e integrar el Creator ZX1 y su motor, nueve PADs, PATTERN EDIT/Piano R
 - [ ] Completar y verificar cursor por paso, MIDI por PAD, selección múltiple, copiar/pegar y undo/redo.
 
 **Límite:** esta corrección no modifica motor de audio, datos, samples, asignaciones, bancos A–E, nueve PADs, SAMPLE EDIT, Piano Roll ni controles físicos LX/RX. CI/Pages no equivale a QA físico.
+
+
+## DIRECCIÓN DE ARTE · LCD CRT CIRCULAR · 2026-11-20
+
+**Referencia aprobada por el usuario:** LCD circular de fósforo verde con aro exterior lima, bisel negro, cristal oscuro, rejilla/scanlines y waveform pixelado segmentado en verde y ámbar. Aplicar la dirección tanto al estado circular principal como al Pattern Edit ampliado, sin convertir este último en una ventana rectangular.
+
+### Implementación
+- `creator-zx1.html`: el LCD mantiene geometría circular en estado normal y ampliado; el estado Pattern Edit usa un círculo de hasta 360 px adaptado al viewport.
+- El waveform se presenta en cuatro segmentos de fósforo, ámbar/verde/verde/ámbar, conservando los datos reales del sample, el sombreado IN/OUT y los marcadores de chop.
+- Pattern Edit integra un segundo canvas de waveform sobre la rejilla de steps. Ambos canvas comparten estado de muestra y reciben interacción táctil de trim/chop.
+- Se conserva el grid de steps, el playhead, los controles de transporte y el motor aislado. No se cambia `creator-engine.html`.
+- `scripts/validate-zx1.mjs`: se sustituyó la expectativa de geometría rectangular fija por contratos para LCD circular, waveform doble y renderer segmentado.
+
+### Validación y límites
+- Cambios escritos directamente en `main`; no se creó ninguna rama.
+- Commits funcionales consecutivos: `f6d8ad14c98d5b369206ec409cbf94af216ce34f` (LCD) y `aa165e7c6581c7e7f7d28c2b0ac848c0ca61ca20` (contratos del validador).
+- Pendiente: resultado de GitHub Actions sobre el HEAD final, despliegue Cloudflare asociado al SHA exacto y QA visual/táctil en Safari/iPhone.
+- El usuario indicó publicar en Cloudflare después de terminar la integración. No se debe declarar QA ni publicación confirmados hasta verificar ambos.
