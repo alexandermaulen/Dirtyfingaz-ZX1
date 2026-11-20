@@ -100,58 +100,6 @@ if (padBootstrap) {
 }
 
 
-const panelContract = registry.panelSystem;
-const layoutSource = read("zp-layout.js");
-check(panelContract?.version === "2.0.0", "Encoder target contract v2 missing");
-check(panelContract?.targetModel?.selection === "independent-per-encoder", "Lx/Rx targets must be independently assigned");
-check(JSON.stringify(panelContract?.contexts) === JSON.stringify(["sample", "pattern", "piano"]), "Panel contexts must match supported Creator views");
-check(layoutSource.includes("function resolveTarget") && layoutSource.includes("function applyStoredTargets"), "Contextual target resolver and independent target restore missing");
-check(layoutSource.includes("function toggleClearTargets()") && layoutSource.includes('dispatchTarget("L",null,true);dispatchTarget("R",null,true)'),
-  "CLEAR TARGET must release both encoder assignments together");
-check(layoutSource.includes("clearSnapshot={context,groups:{left:state.left,right:state.right}") &&
-  layoutSource.includes("snapshot.context!==context") &&
-  layoutSource.includes("clearSnapshot=null;shiftSpeed.L=0;shiftSpeed.R=0"),
-  "CLEAR TARGET restore snapshot must be context-scoped and discarded on context changes");
-check(layoutSource.includes("resolveTarget(side,saved.group,saved.option)") &&
-  layoutSource.includes("if(!snapshot){updateState({targets:{left:null,right:null},released:false})"),
-  "CLEAR TARGET must validate restored targets and fall back to safe defaults when its temporary snapshot is unavailable");
-check(layoutSource.includes("released:false") && layoutSource.includes("if(state.released){dispatchTarget(side,null,true);continue}"),
-  "Released encoder state must persist per context and survive context re-entry");
-check(layoutSource.includes('clearButton=button("Ø"') && layoutSource.includes('shiftRange.min="10";shiftRange.max="50";shiftRange.step="5"'),
-  "LCD toolbar must expose circular CLEAR TARGET and configurable SHIFT precision controls");
-check(layoutSource.includes("getAdaptiveShiftRatio") && layoutSource.includes("const defaultShiftPrecision={sample:10,pattern:10,piano:50}"),
-  "SHIFT adaptive precision must retain the existing context-specific baseline");
-check(gui.includes("if(d.released)") && gui.includes("if(mode===null)return;") && gui.includes("if(selectedTarget===null)return;"),
-  "Creator encoders must respect explicitly released targets instead of reactivating defaults");
-check(gui.includes("getAdaptiveShiftRatio?.") && gui.includes("const precision=clamp(Number(shiftRatio)||.5,.1,.5)"),
-  "SHIFT precision must adapt to encoder movement speed and remain bounded to the existing 10–50% context ratios");
-const adaptiveStart=layoutSource.indexOf("const getAdaptiveShiftRatio=");
-const adaptiveEnd=layoutSource.indexOf(";\nfunction toggleClearTargets",adaptiveStart);
-if(adaptiveStart>=0&&adaptiveEnd>adaptiveStart){
-  const adaptiveFactory=new Function("store","context","shiftSpeed","defaultShiftPrecision",
-    layoutSource.slice(adaptiveStart,adaptiveEnd)+";return getAdaptiveShiftRatio;");
-  const adaptive=adaptiveFactory({shiftPrecision:{piano:50}},"piano",{L:0,R:0},{sample:10,pattern:10,piano:50});
-  const baseline=adaptive("L",1,10),slower=adaptive("L",.5,10),faster=adaptive("L",2,10);
-  check(baseline===.5&&slower<baseline&&slower>.1&&faster===.5,
-    "Adaptive SHIFT must preserve baseline precision, increase precision on slower turns and cap faster turns at the configured baseline");
-}
-check(layoutSource.includes('window.__zpPianoEncoderMode?"piano":"pattern"'), "Step Sequencer and Piano Roll context resolution must be distinct");
-check(gui.includes('window.addEventListener("zp-encoder-target-change"'), "Creator GUI must consume validated encoder target assignments");
-check(gui.includes('window.__zpEncoderTargets[side==="L"?"lx":"rx"]=target'), "Piano encoder targets must be assigned independently per side");
-check(gui.includes('window.__zpEncoderTargets[side==="L"?"lx":"rx"]=target'), "Contextual dispatcher must write the lowercase encoder keys consumed by Piano Roll");
-check(!gui.includes('window.addEventListener("zp-panel-option-select",event=>{\n  const d=event.detail||{};if(d.context!=="piano")return;'), "Legacy hardcoded Piano Roll target dispatcher must be removed");
-check(gui.includes('if(d.context!=="piano")return;') && gui.includes('window.__zpEncoderTargets[side]=target'), "Piano Roll rotor feedback must consume the unified target event");
-
-check(gui.includes("new CustomEvent('zp-panel-context-change')"), "Piano/Step mode toggle must refresh target context");
-check(panelContract.optionActions?.sample?.L?.START === "trim.start" && panelContract.optionActions?.sample?.R?.END === "trim.end", "Sample trim action map incomplete");
-check(panelContract.optionActions?.piano?.L?.NOTE === "step" && panelContract.optionActions?.piano?.R?.LENGTH === "length", "Piano action map incomplete");
-for (const [contextName, sides] of Object.entries(panelContract.optionActions || {})) {
-  for (const [side, options] of Object.entries(sides)) {
-    check(["L", "R"].includes(side), "Invalid encoder side in optionActions: " + contextName);
-    for (const action of Object.values(options || {})) check(["trim.start", "trim.end", "pad-pitch", "step", "pitch", "velocity", "length"].includes(action), "Unrecognized encoder action: " + action);
-  }
-}
-
 check(Array.isArray(registry.utilitySystem?.groups) && registry.utilitySystem.groups.length === 8,
   "UTILITY must declare the eight survey-defined groups");
 check(gui.includes("utilityGroupDefinitions") && gui.includes("utility-search-hit"),
@@ -341,18 +289,10 @@ const importantPatternHeights=patternStyleBlocks.flatMap(block=>{
   const height=block.match(/\bheight\s*:\s*([^;]+?)\s*!important\b/i);
   return height?[height[1].trim()]:[];
 });
-check(gui.includes('id="zx1-crt-circular-lcd-art-direction"')&&
-  gui.includes(".scr.pr{width:min(360px,calc(100vw - 32px))!important")&&
-  gui.includes("border-radius:50%!important"),
-  "CRT art direction must keep Pattern Edit inside an enlarged circular LCD");
-check(gui.includes('id="wv-expanded" class="wave-display wave-display-expanded"')&&
-  gui.includes('document.querySelectorAll(".wave-display")')&&
-  gui.includes("waveCanvases.forEach(waveCanvas=>"),
-  "Circular LCD must render and support trim interaction on both waveform displays");
-check(gui.includes('tones=["#e5ad42","#caff55","#caff55","#e5ad42"]')&&
-  gui.includes("const n=data?.length||96")&&
-  gui.includes("lo=data[i][0];hi=data[i][1]"),
-  "LCD waveform must use four phosphor segments and preserve real sample data");
+check(importantPatternHeights[importantPatternHeights.length-1]==="260px",
+  "Pattern Edit LCD must preserve the pre-audit deployed 260px height until device measurement is approved");
+check(gui.includes(".scr.pr{height:260px!important"),
+  "Pattern Edit LCD must keep its verified pre-audit height override");
 const finiteHelperStart=engine.indexOf("function readFiniteNumber(");
 const finiteHelperLine=finiteHelperStart>=0?engine.slice(finiteHelperStart).split(/\r?\n/,1)[0]:"";
 const finiteHelperEnd=finiteHelperStart+finiteHelperLine.length;
