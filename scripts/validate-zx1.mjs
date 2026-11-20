@@ -100,6 +100,25 @@ if (padBootstrap) {
 }
 
 
+const panelContract = registry.panelSystem;
+const layoutSource = read("zp-layout.js");
+check(panelContract?.version === "2.0.0", "Encoder target contract v2 missing");
+check(panelContract?.targetModel?.selection === "independent-per-encoder", "Lx/Rx targets must be independently assigned");
+check(JSON.stringify(panelContract?.contexts) === JSON.stringify(["sample", "pattern", "piano"]), "Panel contexts must match supported Creator views");
+check(layoutSource.includes("function resolveTarget") && layoutSource.includes("function applyStoredTargets"), "Contextual target resolver and independent target restore missing");
+check(layoutSource.includes('window.__zpPianoEncoderMode?"piano":"pattern"'), "Step Sequencer and Piano Roll context resolution must be distinct");
+check(gui.includes('window.addEventListener("zp-encoder-target-change"'), "Creator GUI must consume validated encoder target assignments");
+check(gui.includes("window.__zpEncoderTargets[side]=target"), "Piano encoder targets must be assigned independently per side");
+check(gui.includes("new CustomEvent('zp-panel-context-change')"), "Piano/Step mode toggle must refresh target context");
+check(panelContract.optionActions?.sample?.L?.START === "trim.start" && panelContract.optionActions?.sample?.R?.END === "trim.end", "Sample trim action map incomplete");
+check(panelContract.optionActions?.piano?.L?.NOTE === "step" && panelContract.optionActions?.piano?.R?.LENGTH === "length", "Piano action map incomplete");
+for (const [contextName, sides] of Object.entries(panelContract.optionActions || {})) {
+  for (const [side, options] of Object.entries(sides)) {
+    check(["L", "R"].includes(side), "Invalid encoder side in optionActions: " + contextName);
+    for (const action of Object.values(options || {})) check(["trim.start", "trim.end", "pad-pitch", "step", "pitch", "velocity", "length"].includes(action), "Unrecognized encoder action: " + action);
+  }
+}
+
 check(Array.isArray(registry.utilitySystem?.groups) && registry.utilitySystem.groups.length === 8,
   "UTILITY must declare the eight survey-defined groups");
 check(gui.includes("utilityGroupDefinitions") && gui.includes("utility-search-hit"),

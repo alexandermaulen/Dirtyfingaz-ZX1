@@ -964,19 +964,25 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  });
  const valueEncoder=document.querySelector(".pe");
  window.__zpEncoderModes=window.__zpEncoderModes||{lx:"trim.start",rx:"trim.end"};
- window.addEventListener("zp-panel-option-select",event=>{
-  const d=event.detail||{};if(d.context!=="sample")return;
-  const side=d.side==="L"?"lx":"rx",option=String(d.option||"").trim().toUpperCase();
-  let mode=null;
-  if(["START","IN"].includes(option))mode="trim.start";
-  if(["END","OUT"].includes(option))mode="trim.end";
-  if(["PITCH","TRANSPOSE"].includes(option))mode="pad-pitch";
-  const encoder=side==="lx"?lx:valueEncoder;
-  if(!mode){encoder.dataset.panelOption=option;encoder.title=side.toUpperCase()+" · "+option+" · SIN ACCIÓN ASIGNADA";return;}
-  window.__zpEncoderModes[side]=mode;
-  encoder.dataset.editTarget=mode==="pad-pitch"?"PAD PITCH":mode==="trim.start"?"SAMPLE IN":"SAMPLE OUT";
-  encoder.setAttribute("aria-label",side.toUpperCase()+" · "+encoder.dataset.editTarget);
-  encoder.title=encoder.dataset.editTarget+" · SHIFT para ajuste fino";
+ window.__zpEncoderTargets=window.__zpEncoderTargets||{L:"step",R:"pitch"};
+ window.addEventListener("zp-encoder-target-change",event=>{
+  const d=event.detail||{},side=d.side,encoder=side==="L"?lx:valueEncoder;
+  if(!["L","R"].includes(side)||!encoder)return;
+  if(d.context==="sample"){
+   const mode=d.active?d.action:(side==="L"?"trim.start":"trim.end");
+   if(!["trim.start","trim.end","pad-pitch"].includes(mode))return;
+   window.__zpEncoderModes[side==="L"?"lx":"rx"]=mode;
+   encoder.dataset.editTarget=mode==="pad-pitch"?"PAD PITCH":mode==="trim.start"?"SAMPLE IN":"SAMPLE OUT";
+   encoder.setAttribute("aria-label",side+" · "+encoder.dataset.editTarget);
+   encoder.title=encoder.dataset.editTarget+" · SHIFT para ajuste fino";
+  }else if(d.context==="piano"){
+   const target=d.active?d.action:(side==="L"?"step":"pitch");
+   if(!["step","pitch","velocity","length"].includes(target))return;
+   window.__zpEncoderTargets[side]=target;
+   encoder.dataset.editTarget="MIDI "+target.toUpperCase();
+   encoder.setAttribute("aria-label",side+" · "+encoder.dataset.editTarget);
+   encoder.title=encoder.dataset.editTarget+" · SHIFT para ajuste fino";
+  }
  });
  const bindTrimEncoder=(encoder,trimTarget)=>{
   let previous=null,menuRemainder=0;
@@ -1157,10 +1163,10 @@ sampleTime?.setAttribute("aria-label","Velocidad de reproducción de la muestra"
    const fine=!!(e.shiftKey||shiftButton?.classList.contains('lit'));
    const note=selectedNote(),selectedTarget=window.__zpEncoderTargets?.[side]||(side==='lx'?'step':'pitch');
    let changed=false;
-   if(note&&side==='rx'&&selectedTarget==='length'){
+   if(note&&selectedTarget==='length'){
     state.remainder+=delta;const quantum=fine?6:12,units=Math.trunc(state.remainder/quantum);
     if(units){state.remainder-=units*quantum;const index=activeNotes.findIndex(item=>item.id===note.id);if(index>=0){activeNotes[index]={...note,length:clamp(note.length+units,1,16-note.step)};state.midiDirty=true;state.midiId=note.id;renderNotes();changed=true}}
-   }else if(note&&side==='rx'&&selectedTarget==='velocity'){
+   }else if(note&&selectedTarget==='velocity'){
     state.remainder+=delta;const quantum=fine?6:12,units=Math.trunc(state.remainder/quantum);
     if(units){state.remainder-=units*quantum;const index=activeNotes.findIndex(item=>item.id===note.id);if(index>=0){activeNotes[index]={...note,velocity:clamp(note.velocity+units,1,127)};state.midiDirty=true;state.midiId=note.id;renderNotes();changed=true}}
    }else if(note&&selectedTarget==='step'){
@@ -1211,6 +1217,7 @@ sampleTime?.setAttribute("aria-label","Velocidad de reproducción de la muestra"
   stepModeButton.setAttribute('aria-label',pianoMode?'Mostrar secuenciador por pasos':'Mostrar Piano Roll');
   $('#zpClear').textContent='CLR';
   window.__zpPianoEncoderMode=!!(pianoMode&&scr.classList.contains('pr'));
+  window.dispatchEvent(new CustomEvent('zp-panel-context-change'));
   const patternOpen=scr.classList.contains('pr');
   midContainer.classList.toggle('piano-open',patternOpen);
   midContainer.classList.toggle('step-sequencer-mode',patternOpen&&!pianoMode);

@@ -456,7 +456,7 @@
     "led": "trim-phase-led"
   },
   "panelSystem": {
-    "version": "1.0.0",
+    "version": "2.0.0",
     "presentation": "hybrid",
     "activation": "hold",
     "dock": "side",
@@ -472,13 +472,11 @@
       "agent": "zp-agent.js",
       "engine": "creator-engine.html"
     },
-    "executionPolicy": "Selecting a secondary option arms a contextual encoder target. Only optionActions entries are executable. Sample trim and pad pitch use existing creator.sample.trim.set and creator.control.set commands; Piano Roll edits selected notes through creator.piano.note.upsert on encoder release. Unmapped options remain informational and must not be presented as executed.",
+    "executionPolicy": "Each encoder owns an independent target per active context. Only optionActions entries are executable; unmapped options are disabled and informational. Context resolution distinguishes the Step Sequencer (pattern) from Piano Roll (piano). Sample trim and pad pitch use existing creator.sample.trim.set and creator.control.set commands. Piano Roll edits selected note events and commits through creator.piano.note.upsert. Target selection does not mutate engine or musical state.",
     "contexts": [
       "sample",
-      "piano",
       "pattern",
-      "fx",
-      "master"
+      "piano"
     ],
     "panels": {
       "left": [
@@ -601,6 +599,12 @@
               "ISOLATOR",
               "MULTIBAND",
               "LIMITER"
+            ],
+            "sample": [
+              "START",
+              "END",
+              "PITCH",
+              "TRANSPOSE"
             ]
           }
         },
@@ -691,17 +695,47 @@
         "L": {
           "NOTE": "step",
           "STEP": "step",
-          "QUANTIZE": "step"
+          "TRANSPOSE": "pitch",
+          "PITCH": "pitch",
+          "VELOCITY": "velocity"
         },
         "R": {
+          "NOTE": "step",
+          "STEP": "step",
           "PITCH": "pitch",
           "VELOCITY": "velocity",
           "NOTE DYNAMICS": "velocity",
           "ACCENT": "velocity",
           "LENGTH": "length",
-          "GATE": "length",
-          "QUANTIZE": "step",
-          "STEP": "step"
+          "GATE": "length"
+        }
+      },
+      "pattern": {
+        "L": {},
+        "R": {}
+      }
+    },
+    "targetModel": {
+      "selection": "independent-per-encoder",
+      "contextScope": "active-creator-view",
+      "persistence": "per-context-and-per-side",
+      "sides": [
+        "L",
+        "R"
+      ],
+      "unmappedOptions": "informational-disabled",
+      "defaults": {
+        "sample": {
+          "L": "trim.start",
+          "R": "trim.end"
+        },
+        "pattern": {
+          "L": null,
+          "R": null
+        },
+        "piano": {
+          "L": "step",
+          "R": "pitch"
         }
       }
     }
