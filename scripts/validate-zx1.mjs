@@ -106,6 +106,35 @@ check(panelContract?.version === "2.0.0", "Encoder target contract v2 missing");
 check(panelContract?.targetModel?.selection === "independent-per-encoder", "Lx/Rx targets must be independently assigned");
 check(JSON.stringify(panelContract?.contexts) === JSON.stringify(["sample", "pattern", "piano"]), "Panel contexts must match supported Creator views");
 check(layoutSource.includes("function resolveTarget") && layoutSource.includes("function applyStoredTargets"), "Contextual target resolver and independent target restore missing");
+check(layoutSource.includes("function toggleClearTargets()") && layoutSource.includes('dispatchTarget("L",null,true);dispatchTarget("R",null,true)'),
+  "CLEAR TARGET must release both encoder assignments together");
+check(layoutSource.includes("clearSnapshot={context,groups:{left:state.left,right:state.right}") &&
+  layoutSource.includes("snapshot.context!==context") &&
+  layoutSource.includes("clearSnapshot=null;shiftSpeed.L=0;shiftSpeed.R=0"),
+  "CLEAR TARGET restore snapshot must be context-scoped and discarded on context changes");
+check(layoutSource.includes("resolveTarget(side,saved.group,saved.option)") &&
+  layoutSource.includes("if(!snapshot){updateState({targets:{left:null,right:null},released:false})"),
+  "CLEAR TARGET must validate restored targets and fall back to safe defaults when its temporary snapshot is unavailable");
+check(layoutSource.includes("released:false") && layoutSource.includes("if(state.released){dispatchTarget(side,null,true);continue}"),
+  "Released encoder state must persist per context and survive context re-entry");
+check(layoutSource.includes('clearButton=button("Ø"') && layoutSource.includes('shiftRange.min="10";shiftRange.max="50";shiftRange.step="5"'),
+  "LCD toolbar must expose circular CLEAR TARGET and configurable SHIFT precision controls");
+check(layoutSource.includes("getAdaptiveShiftRatio") && layoutSource.includes("const defaultShiftPrecision={sample:10,pattern:10,piano:50}"),
+  "SHIFT adaptive precision must retain the existing context-specific baseline");
+check(gui.includes("if(d.released)") && gui.includes("if(mode===null)return;") && gui.includes("if(selectedTarget===null)return;"),
+  "Creator encoders must respect explicitly released targets instead of reactivating defaults");
+check(gui.includes("getAdaptiveShiftRatio?.") && gui.includes("const precision=clamp(Number(shiftRatio)||.5,.1,.5)"),
+  "SHIFT precision must adapt to encoder movement speed and remain bounded to the existing 10–50% context ratios");
+const adaptiveStart=layoutSource.indexOf("const getAdaptiveShiftRatio=");
+const adaptiveEnd=layoutSource.indexOf(";\\nfunction toggleClearTargets",adaptiveStart);
+if(adaptiveStart>=0&&adaptiveEnd>adaptiveStart){
+  const adaptiveFactory=new Function("store","context","shiftSpeed","defaultShiftPrecision",
+    layoutSource.slice(adaptiveStart,adaptiveEnd)+";return getAdaptiveShiftRatio;");
+  const adaptive=adaptiveFactory({shiftPrecision:{piano:50}},"piano",{L:0,R:0},{sample:10,pattern:10,piano:50});
+  const baseline=adaptive("L",1,10),slower=adaptive("L",.5,10),faster=adaptive("L",2,10);
+  check(baseline===.5&&slower<baseline&&slower>.1&&faster===.5,
+    "Adaptive SHIFT must preserve baseline precision, increase precision on slower turns and cap faster turns at the configured baseline");
+}
 check(layoutSource.includes('window.__zpPianoEncoderMode?"piano":"pattern"'), "Step Sequencer and Piano Roll context resolution must be distinct");
 check(gui.includes('window.addEventListener("zp-encoder-target-change"'), "Creator GUI must consume validated encoder target assignments");
 check(gui.includes('window.__zpEncoderTargets[side==="L"?"lx":"rx"]=target'), "Piano encoder targets must be assigned independently per side");
