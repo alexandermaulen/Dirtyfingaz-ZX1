@@ -161,9 +161,13 @@ check(gui.includes('id="waveZoom"') &&
   gui.includes("waveOffset+visible/waveZoom") &&
   gui.includes("const viewSpan=1/waveZoom"),
   "Sample waveform zoom must render a viewport and map gestures back to absolute sample positions");
-check(gui.includes('id="lcdMenu"') &&
+check(gui.includes('id="lcdMenu">MENU</button></div>') &&
   gui.includes("$('#lcdMenu')?.addEventListener('click',()=>window.zpBridgeSend?.('creator.system.menu.open',{})"),
-  "LCD MENU must reuse the existing system menu contract");
+  "LCD MENU must live in the shared transport dock and reuse the existing system menu contract");
+check(gui.includes("window.__zpWavePlayheadStep=d.step;wave()") &&
+  gui.includes("const step=Number(window.__zpWavePlayheadStep)") &&
+  gui.includes("trimState?.transients?.length"),
+  "Waveform must render engine-authoritative pattern playhead and transient markers after redraw");
 check(engine.includes("bpm=120,stepIndex=0") &&
   engine.includes("manualChopMarkers=[];bpm=120;") &&
   engine.includes("Number(d?.bpm)||120") &&
