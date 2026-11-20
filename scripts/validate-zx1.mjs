@@ -159,7 +159,7 @@ check((gui.match(/id="play"/g)||[]).length===1 && (gui.match(/id="stop"/g)||[]).
 check(gui.includes('id="waveZoom"') &&
   gui.includes("waveZoomButton?.addEventListener('click'") &&
   gui.includes("waveOffset+visible/waveZoom") &&
-  gui.includes("const viewSpan=1/waveZoom"),
+  gui.includes("viewSpan=1/waveZoom"),
   "Sample waveform zoom must render a viewport and map gestures back to absolute sample positions");
 check(gui.includes('id="lcdMenu">MENU</button></div>') &&
   gui.includes("$('#lcdMenu')?.addEventListener('click',()=>window.zpBridgeSend?.('creator.system.menu.open',{})"),
