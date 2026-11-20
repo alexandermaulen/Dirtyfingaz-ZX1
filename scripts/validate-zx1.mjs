@@ -126,7 +126,7 @@ check(gui.includes("if(d.released)") && gui.includes("if(mode===null)return;") &
 check(gui.includes("getAdaptiveShiftRatio?.") && gui.includes("const precision=clamp(Number(shiftRatio)||.5,.1,.5)"),
   "SHIFT precision must adapt to encoder movement speed and remain bounded to the existing 10–50% context ratios");
 const adaptiveStart=layoutSource.indexOf("const getAdaptiveShiftRatio=");
-const adaptiveEnd=layoutSource.indexOf(";\\nfunction toggleClearTargets",adaptiveStart);
+const adaptiveEnd=layoutSource.indexOf(";\nfunction toggleClearTargets",adaptiveStart);
 if(adaptiveStart>=0&&adaptiveEnd>adaptiveStart){
   const adaptiveFactory=new Function("store","context","shiftSpeed","defaultShiftPrecision",
     layoutSource.slice(adaptiveStart,adaptiveEnd)+";return getAdaptiveShiftRatio;");
