@@ -144,12 +144,31 @@ check(gui.includes("order=['OFF','1/16','1/8','1/4']") &&
   gui.includes("enabled:next!=='OFF'"),
   "Piano SNAP cycle must explicitly enable/disable engine quantization");
 check(gui.includes('id="bpmWheel" class="bpm-wheel" role="slider"') &&
-  gui.includes('aria-valuemin="40" aria-valuemax="240" aria-valuenow="96">BPM:96'),
+  gui.includes('aria-valuemin="40" aria-valuemax="240" aria-valuenow="120">BPM:120'),
   "BPM wheel must initialize from the engine default and expose its accessible value/range");
-check(gui.includes("let bpmValue=96,lastY=null,remainder=0") &&
+check(gui.includes("let bpmValue=120,lastY=null,remainder=0") &&
   gui.includes("const syncBpmDisplay=value=>") &&
   gui.includes("bpm.setAttribute('aria-valuenow',String(bpmValue))"),
   "BPM UI must use a single bounded display synchronization function");
+check(gui.includes('<div class="scr" id="scr">\\n   <div class="ph">') &&
+  !gui.includes('<div class="v2">\\n    <div class="ph">') &&
+  gui.includes("const ph=scr.querySelector('.ph')"),
+  "One persistent transport dock must serve Sample and Pattern Edit without a duplicate");
+check((gui.match(/id="play"/g)||[]).length===1 && (gui.match(/id="stop"/g)||[]).length===1,
+  "Persistent transport must retain exactly one PLAY and one STOP control");
+check(gui.includes('id="waveZoom"') &&
+  gui.includes("waveZoomButton?.addEventListener('click'") &&
+  gui.includes("waveOffset+visible/waveZoom") &&
+  gui.includes("const viewSpan=1/waveZoom"),
+  "Sample waveform zoom must render a viewport and map gestures back to absolute sample positions");
+check(gui.includes('id="lcdMenu"') &&
+  gui.includes("$('#lcdMenu')?.addEventListener('click',()=>window.zpBridgeSend?.('creator.system.menu.open',{})"),
+  "LCD MENU must reuse the existing system menu contract");
+check(engine.includes("bpm=120,stepIndex=0") &&
+  engine.includes("manualChopMarkers=[];bpm=120;") &&
+  engine.includes("Number(d?.bpm)||120") &&
+  engine.includes('readFiniteNumber(value,120,"BPM")'),
+  "New-project, restore and BPM fallback defaults must agree at 120 BPM");
 check(gui.includes("window.addEventListener('zp-agent-runtime-context'") &&
   gui.includes("if(Number.isFinite(Number(state.bpm)))syncBpmDisplay(state.bpm)"),
   "BPM wheel must synchronize with project and restored engine radio state");
@@ -309,7 +328,7 @@ if(finiteHelperStart>=0&&finiteHelperLine.length>0&&finiteHelperEnd>finiteHelper
   check(emptyRejected,"Finite numeric parser must reject empty numeric input");
 }
 check(engine.includes('readFiniteNumber(v,undefined,"IN/OUT")')&&
-  engine.includes('readFiniteNumber(value,96,"BPM")')&&
+  engine.includes('readFiniteNumber(value,120,"BPM")')&&
   engine.includes('readFiniteNumber(payload.value,undefined,"Valor de control")'),
   "IN/OUT, BPM and control values must use finite numeric validation");
 check(engine.includes('readFiniteNumber(input.step,undefined,"Paso MIDI")')&&
