@@ -49,7 +49,8 @@ function toggleClearTargets(){
   updateState({targets:{left:null,right:null},released:true});dispatchTarget("L",null,true);dispatchTarget("R",null,true);
  }else{
   const snapshot=clearSnapshot;
-  if(!snapshot||snapshot.context!==context||snapshot.groups.left!==state.left||snapshot.groups.right!==state.right)return false;
+  if(!snapshot){updateState({targets:{left:null,right:null},released:false});dispatchTarget("L",null,false);dispatchTarget("R",null,false);syncToolbar();return true}
+  if(snapshot.context!==context||snapshot.groups.left!==state.left||snapshot.groups.right!==state.right)return false;
   const valid=side=>{const saved=snapshot.targets[sideName(side)];if(!saved)return true;const resolved=resolveTarget(side,saved.group,saved.option);return !!resolved&&resolved.action===saved.action};
   if(!valid("L")||!valid("R")){clearSnapshot=null;return false}
   updateState({targets:snapshot.targets,released:false});dispatchTarget("L",snapshot.targets.left,false);dispatchTarget("R",snapshot.targets.right,false);clearSnapshot=null;
