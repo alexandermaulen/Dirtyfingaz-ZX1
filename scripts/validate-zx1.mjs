@@ -349,8 +349,9 @@ check(gui.includes('id="wv-expanded" class="wave-display wave-display-expanded"'
   gui.includes('document.querySelectorAll(".wave-display")')&&
   gui.includes("waveCanvases.forEach(waveCanvas=>"),
   "Circular LCD must render and support trim interaction on both waveform displays");
-check(gui.includes('const tones=["#e5ad42","#caff55","#caff55","#e5ad42"]')&&
-  gui.includes("const bins=data?.length?data.length:96"),
+check(gui.includes('tones=["#e5ad42","#caff55","#caff55","#e5ad42"]')&&
+  gui.includes("const n=data?.length||96")&&
+  gui.includes("lo=data[i][0];hi=data[i][1]"),
   "LCD waveform must use four phosphor segments and preserve real sample data");
 const finiteHelperStart=engine.indexOf("function readFiniteNumber(");
 const finiteHelperLine=finiteHelperStart>=0?engine.slice(finiteHelperStart).split(/\r?\n/,1)[0]:"";
