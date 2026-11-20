@@ -964,7 +964,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
  });
  const valueEncoder=document.querySelector(".pe");
  window.__zpEncoderModes=window.__zpEncoderModes||{lx:"trim.start",rx:"trim.end"};
- window.__zpEncoderTargets=window.__zpEncoderTargets||{L:"step",R:"pitch"};
+ window.__zpEncoderTargets=window.__zpEncoderTargets||{lx:"step",rx:"pitch"};
  window.addEventListener("zp-encoder-target-change",event=>{
   const d=event.detail||{},side=d.side,encoder=side==="L"?lx:valueEncoder;
   if(!["L","R"].includes(side)||!encoder)return;
@@ -978,7 +978,7 @@ adsrPanel.addEventListener("pointercancel",()=>{adsrDrag=null});
   }else if(d.context==="piano"){
    const target=d.active?d.action:(side==="L"?"step":"pitch");
    if(!["step","pitch","velocity","length"].includes(target))return;
-   window.__zpEncoderTargets[side]=target;
+   window.__zpEncoderTargets[side==="L"?"lx":"rx"]=target;
    encoder.dataset.editTarget="MIDI "+target.toUpperCase();
    encoder.setAttribute("aria-label",side+" · "+encoder.dataset.editTarget);
    encoder.title=encoder.dataset.editTarget+" · SHIFT para ajuste fino";
@@ -1279,15 +1279,10 @@ sampleTime?.setAttribute("aria-label","Velocidad de reproducción de la muestra"
  let rotorAngle=null,rotorRemainder=0,rotorTarget="pitch";
  window.__zpEncoderTargets={...(window.__zpEncoderTargets||{}),lx:"step",rx:"pitch"};
  const midiRotor=document.querySelector('.pe');
- window.addEventListener("zp-panel-option-select",event=>{
+ window.addEventListener("zp-encoder-target-change",event=>{
   const d=event.detail||{};if(d.context!=="piano")return;
-  const side=d.side==="L"?"lx":"rx",option=String(d.option||"").trim().toUpperCase();
-  const maps={
-   lx:{NOTE:"step",QUANTIZE:"step"},
-   rx:{PITCH:"pitch",VELOCITY:"velocity","NOTE DYNAMICS":"velocity",ACCENT:"velocity",LENGTH:"length",GATE:"length",QUANTIZE:"step",STEP:"step"}
-  };
-  const target=maps[side][option],encoder=side==="lx"?leftEncoder:rightEncoder;
-  if(!target){encoder.dataset.panelOption=option;encoder.title=side.toUpperCase()+" · "+option+" · SIN ACCIÓN ASIGNADA";return;}
+  const side=d.side==="L"?"lx":"rx",target=d.active?d.action:(side==="lx"?"step":"pitch"),encoder=side==="lx"?leftEncoder:rightEncoder;
+  if(!["step","pitch","velocity","length"].includes(target))return;
   window.__zpEncoderTargets[side]=target;
   if(side==="rx")rotorTarget=target;
   encoder.dataset.editTarget="MIDI "+target.toUpperCase();
